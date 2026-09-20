@@ -35,3 +35,16 @@ How the template is organised:
   expression and the `felt252`-fused kernel; the generator emits the other one in
   `benches::alt::<m>` with its bench, so every choice stays measurable. The scalar-level
   experiments (sign tests, euclidean division, casts, shifts ...) are emitted for the 3D types only.
+
+## Compile budget of the generated tests
+
+The Cairo compiler pays per call site: an `assert_eq!` inlines the operator under test and a
+formatting path. The first version of `intvec_tests.py` unrolled every case (12 300 assertions in
+six files, 30 000 lines): `scarb build --test -p glam` took 81 s and about 32 GB, and the GitHub
+runner was killed while compiling the `glam_tests` crate. The template now emits, per function
+group, one `const NAME: [[i64; W]; K]` table (Python-computed expectations, one row per case,
+readers `vc`, `vo`, `bv`, `opt`, ... in the file prelude) and ONE looping `#[test]`; the cost is
+the number of checks, not cases x checks. Rules for new tests: add a row, not an assertion; keep a
+`#[should_panic]` per panic path; at most 6 fuzz properties per module; measure with
+`scarb clean && /usr/bin/time -l scarb build --test -p glam`.
+
