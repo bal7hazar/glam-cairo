@@ -63,40 +63,40 @@ fn cos_poly_oct(u: W1) -> Fixed {
 /// coefficients scaled by `2^24`.
 #[inline(always)]
 fn sin_poly_q(u: Fixed) -> Fixed {
-    let acc = Fixed { raw: -0x669b1701 };
-    let acc = mul_add(acc, u, Fixed { raw: 0x2e2e073a8f });
-    let acc = mul_add(acc, u, Fixed { raw: -0xd00be87f00c });
-    let acc = mul_add(acc, u, Fixed { raw: 0x2222218077ddc });
-    let acc = mul_add(acc, u, Fixed { raw: -0x2aaaaaa888c864 });
-    let acc = mul_add(acc, u, Fixed { raw: 0xffffffffed5468 });
+    let acc = Fixed { raw: 0xaa7443 };
+    let acc = mul_add(acc, u, Fixed { raw: -0x6b8834c8 });
+    let acc = mul_add(acc, u, Fixed { raw: 0x2e3bb1c40d });
+    let acc = mul_add(acc, u, Fixed { raw: -0xd00d00094ac });
+    let acc = mul_add(acc, u, Fixed { raw: 0x22222221f82a7 });
+    let acc = mul_add(acc, u, Fixed { raw: -0x2aaaaaaaaa93b0 });
     mul_add(acc, u, Fixed { raw: 0x100000000000000 })
 }
 
 /// `cos(z)` as a polynomial in `u = z * z` on `[0, (pi/2)^2]`, degree 7.
 #[inline(always)]
 fn cos_poly_q(u: Fixed) -> Fixed {
-    let acc = Fixed { raw: 0x88ce456 };
-    let acc = mul_add(acc, u, Fixed { raw: -0x49e2d3c9f });
-    let acc = mul_add(acc, u, Fixed { raw: 0x1a017a892b5 });
-    let acc = mul_add(acc, u, Fixed { raw: -0x5b05ae554651 });
-    let acc = mul_add(acc, u, Fixed { raw: 0xaaaaaa9d626c1 });
-    let acc = mul_add(acc, u, Fixed { raw: -0x7fffffffdf4774 });
-    let acc = mul_add(acc, u, Fixed { raw: 0xffffffffff2d70 });
+    let acc = Fixed { raw: -0xc2a92 };
+    let acc = mul_add(acc, u, Fixed { raw: 0x8f5eb8a });
+    let acc = mul_add(acc, u, Fixed { raw: -0x49f916870 });
+    let acc = mul_add(acc, u, Fixed { raw: 0x1a019ff73ed });
+    let acc = mul_add(acc, u, Fixed { raw: -0x5b05b05a214e });
+    let acc = mul_add(acc, u, Fixed { raw: 0xaaaaaaaaa8778 });
+    let acc = mul_add(acc, u, Fixed { raw: -0x7fffffffffff18 });
     mul_add(acc, u, Fixed { raw: 0x100000000000000 })
 }
 
 /// `atan(w) / w` as a polynomial in `v = w * w` on `[0, tan(pi/8)^2]`, degree 9.
 #[inline(always)]
 fn atan_poly_single(v: Fixed) -> Fixed {
-    let acc = Fixed { raw: 0x7de9e921b80a3 };
-    let acc = mul_add(acc, v, Fixed { raw: -0xf0d715d23fb20 });
-    let acc = mul_add(acc, v, Fixed { raw: 0x135def4f5d3a91 });
-    let acc = mul_add(acc, v, Fixed { raw: -0x173dc2344c9c7b });
-    let acc = mul_add(acc, v, Fixed { raw: 0x1c7150436d9cd8 });
-    let acc = mul_add(acc, v, Fixed { raw: -0x24924544fd72c4 });
-    let acc = mul_add(acc, v, Fixed { raw: 0x33333322f2789c });
-    let acc = mul_add(acc, v, Fixed { raw: -0x555555553b06a0 });
-    let acc = mul_add(acc, v, Fixed { raw: 0xfffffffffff8f8 });
+    let acc = Fixed { raw: -0x6fd61dfb17b9a };
+    let acc = mul_add(acc, v, Fixed { raw: 0xd3ea4ad5dc2fb });
+    let acc = mul_add(acc, v, Fixed { raw: -0x10c6186edf2d07 });
+    let acc = mul_add(acc, v, Fixed { raw: 0x13a9facf6ec9ba });
+    let acc = mul_add(acc, v, Fixed { raw: -0x1745668f44324b });
+    let acc = mul_add(acc, v, Fixed { raw: 0x1c71c3a0c6bfae });
+    let acc = mul_add(acc, v, Fixed { raw: -0x24924915f56566 });
+    let acc = mul_add(acc, v, Fixed { raw: 0x333333331b8c38 });
+    let acc = mul_add(acc, v, Fixed { raw: -0x55555555554f04 });
     mul_add(acc, v, Fixed { raw: 0x100000000000000 })
 }
 

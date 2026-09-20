@@ -441,6 +441,40 @@ def g_atan(t):
     return float(datan(d) / d)
 
 
+def g_atan1(v):
+    """`(atan(w) / w - 1) / v` with `v = w * w`, without cancellation."""
+    d = Decimal(v) or ZERO_D
+    w = d.sqrt()
+    return float((datan(w) - w) / (w * d))
+
+
+def check_alt(sin_q, cos_q, atan1, sin_lut, cos_lut):
+    """The variants of `benches::alt::trig` are only benchmarked, never asserted in Cairo: a
+    broken fit there would make the gas comparison meaningless, so the mirrors of their cores
+    are swept here instead."""
+    worst_s = worst_c = 0.0
+    for i in range(0, FRAC_PI_2_RAW, FRAC_PI_2_RAW // 4000):
+        u = fmul(i, i)
+        worst_s = max(worst_s, abs(narrow64(i * horner(sin_q, u) * INV_S) - math.sin(i / ONE) * ONE))
+        worst_c = max(worst_c, abs(fmul(horner(cos_q, u), INV_S) - math.cos(i / ONE) * ONE))
+    assert worst_s < 4 and worst_c < 4, f"quadrant variant: {worst_s:.2f} / {worst_c:.2f} ULP"
+    worst_a = 0.0
+    for i in range(0, int(math.tan(math.pi / 8) * ONE), 1 << 18):
+        v = fmul(i, i)
+        worst_a = max(worst_a, abs(narrow64(i * horner(atan1, v) * INV_S) - math.atan(i / ONE) * ONE))
+    assert worst_a < 8, f"single-polynomial atan variant: {worst_a:.2f} ULP"
+    worst_l = 0.0
+    for i in range(0, P4, P4 // 4000):  # table + linear interpolation
+        idx, f = divmod(i, LUT_STEP)
+        for tab, ref in ((sin_lut, math.sin), (cos_lut, math.cos)):
+            lo, hi = tab[idx], tab[idx + 1]
+            d = (hi - lo) * f
+            got = lo + (d // LUT_STEP if d >= 0 else -((-d) // LUT_STEP))
+            worst_l = max(worst_l, abs(got - ref(i / ONE) * ONE))
+    assert worst_l < 600, f"table variant: {worst_l:.2f} ULP"
+    return worst_s, worst_c, worst_a, worst_l
+
+
 def datan_shift(base, t):
     """`atan(base + t)` to the working precision of `decimal`, for `base` in `(0, 1)`."""
     x = base + t
@@ -449,28 +483,15 @@ def datan_shift(base, t):
 
 
 def build_alt():
-    """The polynomials of the losing variants (`benches::alt::trig`)."""
-    zmax = FRAC_PI_2_RAW / ONE
-    umax = zmax * zmax
-
-    def sin_over_z(u):
-        z = math.sqrt(u)
-        return 1.0 if z == 0.0 else math.sin(z) / z
-
-    sin_q = scale_coeffs(fit_shifted(sin_over_z, 0.0, umax, DEG_SIN_Q, 1.0))
-    cos_q = scale_coeffs(fit_shifted(lambda u: math.cos(math.sqrt(u)), 0.0, umax, DEG_COS_Q, 1.0))
+    """The polynomials and tables of the losing variants (`benches::alt::trig`)."""
+    umax = (FRAC_PI_2_RAW / ONE) ** 2
+    sin_q = scale_coeffs(fit_shifted(g_sin, 0.0, umax, DEG_SIN_Q, 1.0))
+    cos_q = scale_coeffs(fit_shifted(g_cos, 0.0, umax, DEG_COS_Q, 1.0))
     wmax = math.tan(math.pi / 8)
-    atan1 = scale_coeffs(
-        fit_shifted(
-            lambda v: 1.0 if v == 0.0 else math.atan(math.sqrt(v)) / math.sqrt(v),
-            0.0,
-            wmax * wmax,
-            DEG_ATAN1,
-            1.0,
-        ),
-    )
+    atan1 = scale_coeffs(fit_shifted(g_atan1, 0.0, wmax * wmax, DEG_ATAN1, 1.0))
     sin_lut = [int(round(math.sin(i * LUT_STEP / ONE) * ONE)) for i in range(LUT_LEN)]
     cos_lut = [int(round(math.cos(i * LUT_STEP / ONE) * ONE)) for i in range(LUT_LEN)]
+    check_alt(sin_q, cos_q, atan1, sin_lut, cos_lut)
     return sin_q, cos_q, atan1, sin_lut, cos_lut
 
 # ----------------------------------------------------------------- error sweeps
