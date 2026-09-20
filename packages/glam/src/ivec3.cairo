@@ -455,7 +455,8 @@ pub trait IVec3Trait {
     /// #### Panics
     /// * `'Division by 0'` if any `rhs` element is 0.
     /// #### Deviations
-    /// * None.
+    /// * `i32::MIN.rem_euclid(-1)` is 0, the mathematical result: `i32::rem_euclid` of
+    ///   Rust panics with an overflow there (it computes `MIN % -1`).
     fn rem_euclid(self: IVec3, rhs: IVec3) -> IVec3;
     /// Computes the manhattan distance between two points.
     ///

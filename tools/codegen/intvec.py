@@ -435,7 +435,9 @@ def methods(t):
         add("rem_euclid", f"(self: {T}, rhs: {T}) -> {T}",
             "Returns the element-wise remainder of Euclidean division of `self` by `rhs`.",
             t.cw(lambda c: f"rem_euclid_i32(self.{c}, rhs.{c})"),
-            ["`'Division by 0'` if any `rhs` element is 0."])
+            ["`'Division by 0'` if any `rhs` element is 0."],
+            dev=["`i32::MIN.rem_euclid(-1)` is 0, the mathematical result: `i32::rem_euclid` of "
+                 "Rust panics with an overflow there (it computes `MIN % -1`)."])
     b, p, d = fz("manhattan_distance", ["`'u32_add Overflow'` if the sum overflows `u32`."])
     add("manhattan_distance", f"(self: {T}, rhs: {T}) -> u32",
         "Computes the manhattan distance between two points.\n\nSee also "
