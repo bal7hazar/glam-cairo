@@ -56,7 +56,7 @@ fn cos_poly_oct(u: W1) -> Fixed {
     let acc = step(u, acc, Fixed { raw: -0x5b05aeb9c4ac });
     let acc = step(u, acc, Fixed { raw: 0xaaaaaaa8a84bd });
     let acc = step(u, acc, Fixed { raw: -0x7fffffffff9a88 });
-    step(u, acc, Fixed { raw: 0x100000000000000 })
+    step(u, acc, Fixed { raw: 0x100000000800000 })
 }
 
 /// `sin(z) / z` as a polynomial in `u = z * z` on `[0, (pi/2)^2]`, degree 6,
@@ -503,7 +503,11 @@ fn step(u: W1, acc: Fixed, c: Fixed) -> Fixed {
 
 /// The library `sin` with the Cody-Waite tail of `pi / 4` removed: the reduction of an angle
 /// beyond the first turn then drifts by `1.6e-11` radians per octant (3.9e-8 at 1000 turns,
-/// 166 ULP) instead of staying within 2.07 ULP. This is what the tail costs.
+/// 166 ULP) instead of staying within 1.08 ULP. This is what the tail costs.
+///
+/// Its last rescale floors where the library rounds to nearest (rounding would need a half-ULP
+/// term here, ~300 gas, and would pollute the measurement), so it can differ from the library
+/// by 1 ULP even for a small angle.
 pub fn sin_no_tail(x: Fixed) -> Fixed {
     let (oct, z, neg) = reduce8_pub(x);
     let z = Fixed { raw: z.try_into().unwrap() };

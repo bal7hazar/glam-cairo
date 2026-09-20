@@ -52,6 +52,11 @@ P4 = FRAC_PI_4_RAW
 # pi/4 * 2^32 - P4, itself scaled by 2^32: the Cody-Waite tail of the octant reduction.
 P4_TAIL = int(((PI_D / 4 * (1 << 32) - P4) * (1 << 32)).to_integral_value())
 SEG = 1 << 29  # atan segment width (1/8 in raw units)
+# Half a unit of the final rescale, at the scale of the polynomial accumulators: added to the
+# constant term of every polynomial whose result is rescaled by a plain `Fixed *` (cos, atan),
+# which turns that floor into a round-to-nearest for free. The polynomials whose result goes
+# through a Q96.96 accumulator (sin, acos) use `bounded::narrow64_round` instead.
+ROUND_BIAS = 1 << (SB - 1)
 # pi/4 at the scale of the polynomial accumulators: the atan segment index 8 (z == 1) lands here.
 FRAC_PI_4_SCALED = int(((PI_D / 4) * (1 << (32 + 24))).to_integral_value())
 LUT_STEP = 1 << 22  # sin/cos lookup table step (alt variant)
@@ -241,6 +246,11 @@ def narrow64(v):
     return i64(v >> 64)
 
 
+def narrow64_round(v):
+    """`bounded::narrow64_round`: round to nearest, ties toward +infinity."""
+    return i64((v + (1 << 63)) >> 64)
+
+
 def div_trunc(a, b):
     """`Fixed / Fixed`: trunc(a / b)."""
     q = (abs(a) << FRAC) // abs(b)
@@ -274,7 +284,9 @@ class Mirror:
         """(octant, z, negative) from |raw|; z is the reduced angle, ~[0, pi/4]."""
         mag = abs(raw)
         k, r = divmod(mag, P4)
-        corr = (k * P4_TAIL) >> FRAC  # the Cody-Waite tail, zero inside the first turn
+        # The Cody-Waite tail, rounded to nearest like every other rescale of the module; it is
+        # zero for the first four octants, so a small angle is untouched.
+        corr = (k * P4_TAIL + (1 << (FRAC - 1))) >> FRAC
         reduced = r - corr
         oct_ = k % 8
         z = reduced if oct_ % 2 == 0 else P4 - reduced
@@ -282,7 +294,7 @@ class Mirror:
 
     # -- cores ----------------------------------------------------------
     def sin_core(self, z, u):
-        return narrow64(z * horner_wide(self.sin_c, u) * INV_S)
+        return narrow64_round(z * horner_wide(self.sin_c, u) * INV_S)
 
     def cos_core(self, u):
         return fmul(horner_wide(self.cos_c, u), INV_S)
@@ -332,7 +344,7 @@ class Mirror:
         """atan(z) for z in [0, 1] raw."""
         idx, t = divmod(z, SEG)
         if idx == 8:
-            return fmul(FRAC_PI_4_SCALED, INV_S)
+            return fmul(FRAC_PI_4_SCALED + ROUND_BIAS, INV_S)
         return fmul(horner(self.atan_c[idx], t), INV_S)
 
     def atan(self, raw):
@@ -357,7 +369,7 @@ class Mirror:
     def acos_core(self, ax):
         """acos(|x|) = sqrt(1 - |x|) * P(|x|) for |x| <= 1 raw."""
         s = math.isqrt((ONE - ax) << FRAC)
-        return narrow64(s * horner(self.acos_c, ax) * INV_S)
+        return narrow64_round(s * horner(self.acos_c, ax) * INV_S)
 
     def acos(self, raw):
         if raw > ONE or raw < -ONE:
@@ -413,6 +425,12 @@ def build():
             # No cancellation here: the double-precision `atan` is 1e-16 relative, i.e. 4e-7 ULP.
             c = remez(lambda t, b=idx / 8: math.atan(b + t), 0.0, seg, DEG_ATAN)
         atan_c.append(scale_coeffs(c))
+    # `cos_core` and `atan_core` finish with `poly * INV_SCALE`, i.e. a floor: half a unit added
+    # to the constant term makes that rescale round to nearest at no cost. `sin_core` and
+    # `acos_core` round in the Q96.96 narrow instead, so their coefficients stay untouched.
+    cos_c[-1] += ROUND_BIAS
+    for c in atan_c:
+        c[-1] += ROUND_BIAS
     return Mirror(sin_c, cos_c, acos_c, atan_c)
 
 
@@ -649,6 +667,8 @@ def emit_lib(m, errors):
     a("/// once per octant beyond the first turn so that the reduction of a large angle stays")
     a("/// accurate to ~1 ULP instead of drifting by `k * 1.6e-11` radians.")
     a(f"const FRAC_PI_4_TAIL: u64 = {P4_TAIL};")
+    a("/// Half a unit of the tail rescale: makes the Cody-Waite correction round to nearest.")
+    a(f"const FRAC_PI_4_TAIL_HALF: u64 = {1 << (FRAC - 1)};")
     a("/// The octant divisor as an `i64` (the reduced angle is signed: see `reduce8`).")
     a(f"const FRAC_PI_4_RAW_I: i64 = {P4};")
     a("const EIGHT_NZ: NonZero<u64> = 8;")
@@ -657,7 +677,7 @@ def emit_lib(m, errors):
     a(f"const ATAN_SEG_NZ: NonZero<u64> = {hexi(SEG)};")
     a("/// `pi / 4` scaled by `2^24`, the value of the last atan segment (`z == 1`); rescaled by")
     a("/// `INV_SCALE` like every other segment, it yields exactly `FRAC_PI_4`.")
-    a(f"const FRAC_PI_4_SCALED: Fixed = Fixed {{ raw: {hexi(FRAC_PI_4_SCALED)} }};")
+    a(f"const FRAC_PI_4_SCALED: Fixed = Fixed {{ raw: {hexi(FRAC_PI_4_SCALED + ROUND_BIAS)} }};")
     a("/// `2^-24`, exact: undoes the scaling of the polynomial accumulators in the single")
     a("/// rescale that produces the result.")
     a(f"const INV_SCALE: Fixed = Fixed {{ raw: {INV_S} }};")
@@ -855,8 +875,12 @@ def print_tables(m):
         print(f"    ({hexi(raw)}, {hexi(to_radians(raw))}, {hexi(to_degrees(raw))}),")
 
 
-BUDGET = {"sin": 4.0, "cos": 4.0, "tan": 8.0, "atan": 8.0, "atan2": 8.0, "acos": 8.0,
-          "asin": 8.0, "to_radians": 8.0, "to_degrees": 8.0}
+# Maximum error tolerated per function, in ULP. The brief budgets 4 ULP for the circular
+# functions and 8 for the inverse ones; since every final rescale rounds to nearest
+# (`docs/DESIGN.md` section 2, second exception) the measured errors are roughly half that, and
+# these budgets lock the improvement in: they are ~20 % above what the sweeps return.
+BUDGET = {"sin": 2.5, "cos": 2.5, "tan": 3.0, "atan": 3.5, "atan2": 4.0, "acos": 3.5,
+          "asin": 3.0, "to_radians": 1.5, "to_degrees": 1.5}
 
 
 def main():

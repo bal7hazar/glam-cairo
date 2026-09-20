@@ -6,10 +6,11 @@
 //!
 //! The expected values of the tables are produced by `scripts/gen_trig.py tables`, whose Python
 //! mirror reproduces the Cairo code operation by operation; the mirror itself is swept against
-//! 60-digit references by `scripts/gen_trig.py sweep` (max 2.07 ULP for `sin` / `cos`, 3.85 ULP
-//! for `atan2`, 3.50 ULP for `acos`). The tables therefore pin the **bit-exact** results - they
-//! are API, a change of any of them is a breaking change - while the sweep is what proves them
-//! correct. The tolerances used by the property tests below are derived from those figures.
+//! 60-digit references by `scripts/gen_trig.py sweep` (max 1.02 ULP for `sin` / `cos` over a
+//! turn, 3.22 ULP for `atan2`, 2.96 ULP for `acos`). The tables therefore pin the **bit-exact**
+//! results - they are API, a change of any of them is a breaking change - while the sweep is what
+//! proves them correct. The tolerances used by the property tests below are derived from those
+//! figures.
 use fixed::fixed::{FRAC_PI_2, FRAC_PI_4, MAX, MIN, PI};
 use fixed::{Fixed, FixedTrait, ONE, TrigTrait, ZERO};
 
@@ -42,14 +43,15 @@ fn test_exact_identities() {
     assert_eq!(ZERO.tan(), ZERO);
     assert_eq!(FRAC_PI_2.sin(), ONE);
     assert_eq!(FRAC_PI_2.cos(), ZERO);
-    // Every rescale floors (`docs/DESIGN.md` section 2), so the values that are irrational in
-    // Q32.32 land within 2 ULP instead of on a round number: FRAC_PI_4 is itself 1.6e-11 below
-    // pi / 4, where tan is 1 - 3.2e-11.
-    assert!(diff(FRAC_PI_4.tan(), ONE) <= 2);
-    assert!(diff((-FRAC_PI_4).tan(), -ONE) <= 2);
-    // sin(2^-32) = 2^-32 (1 - 1.9e-20) and cos(2^-32) = 1 - 1.2e-19: both floor one ULP down.
-    assert_eq!(FixedTrait::from_raw(1).sin(), ZERO);
-    assert_eq!(FixedTrait::from_raw(1).cos(), ONE - FixedTrait::from_raw(1));
+    // The final rescale of every polynomial rounds to nearest (`docs/DESIGN.md` section 2,
+    // second exception), so `sin` and `cos` agree at pi / 4 and their quotient is exactly one.
+    assert_eq!(FRAC_PI_4.tan(), ONE);
+    assert_eq!((-FRAC_PI_4).tan(), -ONE);
+    assert_eq!(FRAC_PI_4.sin(), FRAC_PI_4.cos());
+    // The smallest positive angle: sin(2^-32) = 2^-32 and cos(2^-32) = 1, both to the nearest.
+    assert_eq!(FixedTrait::from_raw(1).sin(), FixedTrait::from_raw(1));
+    assert_eq!(FixedTrait::from_raw(1).cos(), ONE);
+    assert_eq!(PI.cos(), -ONE);
     assert_eq!(ZERO.sin_cos(), (ZERO, ONE));
     assert_eq!(FRAC_PI_2.sin_cos(), (ONE, ZERO));
     assert_eq!(ONE.acos(), ZERO);
@@ -117,8 +119,9 @@ fn test_extreme_magnitudes() {
         assert!(diff(n, ONE) <= 16, "sin^2 + cos^2 at an extreme magnitude");
         assert!((*x).atan().abs() <= FRAC_PI_2, "|atan| <= pi/2");
     }
-    assert_eq!(MAX.atan(), FRAC_PI_2 - f(1));
-    assert_eq!(MIN.atan(), -(FRAC_PI_2 - f(1)));
+    // atan(2^31) = pi/2 - 4.66e-10, i.e. FRAC_PI_2 - 2 ULP once rounded.
+    assert_eq!(MAX.atan(), FRAC_PI_2 - f(2));
+    assert_eq!(MIN.atan(), -(FRAC_PI_2 - f(2)));
 }
 
 /// `sin` increases on `[0, pi/2]`, `cos` decreases, `acos` decreases, `atan` increases.
@@ -146,18 +149,18 @@ fn test_monotonicity() {
 /// `x`, `sin(x)`, `cos(x)` (raw). Covers 0, +-1 ULP, the octant boundaries, +-PI, +-TAU,
 /// `1000 * TAU` and the extremes of the range.
 const SIN_COS: [(i64, i64, i64); 25] = [
-    (0x0, 0x0, 0x100000000), (0x1, 0x0, 0xffffffff), (-0x1, 0x0, 0xffffffff),
+    (0x0, 0x0, 0x100000000), (0x1, 0x1, 0x100000000), (-0x1, -0x1, 0x100000000),
     (0x100000000, 0xd76aa478, 0x8a51407d), (-0x100000000, -0xd76aa478, 0x8a51407d),
-    (0x80000000, 0x7abba1d1, 0xe0a94032), (0xc90fdaa2, 0xb504f334, 0xb504f333),
+    (0x80000000, 0x7abba1d1, 0xe0a94033), (0xc90fdaa2, 0xb504f334, 0xb504f334),
     (0x1921fb544, 0x100000000, 0x0), (-0x1921fb544, -0x100000000, 0x0),
-    (0x3243f6a89, 0x0, -0xffffffff), (-0x3243f6a89, 0x0, -0xffffffff),
-    (0x4b65f1fcd, -0xffffffff, 0x0), (0x6487ed511, 0x0, 0x100000000),
-    (-0x6487ed511, 0x0, 0x100000000), (0x25b2f8fe6, 0xb504f333, -0xb504f334),
-    (0x3ed4f452a, -0xb504f334, -0xb504f333), (0x57f6efa6e, -0xb504f333, 0xb504f334),
-    (0x188b2f704a68, -0x2c, 0xffffffff), (-0x188b2f704a68, 0x2c, 0xffffffff),
-    (0x75bcd15, 0x75b8aac, 0xffe4ed68), (-0x3ade68b1, -0x3a59f084, 0xf942daf7),
-    (0x10000000000, -0xffcc1904, -0xa2fba2c), (-0x200000000000, 0xf4c7c384, 0x4af50f43),
-    (0x4000000000000000, -0x9e091a9a, 0xc965a355), (-0x4000000000000000, 0x9e091a9a, 0xc965a355),
+    (0x3243f6a89, 0x0, -0x100000000), (-0x3243f6a89, 0x0, -0x100000000),
+    (0x4b65f1fcd, -0x100000000, 0x0), (0x6487ed511, 0x0, 0x100000000),
+    (-0x6487ed511, 0x0, 0x100000000), (0x25b2f8fe6, 0xb504f334, -0xb504f334),
+    (0x3ed4f452a, -0xb504f333, -0xb504f335), (0x57f6efa6e, -0xb504f335, 0xb504f333),
+    (0x188b2f704a68, -0x2c, 0x100000000), (-0x188b2f704a68, 0x2c, 0x100000000),
+    (0x75bcd15, 0x75b8aad, 0xffe4ed69), (-0x3ade68b1, -0x3a59f085, 0xf942daf7),
+    (0x10000000000, -0xffcc1904, -0xa2fba2c), (-0x200000000000, 0xf4c7c385, 0x4af50f44),
+    (0x4000000000000000, -0x9e091a9c, 0xc965a354), (-0x4000000000000000, 0x9e091a9c, 0xc965a354),
 ];
 
 #[test]
@@ -172,8 +175,8 @@ fn test_sin_cos_table() {
 
 /// `x`, `tan(x)` (raw). `tan(PI)` is 1 ULP because `PI` itself is 1.1e-10 past pi.
 const TAN: [(i64, i64); 9] = [
-    (0x0, 0x0), (0x1, 0x0), (-0x1, 0x0), (0x100000000, 0x18eb245cd), (-0x100000000, -0x18eb245cd),
-    (0xc90fdaa2, 0x100000001), (-0xc90fdaa2, -0x100000001), (0x3243f6a89, 0x0),
+    (0x0, 0x0), (0x1, 0x1), (-0x1, -0x1), (0x100000000, 0x18eb245cd), (-0x100000000, -0x18eb245cd),
+    (0xc90fdaa2, 0x100000000), (-0xc90fdaa2, -0x100000000), (0x3243f6a89, 0x0),
     (0x55555555, 0x58a41296),
 ];
 
@@ -191,10 +194,10 @@ const ATAN2: [(i64, i64, i64); 16] = [
     (0x0, 0x100000000, 0x0), (0x0, -0x100000000, 0x3243f6a89),
     (0x100000000, 0x100000000, 0xc90fdaa2), (0x100000000, -0x100000000, 0x25b2f8fe7),
     (-0x100000000, 0x100000000, -0xc90fdaa2), (-0x100000000, -0x100000000, -0x25b2f8fe7),
-    (0x100000000, 0x200000000, 0x76b19c15), (-0x300000000, 0x400000000, -0xa4bc7d18),
-    (0x1, 0x100000000, 0x0), (0x100000000, 0x1, 0x1921fb544),
-    (0x10000000000, 0x20000000000, 0x76b19c15),
-    (-0x4000000000000000, 0x4000000000000000, -0xc90fdaa2), (0x55555555, 0x700000000, 0xc2e67ff),
+    (0x100000000, 0x200000000, 0x76b19c16), (-0x300000000, 0x400000000, -0xa4bc7d19),
+    (0x1, 0x100000000, 0x1), (0x100000000, 0x1, 0x1921fb543),
+    (0x10000000000, 0x20000000000, 0x76b19c16),
+    (-0x4000000000000000, 0x4000000000000000, -0xc90fdaa2), (0x55555555, 0x700000000, 0xc2e6800),
 ];
 
 #[test]
@@ -208,9 +211,9 @@ fn test_atan2_table() {
 
 /// `x`, `atan(x)` (raw).
 const ATAN: [(i64, i64); 10] = [
-    (0x0, 0x0), (0x1, 0x0), (-0x1, 0x0), (0x100000000, 0xc90fdaa2), (-0x100000000, -0xc90fdaa2),
-    (0x80000000, 0x76b19c15), (0x400000000, 0x15368c951), (-0x400000000, -0x15368c951),
-    (0x10000000000, 0x1911fb59a), (-0x4000000000000000, -0x1921fb541),
+    (0x0, 0x0), (0x1, 0x1), (-0x1, -0x1), (0x100000000, 0xc90fdaa2), (-0x100000000, -0xc90fdaa2),
+    (0x80000000, 0x76b19c16), (0x400000000, 0x15368c951), (-0x400000000, -0x15368c951),
+    (0x10000000000, 0x1911fb599), (-0x4000000000000000, -0x1921fb540),
 ];
 
 #[test]
@@ -228,11 +231,11 @@ fn test_atan_table() {
 const ACOS_ASIN: [(i64, i64, i64); 15] = [
     (0x0, 0x1921fb544, 0x0), (0x1, 0x1921fb542, 0x2), (-0x1, 0x1921fb547, -0x2),
     (0x100000000, 0x0, 0x1921fb544), (-0x100000000, 0x3243f6a89, -0x1921fb544),
-    (0x80000000, 0x10c152380, 0x860a91c4), (-0x80000000, 0x2182a4709, -0x860a91c4),
-    (0x40000000, 0x151700e0a, 0x40afa73a), (0xc0000000, 0xb9051c95, 0xd91a98af),
-    (0xffffffff, 0x16a09, 0x1921e4b3b), (-0xffffffff, 0x3243e0080, -0x1921e4b3b),
+    (0x80000000, 0x10c152381, 0x860a91c3), (-0x80000000, 0x2182a4708, -0x860a91c3),
+    (0x40000000, 0x151700e0b, 0x40afa739), (0xc0000000, 0xb9051c96, 0xd91a98ae),
+    (0xffffffff, 0x16a0a, 0x1921e4b3a), (-0xffffffff, 0x3243e007f, -0x1921e4b3a),
     (0xb504f334, 0xc90fdaa1, 0xc90fdaa3), (-0xb504f334, 0x25b2f8fe8, -0xc90fdaa3),
-    (0x80000000, 0x10c152380, 0x860a91c4), (0x75bcd15, 0x18ac3a5be, 0x75c0f86),
+    (0x80000000, 0x10c152381, 0x860a91c3), (0x75bcd15, 0x18ac3a5be, 0x75c0f86),
 ];
 
 #[test]
@@ -327,7 +330,7 @@ fn test_to_degrees_overflow_panics() {
 
 // ------------------------------------------------------------------ properties (seeded fuzzing)
 
-/// Tolerances in ULP, from the sweeps of `scripts/gen_trig.py`: 2.07 for `sin` / `cos`, 3.85 for
+/// Tolerances in ULP, from the sweeps of `scripts/gen_trig.py`: 1.02 for `sin` / `cos`, 3.22 for
 /// `atan2`, 3.50 for `acos`. `sin^2 + cos^2` accumulates `2 (|ds| + |dc|) + 1`, rounded up to 16.
 const TOL_PYTHAGORAS: i128 = 16;
 const TOL_ROUNDTRIP: i128 = 24;
