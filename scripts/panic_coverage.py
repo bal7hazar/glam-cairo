@@ -10,7 +10,8 @@ requirement, covered by any panic test on the item or by the allowlist.
 
 The tested side is every `#[should_panic(expected: '<msg>')]` test of
 `packages/{fixed,glam,glamx}/tests/*.cairo`, attributed to the item it exercises by, in order:
-  (a) a marker comment in the lines above the test, `// panics: <Owner>::<item>`;
+  (a) a marker comment in the lines above the test, `// panics: <Owner>::<item>` (for the
+      generated golden files, which cannot carry one, the `MARKERS` table below);
   (b) its name, `test_<item>_<reason>` (or `golden_<module>_<item>_<reason>`), where `<item>` is
       the longest public item of the module under test that prefixes the rest of the name
       (operator impls answer to their operator: `Vec3Add` to `add`, `Vec3IndexView` to `index`);
@@ -40,6 +41,73 @@ INHERITED = "(inherited)"
 # (owner, item, message) -> reason. `message` is one message of the requirement (any of its
 # `/` alternatives) or INHERITED. Every entry must still match an uncovered requirement.
 ALLOWED_MISSING: dict[tuple[str, str, str], str] = {
+    ("Fixed", "move_towards", "i64_add Overflow"):
+        "escalated: unreachable, `self + d` runs only when `rhs - self > d`, so `self + d < rhs`; "
+        "`self - d` only when `self - d > rhs` (the away branches panic with 'i64_add Underflow' /"
+        " 'i64_sub Overflow')",
+    ("Fixed", "to_radians", "Fixed: overflow"):
+        "escalated: unreachable, `|self * PI / 180| < |self|`",
+    ("camera::lh::view", "look_at_mat3", "i64_neg Underflow"):
+        "escalated: unreachable, the negations act on `normalize(center - eye)`, components in "
+        "[-1, 1]",
+    ("camera::rh::view", "look_at_mat3", "i64_neg Underflow"):
+        "escalated: unreachable, the negations act on `normalize(center - eye)`, components in "
+        "[-1, 1]",
+    ("Mat4", "to_scale_rotation_translation", "i64_neg Underflow"):
+        "escalated: unreachable, the only negation is `-length(x_axis)`, never `MIN`",
+    ("Vec2", "normalize", "Fixed: overflow"):
+        "escalated: unreachable, `norm2_wide` cannot overflow and `|x| * recip(len) <= 2^96`: "
+        "every component is in [-1, 1]",
+    ("Vec2", "try_normalize", "Fixed: overflow"):
+        "escalated: unreachable, `norm2_wide` cannot overflow and `|x| * recip(len) <= 2^96`: "
+        "every component is in [-1, 1]",
+    ("Vec2", "normalize_or", "Fixed: overflow"):
+        "escalated: unreachable, `norm2_wide` cannot overflow and `|x| * recip(len) <= 2^96`: "
+        "every component is in [-1, 1]",
+    ("Vec2", "normalize_or_zero", "Fixed: overflow"):
+        "escalated: unreachable, `norm2_wide` cannot overflow and `|x| * recip(len) <= 2^96`: "
+        "every component is in [-1, 1]",
+    ("Vec3", "normalize", "Fixed: overflow"):
+        "escalated: unreachable, `norm3_wide` cannot overflow and `|x| * recip(len) <= 2^96`: "
+        "every component is in [-1, 1]",
+    ("Vec3", "try_normalize", "Fixed: overflow"):
+        "escalated: unreachable, `norm3_wide` cannot overflow and `|x| * recip(len) <= 2^96`: "
+        "every component is in [-1, 1]",
+    ("Vec3", "normalize_or", "Fixed: overflow"):
+        "escalated: unreachable, `norm3_wide` cannot overflow and `|x| * recip(len) <= 2^96`: "
+        "every component is in [-1, 1]",
+    ("Vec3", "normalize_or_zero", "Fixed: overflow"):
+        "escalated: unreachable, `norm3_wide` cannot overflow and `|x| * recip(len) <= 2^96`: "
+        "every component is in [-1, 1]",
+    ("Vec2", "midpoint", "Fixed: overflow"):
+        "escalated: unreachable, the floored exact midpoint lies between the two inputs",
+    ("Vec3", "midpoint", "Fixed: overflow"):
+        "escalated: unreachable, the floored exact midpoint lies between the two inputs",
+    ("Vec4", "midpoint", "Fixed: overflow"):
+        "escalated: unreachable, the floored exact midpoint lies between the two inputs",
+    ("Vec3", "rotate_towards", "i64_sub Overflow"):
+        "escalated: unreachable, the only `i64` subtraction is `angle_between - PI`, with "
+        "`angle_between` in [0, PI]",
+    ("Pose2", "abs_diff_eq", "i64_sub Overflow"):
+        "escalated: unreachable, built on `Fixed::abs_diff_eq`, an `i128` difference that never "
+        "panics",
+    ("Pose3", "abs_diff_eq", "i64_sub Overflow"):
+        "escalated: unreachable, built on `Fixed::abs_diff_eq`, an `i128` difference that never "
+        "panics",
+    ("SdpMatrix2", "add_diagonal", "Fixed: overflow"):
+        "escalated: wrong message, a plain `Fixed` sum panics with 'i64_add Overflow' (tested)",
+    ("SdpMatrix3", "add_diagonal", "Fixed: overflow"):
+        "escalated: wrong message, a plain `Fixed` sum panics with 'i64_add Overflow' (tested)",
+    ("SdpMatrix", "SdpMatrix2Add", "Fixed: overflow"):
+        "escalated: wrong message, a plain `Fixed` sum panics with 'i64_add Overflow' (tested)",
+    ("SdpMatrix", "SdpMatrix3Add", "Fixed: overflow"):
+        "escalated: wrong message, a plain `Fixed` sum panics with 'i64_add Overflow' (tested)",
+    ("SdpMatrix", "SdpMatrix2Sub", "Fixed: overflow"):
+        "escalated: wrong message, a plain `Fixed` sum panics with 'i64_sub Overflow' / 'i64_sub "
+        "Underflow' (tested)",
+    ("SdpMatrix", "SdpMatrix3Sub", "Fixed: overflow"):
+        "escalated: wrong message, a plain `Fixed` sum panics with 'i64_sub Overflow' / 'i64_sub "
+        "Underflow' (tested)",
     ("Affine3", "from_quat", "(inherited)"):
         "inherited: panics as `Mat3Trait::from_quat`, exercised there",
     ("Affine3", "from_axis_angle", "(inherited)"):
@@ -50,8 +118,6 @@ ALLOWED_MISSING: dict[tuple[str, str, str], str] = {
         "inherited: panics as `Mat3Trait::from_quat`, exercised there",
     ("Affine3", "look_to_lh", "(inherited)"):
         "inherited: panics as `look_to_rh`, exercised there",
-    ("Affine3", "look_at_rh", "(inherited)"):
-        "inherited: panics as `look_at_lh`, exercised there",
     ("Affine3", "quat_from_affine3", "(inherited)"):
         "inherited: panics as `QuatTrait::from_rotation_axes`, exercised there",
     ("camera::lh::view", "look_at_affine3", "(inherited)"):
@@ -60,10 +126,6 @@ ALLOWED_MISSING: dict[tuple[str, str, str], str] = {
         "inherited: panics as `look_to_mat4`, exercised there",
     ("camera::lh::view", "look_at_quat", "(inherited)"):
         "inherited: panics as `look_at_mat3` and `QuatTrait::from_mat3`, exercised there",
-    ("camera::lh::view", "look_to_quat", "(inherited)"):
-        "inherited: panics as `look_to_mat3` and `QuatTrait::from_mat3`, exercised there",
-    ("camera::rh::view", "look_at_affine3", "(inherited)"):
-        "inherited: panics as `look_at_mat4`, exercised there",
     ("camera::rh::view", "look_to_affine3", "(inherited)"):
         "inherited: panics as `look_to_mat4`, exercised there",
     ("camera::rh::view", "look_at_quat", "(inherited)"):
@@ -151,11 +213,33 @@ MARKERS: dict[tuple[str, str], str] = {
         "Fixed::div_euclid",
     ("packages/glam/tests/golden_quat.cairo", "golden_quat_mul_div_scalar_panics_div_scalar_zero"):
         "Quat::div_scalar",
+    ("packages/fixed/tests/golden_wide.cairo", "golden_wide_recip_mul_panics_overflow"):
+        "Recip::mul",
+    ("packages/glamx/tests/golden_sdp.cairo", "golden_sdp_inverse_unchecked2_panics_singular"):
+        "SdpMatrix2::inverse_unchecked",
 }
 
 # (test file, test function) -> reason: the test panics with a message that the doc of its item
 # does not list (a documentation gap, escalated in docs/audits/R1-panic-coverage.md).
 ALLOWED_UNDOCUMENTED: dict[tuple[str, str], str] = {
+    ("packages/glamx/tests/test_sdp.cairo", "test_add_overflow"):
+        "escalated: the doc of the item lists 'Fixed: overflow', the plain `Fixed` sum panics with"
+        " the i64 message",
+    ("packages/glamx/tests/test_sdp.cairo", "test_sub_underflow"):
+        "escalated: the doc of the item lists 'Fixed: overflow', the plain `Fixed` sum panics with"
+        " the i64 message",
+    ("packages/glamx/tests/test_sdp.cairo", "test_add_diagonal_overflow"):
+        "escalated: the doc of the item lists 'Fixed: overflow', the plain `Fixed` sum panics with"
+        " the i64 message",
+    ("packages/glamx/tests/test_sdp.cairo", "test_add_diagonal2_overflow"):
+        "escalated: the doc of the item lists 'Fixed: overflow', the plain `Fixed` sum panics with"
+        " the i64 message",
+    ("packages/glamx/tests/test_sdp.cairo", "test_add2_overflow"):
+        "escalated: the doc of the item lists 'Fixed: overflow', the plain `Fixed` sum panics with"
+        " the i64 message",
+    ("packages/glamx/tests/test_sdp.cairo", "test_sub3_underflow"):
+        "escalated: the doc of the item lists 'Fixed: overflow', the plain `Fixed` sum panics with"
+        " the i64 message",
     ("packages/fixed/tests/golden_fixed.cairo", "golden_fixed_move_towards_panics_away_underflow"):
         "escalated: the doc lists 'i64_add Overflow' / 'i64_sub Underflow' for `self +- d`, "
         "the away-underflow branch panics with 'i64_add Underflow'",
@@ -179,8 +263,9 @@ FN_RE = re.compile(r"^\s*fn\s+([A-Za-z_][A-Za-z0-9_]*)")
 MARKER_RE = re.compile(r"//\s*panics:\s*([A-Za-z_][A-Za-z0-9_:]*)")
 MOD_RE = re.compile(r"^(\s*)(?:pub\s+)?mod\s+([A-Za-z_][A-Za-z0-9_]*)\s*\{")
 PUB_FN_RE = re.compile(r"^\s*(?:pub\s+)?fn\s+([A-Za-z_][A-Za-z0-9_]*)")
-PUB_IMPL_RE = re.compile(r"^\s*pub\s+impl\s+([A-Za-z_][A-Za-z0-9_]*)\s+of\s+([A-Za-z_][A-Za-z0-9_]*)")
-PUB_TRAIT_RE = re.compile(r"^\s*pub\s+trait\s+([A-Za-z_][A-Za-z0-9_]*)")
+PUB_IMPL_RE = re.compile(
+    r"^\s*pub\s+impl\s+([A-Za-z_][A-Za-z0-9_]*)\s+of\s+([A-Za-z_][A-Za-z0-9_]*)"
+)
 OPERATORS = {
     "Add": "add", "Sub": "sub", "Mul": "mul", "Div": "div", "Rem": "rem", "Neg": "neg",
     "AddAssign": "add_assign", "SubAssign": "sub_assign", "MulAssign": "mul_assign",
@@ -266,7 +351,8 @@ def requirements(items: list[deviations.Item]) -> list[Requirement]:
                 bullets[-1] += " " + line.strip()
         found = False
         for bullet in bullets:
-            groups = [tuple(MESSAGE_RE.findall(m.group(0))) for m in ALTERNATIVES_RE.finditer(bullet)]
+            groups = [tuple(MESSAGE_RE.findall(m.group(0)))
+                      for m in ALTERNATIVES_RE.finditer(bullet)]
             rest = ALTERNATIVES_RE.sub("", bullet)
             groups += [(m,) for m in MESSAGE_RE.findall(rest)]
             for group in groups:
