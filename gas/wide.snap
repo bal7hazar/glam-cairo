@@ -18,8 +18,8 @@ bench_wide::alt_dot3_unfused: 7540 63 16 0 0
 bench_wide::alt_is_unit3_narrowed: 4240 37 6 0 0
 bench_wide::alt_mul_sub_unfused: 5120 43 10 0 0
 bench_wide::alt_norm3_via_squared: 5020 42 10 0 0
-bench_wide::alt_normalize3_div: 11790 99 24 0 0
-bench_wide::alt_normalize3_recip_mul: 10560 88 23 0 0
+bench_wide::alt_normalize3_div: 13200 111 24 0 0
+bench_wide::alt_normalize3_recip_mul: 10930 91 23 0 0
 bench_wide::alt_triple_single_downcast: 2350 20 5 0 0
 bench_wide::alt_triple_two_stage: 4380 37 8 0 0
 bench_wide::alt_w16_dot16: 57610 501 69 0 0

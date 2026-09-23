@@ -600,11 +600,6 @@ def div_leaf(floor):
     return leaf
 
 
-fn(
-    "`trunc((a * 2^32) / b)`: rounds toward zero, like the corelib signed division.",
-    "div_trunc(a: i64, b: i64) -> i64",
-    four_way(div_leaf(False)),
-)
 
 
 def rem_leaf(a_neg, b_neg, mag, den):
@@ -687,11 +682,6 @@ def recip_body(floor):
     return out + f"            {V('q', q).down()}\n        }},\n    }}"
 
 
-fn(
-    "`trunc(2^64 / b)`: the reciprocal, rounded like `div_trunc` (one sign split instead of two).",
-    "recip_trunc(b: i64) -> i64",
-    recip_body(False),
-)
 
 
 # Round half to even of `num / den` on magnitudes, then re-sign and range-check. Two formulations
@@ -756,7 +746,7 @@ def recip_nearest_body(variant):
     return out + "        },\n    }"
 
 
-DIV_NEAREST = "bias"  # the winner (see gas/fixed.snap: div_nearest vs alt_div_nearest_*)
+DIV_NEAREST = "bias"  # the winner (see gas/fixed.snap: div vs alt_div_nearest_*)
 fn(
     "`round_half_even((a * 2^32) / b)`: the correctly rounded quotient (ties to even).",
     "div_nearest(a: i64, b: i64) -> i64",
@@ -1036,6 +1026,17 @@ fn(
     four_way(div_leaf(True)),
 )
 fn(
+    "`trunc((a * 2^32) / b)`: rounds toward zero, like the corelib signed division (the `/` of\n"
+    "`fixed` up to 0.2; 400 gas less than round half to even).",
+    "div_trunc_raw(a: i64, b: i64) -> i64",
+    four_way(div_leaf(False)),
+)
+fn(
+    "`trunc(2^64 / b)`: the reciprocal rounded toward zero (`recip` up to 0.2).",
+    "recip_trunc_raw(b: i64) -> i64",
+    recip_body(False),
+)
+fn(
     "`floor(2^64 / b)`: reciprocal rounded toward negative infinity.",
     "recip_floor_raw(b: i64) -> i64",
     recip_body(True),
@@ -1209,6 +1210,8 @@ FIVE = "a: Fixed, b: Fixed, c: Fixed, d: Fixed, e: Fixed"
 ALT_WRAPPERS = [
     ("mul_bias_downcast", "a: Fixed, b: Fixed", "a.raw, b.raw", "Prototype rescale of `mul`."),
     ("div_floor", "a: Fixed, b: Fixed", "a.raw, b.raw", "Floor-rounded `div`."),
+    ("div_trunc", "a: Fixed, b: Fixed", "a.raw, b.raw", "Truncated `div` (up to 0.2)."),
+    ("recip_trunc", "b: Fixed", "b.raw", "Truncated `recip` (up to 0.2)."),
     ("div_trunc_flat", "a: Fixed, b: Fixed", "a.raw, b.raw", "Flat sign-split `div`."),
     ("recip_floor", "b: Fixed", "b.raw", "Floor-rounded `recip`."),
     (

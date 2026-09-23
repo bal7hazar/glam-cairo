@@ -1189,3 +1189,33 @@ fn alt_recip_nearest_cmp__op() {
     let _r = bb(Fixed { raw: 1 });
     sink(alt::recip_nearest_cmp(b));
 }
+
+#[test]
+fn alt_div_trunc__base() {
+    let _a = bb(Fixed { raw: 0x500000000 });
+    let _b = bb(Fixed { raw: -0x280000001 });
+    sink(bb(Fixed { raw: 1 }));
+}
+
+#[test]
+fn alt_div_trunc__op() {
+    let a = bb(Fixed { raw: 0x500000000 });
+    let b = bb(Fixed { raw: -0x280000001 });
+    let _r = bb(Fixed { raw: 1 });
+    sink(alt::div_trunc(a, b));
+}
+
+#[test]
+fn alt_recip_trunc__base() {
+    let _a = bb(Fixed { raw: 0x500000000 });
+    let _b = bb(Fixed { raw: -0x280000001 });
+    sink(bb(Fixed { raw: 1 }));
+}
+
+#[test]
+fn alt_recip_trunc__op() {
+    let _a = bb(Fixed { raw: 0x500000000 });
+    let b = bb(Fixed { raw: -0x280000001 });
+    let _r = bb(Fixed { raw: 1 });
+    sink(alt::recip_trunc(b));
+}
