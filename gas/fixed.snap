@@ -5,6 +5,8 @@ bench_fixed::add: 840 7 2 0 0
 bench_fixed::add_assign: 840 7 2 0 0
 bench_fixed::alt_abs_downcast: 1240 11 2 0 0
 bench_fixed::alt_div_floor: 3940 34 6 0 0
+bench_fixed::alt_div_nearest_cmp: 4310 37 7 0 0
+bench_fixed::alt_div_nearest_cmp_tie: 5320 45 10 0 0
 bench_fixed::alt_div_stable: 6550 44 8 0 0
 bench_fixed::alt_div_trunc_flat: 4760 42 6 0 0
 bench_fixed::alt_mul_bias_downcast: 2050 17 5 0 0
@@ -13,6 +15,7 @@ bench_fixed::alt_mul_stable_i128: 4110 34 7 0 0
 bench_fixed::alt_powi_loop_2: 15410 138 20 0 0
 bench_fixed::alt_powi_loop_5: 21750 193 32 0 0
 bench_fixed::alt_recip_floor: 3470 30 5 0 0
+bench_fixed::alt_recip_nearest_cmp: 3940 34 6 0 0
 bench_fixed::alt_rem_native: 4520 28 5 0 0
 bench_fixed::alt_round_downcast: 3000 26 4 0 0
 bench_fixed::alt_sqrt_constrain: 2120 17 6 0 0
@@ -22,6 +25,8 @@ bench_fixed::copysign: 1140 10 2 0 0
 bench_fixed::div: 3740 32 6 0 0
 bench_fixed::div_assign: 3740 32 6 0 0
 bench_fixed::div_euclid: 3940 34 6 0 0
+bench_fixed::div_nearest: 4140 36 6 0 0
+bench_fixed::div_nearest_tie: 5050 43 9 0 0
 bench_fixed::eq: 500 5 0 0 0
 bench_fixed::floor: 1310 11 3 0 0
 bench_fixed::fract: 1880 16 4 0 0
@@ -52,6 +57,7 @@ bench_fixed::powi_2: 6000 55 7 0 0
 bench_fixed::powi_5: 22950 205 32 0 0
 bench_fixed::powi_neg3: 8340 75 12 0 0
 bench_fixed::recip: 3370 29 5 0 0
+bench_fixed::recip_nearest: 3670 32 5 0 0
 bench_fixed::rem: 3170 27 5 0 0
 bench_fixed::rem_assign: 3170 27 5 0 0
 bench_fixed::rem_euclid: 3370 29 5 0 0

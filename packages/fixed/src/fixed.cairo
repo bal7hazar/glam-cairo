@@ -3,7 +3,8 @@
 //! * `value = raw / 2^32`, range `[-2^31, 2^31)`, resolution `2^-32` (1 ULP, [`EPSILON`]).
 //! * Rounding: `*`, [`FixedTrait::mul_add`], [`FixedTrait::lerp`] and every fused kernel round
 //!   toward negative infinity (floor); `/`, `%` and [`FixedTrait::recip`] round toward zero like
-//!   the integer division of the corelib (and of Rust).
+//!   the integer division of the corelib (and of Rust); [`FixedTrait::div_nearest`] and
+//!   [`FixedTrait::recip_nearest`] are the correctly rounded (to nearest, ties to even) forms.
 //! * Overflow panics, it never wraps nor saturates: `'Fixed: overflow'` for everything that
 //!   rescales, the corelib messages for the native `+`, `-` and unary `-` (`'i64_add Overflow'` /
 //!   `'i64_add Underflow'`, `'i64_sub Overflow'` / `'i64_sub Underflow'`, `'i64_neg Underflow'`):
@@ -290,6 +291,33 @@ pub trait FixedTrait {
     /// #### Deviations
     /// * Panics instead of returning infinity.
     fn recip(self: Fixed) -> Fixed;
+    /// Returns `self / rhs` correctly rounded: the exact quotient `self.raw * 2^32 / rhs.raw`
+    /// rounded to the nearest raw value, ties to even (the rounding of `f64 /`). Exact whenever
+    /// the quotient is representable. [`crate::wide::RecipNearestTrait::div_nearest`] returns the
+    /// same bits for a divisor shared by several quotients.
+    ///
+    /// Mirrors `f32 / f32` (`Div::div`), rounding included.
+    /// #### Panics
+    /// * `'Fixed: division by zero'` if `rhs` is zero.
+    /// * `'Fixed: overflow'` if the rounded quotient does not fit the scalar range.
+    /// #### Deviations
+    /// * None on the rounding. `Fixed / Fixed` still truncates toward zero (docs/DESIGN.md
+    ///   section 2, "Rounding"): prefer `div_nearest` where the result must match a correctly
+    ///   rounded reference. Division by zero or overflow panics where floating-point division
+    ///   returns infinity: docs/DESIGN.md section 3, "division by zero" and "overflow".
+    fn div_nearest(self: Fixed, rhs: Fixed) -> Fixed;
+    /// Returns `1 / self` correctly rounded (to nearest, ties to even): bit-identical to
+    /// `ONE.div_nearest(self)`, with one sign split instead of two.
+    ///
+    /// Mirrors `f32::recip`, rounding included.
+    /// #### Panics
+    /// * `'Fixed: division by zero'` if `self` is zero.
+    /// * `'Fixed: overflow'` if `self` is `-1`, `1` or `2` raw (`2^64 / raw` does not fit; `-2`
+    ///   raw gives `MIN`).
+    /// #### Deviations
+    /// * None on the rounding (`recip` still truncates toward zero). Panics instead of returning
+    ///   infinity.
+    fn recip_nearest(self: Fixed) -> Fixed;
     /// Returns the square root, rounded toward zero (exact integer square root of `raw * 2^32`).
     ///
     /// Mirrors `f32::sqrt`.
@@ -540,6 +568,14 @@ pub impl FixedImpl of FixedTrait {
     #[inline(always)]
     fn recip(self: Fixed) -> Fixed {
         Fixed { raw: bounded::recip_trunc(self.raw) }
+    }
+    #[inline(always)]
+    fn div_nearest(self: Fixed, rhs: Fixed) -> Fixed {
+        Fixed { raw: bounded::div_nearest(self.raw, rhs.raw) }
+    }
+    #[inline(always)]
+    fn recip_nearest(self: Fixed) -> Fixed {
+        Fixed { raw: bounded::recip_nearest(self.raw) }
     }
     #[inline(always)]
     fn sqrt(self: Fixed) -> Fixed {
