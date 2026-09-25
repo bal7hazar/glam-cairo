@@ -218,7 +218,9 @@ pub trait QuatTrait {
     ///   exact value, i.e. at most 3 ULP. Measured over 50 000 random unit quaternions of the
     ///   Python mirror: at most 4 raw ULP per component over the `Quat -> Mat3 -> Quat` round
     ///   trip and 16 over `Mat3 -> Quat -> Mat3`, where the matrix itself is already 1 ULP off
-    ///   per element.
+    ///   per element. These are measurements, not bounds: the bounds derived from the documented
+    ///   ones (`8 + 2 drift` and `44 + 12 drift` raw ULP, `drift` = `| |q|^2 - 1 |` in raw ULP)
+    ///   are written in `axis_angle_property` of `tests/test_quat.cairo` (#45).
     ///
     /// Mirrors `glam::Quat::from_rotation_axes`.
     /// #### Panics
@@ -231,7 +233,8 @@ pub trait QuatTrait {
     /// #### Deviations
     /// * The four-branch algorithm of glam-rs (`XMQuaternionRotationMatrix`), branching on
     ///   `m22 <= 0` then on `m11 -+ m00 <= 0`, so that the component the division is carried by
-    ///   is the largest of the four (at least `1 / 2` in absolute value).
+    ///   is the larger of the pair selected by `m22` (`x` / `y` or `z` / `w`): at least `1 / 2`
+    ///   in absolute value, but not necessarily the largest of the four.
     fn from_rotation_axes(x_axis: Vec3, y_axis: Vec3, z_axis: Vec3) -> Quat;
     /// Creates a quaternion from a 3x3 rotation matrix.
     ///
@@ -754,7 +757,8 @@ pub impl QuatImpl of QuatTrait {
 
     fn from_rotation_axes(x_axis: Vec3, y_axis: Vec3, z_axis: Vec3) -> Quat {
         // Based on the `XMQuaternionRotationMatrix` of DirectXMath, as glam-rs is: the branch
-        // taken is the one of the largest of the four components, so that `4 c^2 >= 1` and the
+        // taken is the one of the larger component of the pair selected by `m22` (not always the
+        // largest of the four), so that `4 c^2 >= 1` and the
         // shared division is always well conditioned. `r` is `1 / (4 |c|)`, i.e. the
         // `0.5 / sqrt(4 c^2)` of glam-rs, kept wide.
         if !z_axis.z.is_positive() {
