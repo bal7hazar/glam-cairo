@@ -31,10 +31,11 @@ Read `docs/DESIGN.md` before writing any code. It is short and every rule in it 
 
 | task | command |
 |---|---|
-| Full gate (CI runs it on every pull request; locally only when a brief asks: interim rule, see `docs/briefs/COMMON.md`) | `scripts/check.sh` |
+| Full gate (pushes to `main`; locally only when a brief explicitly asks, under the gate lock) | `flock /tmp/glam-cairo-gate.lock scripts/check.sh` |
+| Checks affected by a branch | `scripts/check.sh --affected <base>` |
 | Format | `scarb fmt --workspace` |
 | Lint | `scarb lint --workspace --test --deny-warnings` |
-| Test one module | `snforge test -p glam test_vec3` |
+| Test one module target | `snforge test test_vec3 -p glam` |
 | Generate golden tests of one module (spec `tools/refgen/specs/<m>.toml` + oracles `tools/refgen/src/oracles/<m>.rs`, see `tools/refgen/README.md`) | `cargo run --manifest-path tools/refgen/Cargo.toml -- gen <module>` |
 | Bench one module (net cost table) | `scripts/bench.py run bench_vec3` |
 | Update the snapshot of one module | `scripts/bench.py snapshot bench_vec3` |

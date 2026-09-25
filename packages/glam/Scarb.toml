@@ -21,3 +21,33 @@ scarb.workspace = true
 
 [scripts]
 test = "snforge test"
+
+[[test]]
+name = "test_vectors"
+source-path = "tests/target_vectors.cairo"
+test-type = "integration"
+
+[[test]]
+name = "test_matrices"
+source-path = "tests/target_matrices.cairo"
+test-type = "integration"
+
+[[test]]
+name = "test_rotations"
+source-path = "tests/target_rotations.cairo"
+test-type = "integration"
+
+[[test]]
+name = "test_camera"
+source-path = "tests/target_camera.cairo"
+test-type = "integration"
+
+[[test]]
+name = "test_integers"
+source-path = "tests/target_integers.cairo"
+test-type = "integration"
+
+[[test]]
+name = "test_swizzles"
+source-path = "tests/target_swizzles.cairo"
+test-type = "integration"
