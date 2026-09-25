@@ -15,14 +15,14 @@ Read after your task brief and before `docs/briefs/COMMON.md` (which still appli
   **every** snapshot that `scripts/bench.py check` reports as changed (`scripts/bench.py snapshot
   bench_<module>`), commit them, and list them in the report; do not touch the source of those
   modules. Then `python3 scripts/gas_tables.py` when a README table is stale.
-- Shared machine: several agents work in sibling worktrees at the same time and the `glam_tests`
-  compile peaks at ~12 GB. Iterate with filtered runs (`snforge test -p <pkg> <filter>`,
-  `scripts/bench.py run bench_<module>`). **Interim rule (2026-09-25, until the test suite is
-  split per file and selective, task D2): do NOT run the full `scripts/check.sh` locally**; it
-  costs ~27 min and CI runs the same checks again. Run the targeted checks of what you touched
-  (see `COMMON.md`, "DONE"), push, and let the pull request CI be the full gate; fix forward
-  until it is green. If a brief explicitly asks for the full gate, run it under
-  `flock /tmp/glam-cairo-gate.lock scripts/check.sh`.
+- Shared machine: several agents work in sibling worktrees at the same time. Iterate with one
+  explicit test target (`snforge test test_<module> -p glam`) or bench target
+  (`scripts/bench.py run bench_<module>`) at a time. The pull request gate uses
+  `scripts/affected.py` to run the transitive test and bench impact of its diff; pushes to `main`
+  run everything. Do not run the full `scripts/check.sh` locally unless a brief explicitly asks.
+  When it does, first confirm `scripts/agent.sh status` shows no competing agent and take the
+  machine-wide lock: `flock /tmp/glam-cairo-gate.lock scripts/check.sh`. A selective local gate is
+  `scripts/check.sh --affected <base>` and follows the same lock discipline when other agents run.
 - Headless session: **never** start a command in the background (no `run_in_background`, no
   "I will continue when it finishes") and never end your turn before `REPORT.md` is written: no
   notification ever arrives, the session just stops (observed again on R1g). Run everything in

@@ -39,13 +39,17 @@ Appended to every task brief of `docs/briefs/`. The orchestrator launches a port
   `git clone --depth 1 --branch 0.33.8 https://github.com/bitshifter/glam-rs /tmp/glam-rs` if the
   brief's path is missing. Mirror the scalar (non-SIMD) code paths.
 - DONE = everything in the FOREGROUND (never leave a command running in the background and end
-  your turn: in headless mode that ends the session). Locally, the targeted checks only (interim
-  rule of 2026-09-25, see `R1-common.md`): `scarb fmt --workspace`, `scarb lint --workspace
-  --test --deny-warnings`, `snforge test -p <pkg> <filter>` on the modules you touched and on
-  their dependents, `scripts/bench.py snapshot bench_<module>` for each of your bench modules then
-  `scripts/bench.py check <module>`, every generator / script `--check` you affected
-  (`api_parity.py`, `gas_tables.py`, `panic_coverage.py`, codegen, refgen); the full
-  `scripts/check.sh` runs in CI; conventional commits (`feat(<module>): ...`) each ending with a `Co-Authored-By:` trailer
+  your turn: in headless mode that ends the session). Locally, iterate on crate-scoped checks:
+  `scarb fmt --workspace`, `scarb lint --workspace --test --deny-warnings`, `snforge test
+  test_<module> -p glam` on the modules you touched and on their dependents,
+  `scripts/bench.py snapshot bench_<module>` for each of your bench modules then
+  `scripts/bench.py check bench_<module>`, and every generator / script `--check` you affected.
+  This includes `api_parity.py`, `gas_tables.py`, `panic_coverage.py`, codegen and refgen.
+  `scripts/check.sh --affected <base>` is the consolidated selective gate; use the machine-wide
+  lock described in `R1-common.md` when other agents run. Pull requests run this affected set in
+  CI, while pushes to `main` run the full suite. The full `scripts/check.sh` is reserved for
+  `main` CI or briefs that explicitly request it. Conventional commits (`feat(<module>): ...`)
+  each end with a `Co-Authored-By:` trailer
   naming the model that actually did the work (e.g. `Co-Authored-By: Claude Opus 5
   <noreply@anthropic.com>`); `git push -u origin <branch>`;
   `gh pr create --base main` following `.github/PULL_REQUEST_TEMPLATE.md` (gas table of headline

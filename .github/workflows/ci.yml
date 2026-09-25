@@ -4,6 +4,13 @@ on:
   push:
     branches: [main]
   pull_request:
+  workflow_dispatch:
+    inputs:
+      full:
+        description: Run every test target and benchmark module
+        required: false
+        default: true
+        type: boolean
 
 permissions:
   contents: read
@@ -13,54 +20,107 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  plan:
+    name: Plan affected checks
+    runs-on: ubuntu-latest
+    outputs:
+      all: ${{ steps.plan.outputs.all }}
+      docs_only: ${{ steps.plan.outputs.docs_only }}
+      tests: ${{ steps.plan.outputs.tests }}
+      benches: ${{ steps.plan.outputs.benches }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+      - id: plan
+        name: Select targets
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          PR_BASE: ${{ github.event.pull_request.base.sha }}
+          FORCE_FULL: ${{ inputs.full }}
+        run: |
+          if [[ "$EVENT_NAME" == "push" || "$FORCE_FULL" == "true" ]]; then
+            plan=$(python3 scripts/affected.py --paths packages/glam/Scarb.toml)
+          else
+            plan=$(python3 scripts/affected.py "$PR_BASE")
+          fi
+          echo "$plan"
+          PLAN="$plan" python3 - <<'PY' >> "$GITHUB_OUTPUT"
+          import json
+          import os
+
+          plan = json.loads(os.environ["PLAN"])
+          print(f"all={str(plan['all']).lower()}")
+          print(f"docs_only={str(plan['docs_only']).lower()}")
+          print("tests=" + json.dumps(plan["tests"], separators=(",", ":")))
+          print("benches=" + json.dumps(plan["benches"], separators=(",", ":")))
+          PY
+
   fmt-lint:
-    name: Format and lint
+    name: Format, lint, build, and freshness
+    needs: plan
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: software-mansion/setup-scarb@2a96b748888e3329ee44ac9ac073d930e692b3cd # v1.6.2
       - run: scarb fmt --check --workspace
-      - run: scarb lint --workspace --test --deny-warnings
-      # docs/API_PARITY.md must match the Cairo sources (regenerate with scripts/api_parity.py).
+      - run: python3 scripts/affected.py --check
+      - run: python3 -m unittest discover -s scripts/tests -p 'test_*.py'
+      - if: ${{ needs.plan.outputs.docs_only != 'true' }}
+        run: scarb lint --workspace --test --deny-warnings
+      - if: ${{ needs.plan.outputs.docs_only != 'true' }}
+        run: scarb build --workspace
+      - name: Check generated Cairo sources and tests
+        if: ${{ needs.plan.outputs.docs_only != 'true' }}
+        run: |
+          python3 tools/codegen/fvec.py --check
+          python3 tools/codegen/fmat.py --check
+          python3 tools/codegen/intvec.py --check
+          python3 tools/codegen/swizzles.py --check
       - run: python3 scripts/api_parity.py --check
-      # README gas tables must match gas/*.snap (regenerate with scripts/gas_tables.py).
       - run: python3 scripts/gas_tables.py --check
-      # Every documented panic of a public item has a should_panic test on that item.
       - run: python3 scripts/panic_coverage.py --check
 
   test:
-    name: Test ${{ matrix.package }}
+    name: Test ${{ matrix.target }}
+    needs: plan
+    if: ${{ needs.plan.outputs.tests != '[]' }}
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        package: [glam]
+        target: ${{ fromJSON(needs.plan.outputs.tests) }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: software-mansion/setup-scarb@2a96b748888e3329ee44ac9ac073d930e692b3cd # v1.6.2
       - uses: foundry-rs/setup-snfoundry@16e23ddd0e2845f38727c92f4b913a7b728cda9e # v6.0.0
-      - run: scarb build -p ${{ matrix.package }}
-      # Fuzz properties are compiled with runs: 128 for local runs; CI keeps a deterministic
-      # 32-run smoke of every property so the job stays under the runner's time budget.
+      # Each filter names one explicit integration-test target, so this job compiles only its shard.
       - name: Test
-        run: snforge test -p ${{ matrix.package }} --fuzzer-runs 32 --fuzzer-seed 1
+        run: /usr/bin/time -v snforge test "${{ matrix.target }}" -p glam --fuzzer-runs 32 --fuzzer-seed 1
 
   bench:
-    name: Build, benches, gas snapshots
+    name: Benches and gas snapshots
+    needs: plan
+    if: ${{ needs.plan.outputs.benches != '[]' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: software-mansion/setup-scarb@2a96b748888e3329ee44ac9ac073d930e692b3cd # v1.6.2
       - uses: foundry-rs/setup-snfoundry@16e23ddd0e2845f38727c92f4b913a7b728cda9e # v6.0.0
-      # No separate `scarb build --workspace`: snforge compiles the benches package and its
-      # dependencies (glam, and fixed from the registry), and the `test` jobs build each package already.
-      # setup-scarb caches the registry and the target dirs (keyed on Scarb.lock/.tool-versions).
-      # Fails on any gas/step change that is not committed in gas/*.snap.
       - name: Check gas snapshots
+        env:
+          ALL_BENCHES: ${{ needs.plan.outputs.all }}
+          BENCHES: ${{ needs.plan.outputs.benches }}
         run: |
           set -o pipefail
-          python3 scripts/bench.py check | tee gas_report.md
-      # Fails on any class size change of packages/consumer not committed in gas/bytecode.size.
+          if [[ "$ALL_BENCHES" == "true" ]]; then
+            python3 scripts/bench.py check | tee gas_report.md
+          else
+            : > gas_report.md
+            while IFS= read -r module; do
+              python3 scripts/bench.py check "bench_$module" | tee -a gas_report.md
+            done < <(python3 -c 'import json, os; print(*json.loads(os.environ["BENCHES"]), sep="\n")')
+          fi
       - name: Check bytecode size
         run: |
           set -o pipefail
@@ -71,10 +131,11 @@ jobs:
 
   golden:
     name: Golden vectors up to date
+    needs: plan
+    if: ${{ needs.plan.outputs.docs_only != 'true' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      # The stable Rust toolchain is preinstalled on ubuntu-latest.
       - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: |
@@ -84,12 +145,12 @@ jobs:
           key: refgen-${{ runner.os }}-${{ hashFiles('tools/refgen/Cargo.lock') }}
       - name: Generator unit tests
         run: cargo test --locked --manifest-path tools/refgen/Cargo.toml
-      # Fails when a committed packages/*/tests/golden_*.cairo differs from the generator output.
       - name: Check golden vectors
         run: cargo run --locked --manifest-path tools/refgen/Cargo.toml -- check
 
   docs:
     name: Docs build
+    needs: plan
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -99,11 +160,10 @@ jobs:
   all-checks:
     name: All checks passed
     if: always()
-    needs: [fmt-lint, test, bench, golden, docs]
+    needs: [plan, fmt-lint, test, bench, golden, docs]
     runs-on: ubuntu-latest
     steps:
       - run: |
           if [[ "${{ contains(needs.*.result, 'failure') }}" == "true" ]] || \
              [[ "${{ contains(needs.*.result, 'cancelled') }}" == "true" ]]; then
             exit 1
-          fi
