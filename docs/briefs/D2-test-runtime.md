@@ -3,8 +3,11 @@
 Branch `chore/test-runtime`. Read `docs/briefs/R1-common.md`, `docs/briefs/COMMON.md`,
 `scripts/check.sh`, `scripts/bench.py` (its `check_targets` guard), `packages/benches/Scarb.toml`
 (one `[[test]]` target per bench file since #33) and `.github/workflows/ci.yml`. This brief asks
-for measurements: run the full gate locally when you need a before / after number (under
-`flock /tmp/glam-cairo-gate.lock`), otherwise follow the interim rule.
+for measurements, **taken on GitHub runners** (amended 2026-09-25 14:13 UTC: local runs on the
+shared machine, under the machine-wide lock and a 4-CPU quota, were starved and polluted): push a
+draft pull request early and compare the candidate layouts through its CI job timings. Local
+numbers only when no other agent runs and the gate lock is free, labelled as such. Local checks
+are crate-scoped; CI is the full gate.
 
 Files you may edit: `packages/glam/Scarb.toml`, `packages/glam/tests/**` (moving code between
 test files, helper modules; no test may be weakened or dropped), `packages/benches/Scarb.toml`,

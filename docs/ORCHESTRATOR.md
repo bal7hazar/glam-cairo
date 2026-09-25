@@ -47,6 +47,10 @@ large directly.
   **at most 4 sub-agents running machine-wide**, all repositories together. Count the running
   units (`systemctl --user list-units 'glam-agent-*' 'rapier-*' 'nalgebra-*' --state=running`)
   before launching.
+- Timing measurements (CI layout, compile time, test runtime) come from GitHub runners (a draft
+  pull request and its job timings), not from the shared machine, whose runs are queued behind
+  the machine-wide lock and a CPU quota (D2, 2026-09-25). Gas numbers are unaffected: snforge
+  counts gas, not seconds.
 - A shared machine needs a lock around the full gate: briefs say
   `flock /tmp/glam-cairo-gate.lock scripts/check.sh` (the `glam_tests` compile peaks at ~12 GB).
 - The agent writes a `REPORT.md` (not committed) at the root of its worktree: the orchestrator
