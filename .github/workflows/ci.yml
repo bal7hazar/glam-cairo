@@ -167,3 +167,4 @@ jobs:
           if [[ "${{ contains(needs.*.result, 'failure') }}" == "true" ]] || \
              [[ "${{ contains(needs.*.result, 'cancelled') }}" == "true" ]]; then
             exit 1
+          fi

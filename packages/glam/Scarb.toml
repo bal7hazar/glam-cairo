@@ -23,31 +23,211 @@ scarb.workspace = true
 test = "snforge test"
 
 [[test]]
-name = "test_vectors"
-source-path = "tests/target_vectors.cairo"
+name = "golden_affine2"
+source-path = "tests/golden_affine2.cairo"
 test-type = "integration"
 
 [[test]]
-name = "test_matrices"
-source-path = "tests/target_matrices.cairo"
+name = "golden_affine3"
+source-path = "tests/golden_affine3.cairo"
 test-type = "integration"
 
 [[test]]
-name = "test_rotations"
-source-path = "tests/target_rotations.cairo"
+name = "golden_bvec2"
+source-path = "tests/golden_bvec2.cairo"
+test-type = "integration"
+
+[[test]]
+name = "golden_bvec3"
+source-path = "tests/golden_bvec3.cairo"
+test-type = "integration"
+
+[[test]]
+name = "golden_bvec4"
+source-path = "tests/golden_bvec4.cairo"
+test-type = "integration"
+
+[[test]]
+name = "golden_camera"
+source-path = "tests/golden_camera.cairo"
+test-type = "integration"
+
+[[test]]
+name = "golden_euler"
+source-path = "tests/golden_euler.cairo"
+test-type = "integration"
+
+[[test]]
+name = "golden_ivec2"
+source-path = "tests/golden_ivec2.cairo"
+test-type = "integration"
+
+[[test]]
+name = "golden_ivec3"
+source-path = "tests/golden_ivec3.cairo"
+test-type = "integration"
+
+[[test]]
+name = "golden_ivec4"
+source-path = "tests/golden_ivec4.cairo"
+test-type = "integration"
+
+[[test]]
+name = "golden_mat2"
+source-path = "tests/golden_mat2.cairo"
+test-type = "integration"
+
+[[test]]
+name = "golden_mat3"
+source-path = "tests/golden_mat3.cairo"
+test-type = "integration"
+
+[[test]]
+name = "golden_mat4"
+source-path = "tests/golden_mat4.cairo"
+test-type = "integration"
+
+[[test]]
+name = "golden_quat"
+source-path = "tests/golden_quat.cairo"
+test-type = "integration"
+
+[[test]]
+name = "golden_swizzles"
+source-path = "tests/golden_swizzles.cairo"
+test-type = "integration"
+
+[[test]]
+name = "golden_uvec2"
+source-path = "tests/golden_uvec2.cairo"
+test-type = "integration"
+
+[[test]]
+name = "golden_uvec3"
+source-path = "tests/golden_uvec3.cairo"
+test-type = "integration"
+
+[[test]]
+name = "golden_uvec4"
+source-path = "tests/golden_uvec4.cairo"
+test-type = "integration"
+
+[[test]]
+name = "golden_vec2"
+source-path = "tests/golden_vec2.cairo"
+test-type = "integration"
+
+[[test]]
+name = "golden_vec3"
+source-path = "tests/golden_vec3.cairo"
+test-type = "integration"
+
+[[test]]
+name = "golden_vec4"
+source-path = "tests/golden_vec4.cairo"
+test-type = "integration"
+
+[[test]]
+name = "test_affine2"
+source-path = "tests/test_affine2.cairo"
+test-type = "integration"
+
+[[test]]
+name = "test_affine3"
+source-path = "tests/test_affine3.cairo"
+test-type = "integration"
+
+[[test]]
+name = "test_bvec2"
+source-path = "tests/test_bvec2.cairo"
+test-type = "integration"
+
+[[test]]
+name = "test_bvec3"
+source-path = "tests/test_bvec3.cairo"
+test-type = "integration"
+
+[[test]]
+name = "test_bvec4"
+source-path = "tests/test_bvec4.cairo"
 test-type = "integration"
 
 [[test]]
 name = "test_camera"
-source-path = "tests/target_camera.cairo"
+source-path = "tests/test_camera.cairo"
 test-type = "integration"
 
 [[test]]
-name = "test_integers"
-source-path = "tests/target_integers.cairo"
+name = "test_euler"
+source-path = "tests/test_euler.cairo"
+test-type = "integration"
+
+[[test]]
+name = "test_ivec2"
+source-path = "tests/test_ivec2.cairo"
+test-type = "integration"
+
+[[test]]
+name = "test_ivec3"
+source-path = "tests/test_ivec3.cairo"
+test-type = "integration"
+
+[[test]]
+name = "test_ivec4"
+source-path = "tests/test_ivec4.cairo"
+test-type = "integration"
+
+[[test]]
+name = "test_mat2"
+source-path = "tests/test_mat2.cairo"
+test-type = "integration"
+
+[[test]]
+name = "test_mat3"
+source-path = "tests/test_mat3.cairo"
+test-type = "integration"
+
+[[test]]
+name = "test_mat4"
+source-path = "tests/test_mat4.cairo"
+test-type = "integration"
+
+[[test]]
+name = "test_quat"
+source-path = "tests/test_quat.cairo"
 test-type = "integration"
 
 [[test]]
 name = "test_swizzles"
-source-path = "tests/target_swizzles.cairo"
+source-path = "tests/test_swizzles.cairo"
+test-type = "integration"
+
+[[test]]
+name = "test_uvec2"
+source-path = "tests/test_uvec2.cairo"
+test-type = "integration"
+
+[[test]]
+name = "test_uvec3"
+source-path = "tests/test_uvec3.cairo"
+test-type = "integration"
+
+[[test]]
+name = "test_uvec4"
+source-path = "tests/test_uvec4.cairo"
+test-type = "integration"
+
+[[test]]
+name = "test_vec2"
+source-path = "tests/test_vec2.cairo"
+test-type = "integration"
+
+[[test]]
+name = "test_vec3"
+source-path = "tests/test_vec3.cairo"
+test-type = "integration"
+
+[[test]]
+name = "test_vec4"
+source-path = "tests/test_vec4.cairo"
 test-type = "integration"
