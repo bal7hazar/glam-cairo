@@ -5,10 +5,13 @@ deterministic, gas-efficient vector, matrix and quaternion math on a signed Q32.
 scalar. It is the base layer of a provable game physics stack, together with the Cairo ports of
 nalgebra and rapier.
 
-| package | content |
-|---|---|
-| [`fixed`](packages/fixed) | `Fixed { raw: i64 }` Q32.32 scalar, fused kernels, loop-free trigonometry |
-| [`glam`](packages/glam) | `Vec2/3/4`, `Mat2/3/4`, `Quat`, `Affine2/3`, `BVec*`, `IVec*`, `UVec*` |
+| package | repository | content |
+|---|---|---|
+| [`glam`](packages/glam) | this one | `Vec2/3/4`, `Mat2/3/4`, `Quat`, `Affine2/3`, `BVec*`, `IVec*`, `UVec*` |
+| `fixed` | [`fixed-cairo`](https://github.com/bal7hazar/fixed-cairo) | `Fixed { raw: i64 }` Q32.32 scalar, fused kernels, loop-free trigonometry; `glam` depends on its published `0.3.0` |
+| `glamx` | [`glamx-cairo`](https://github.com/bal7hazar/glamx-cairo) | Dimforge's `glamx` extensions (`Rot2`, `Pose2/3`, `SdpMatrix2/3`, `SymmetricEigen3`) on top of `glam` |
+
+Each repository mirrors one Rust reference repository ([`docs/SPLIT.md`](docs/SPLIT.md)).
 
 Status: work in progress, see [`docs/PORTING_STATUS.md`](docs/PORTING_STATUS.md).
 
@@ -33,30 +36,16 @@ Same operations on a sign-magnitude `{mag, sign}` scalar (prototype figures of [
 
 | op | cubit-style | glam-cairo | speed-up |
 |---|---:|---:|---:|
-| `+` | 4 050 | 840 | 4.8x |
-| `*` | 2 970 | 1 680 | 1.8x |
-| `/` | 2 970 | 4 140 | 0.7x |
 | `Vec3::dot` | 15 750 | 2 080 | 7.6x |
 | `Mat3 * Mat3` | 134 250 | 19 640 | 6.8x |
 | `Mat4 * Mat4` | 335 800 | 36 480 | 9.2x |
 | `Quat * Quat` | 87 780 | 10 040 | 8.7x |
 | `Quat * Vec3` | 115 910 | 9 360 | 12.4x |
-| `sin` | 128 670 | 22 730 | 5.7x |
-| `sin_cos` | 263 610 | 31 300 | 8.4x |
 
 ### Headline operations
 
 | package | op | l2 gas | steps | range checks |
 |---|---|---:|---:|---:|
-| `fixed` | `+` | 840 | 7 | 2 |
-| `fixed` | `*` | 1 680 | 14 | 4 |
-| `fixed` | `/` | 4 140 | 36 | 6 |
-| `fixed` | `sqrt` | 2 020 | 16 | 6 |
-| `fixed` | `dot3` | 2 080 | 18 | 4 |
-| `fixed` | `sin_cos` | 31 300 | 243 | 62 |
-| `fixed` | `atan2` | 29 630 | 207 | 44 |
-| `fixed` | `exp` | 20 840 | 168 | 43 |
-| `fixed` | `ln` | 19 520 | 160 | 37 |
 | `glam` | `Vec3::normalize` | 8 720 | 72 | 20 |
 | `glam` | `Vec3::cross` | 6 560 | 56 | 12 |
 | `glam` | `Mat3 * Vec3` | 7 160 | 62 | 12 |
@@ -65,9 +54,8 @@ Same operations on a sign-magnitude `{mag, sign}` scalar (prototype figures of [
 | `glam` | `Quat * Quat` | 10 040 | 88 | 16 |
 | `glam` | `Quat::slerp` | 122 180 | 923 | 225 |
 | `glam` | `Affine3::transform_point3` | 7 760 | 68 | 12 |
-| `glamx` | `Pose3::transform_point` | 10 260 | 93 | 12 |
 
-Full tables: [`fixed`](packages/fixed#gas), [`glam`](packages/glam#gas), [`glamx`](packages/glamx#gas).
+Full table: [`glam`](packages/glam#gas). The scalar (`fixed`) and `glamx` tables live in [`fixed-cairo`](https://github.com/bal7hazar/fixed-cairo#gas) and [`glamx-cairo`](https://github.com/bal7hazar/glamx-cairo#gas).
 
 <!-- gas:end -->
 

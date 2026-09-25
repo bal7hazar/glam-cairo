@@ -4,7 +4,10 @@
 
 Port [glam-rs](https://github.com/bitshifter/glam-rs) 0.33.8 to pure Cairo as a deterministic,
 gas-efficient, provable math library: the base layer of a provable game physics engine.
-`nalgebra-cairo` and `rapier-cairo` depend on the `fixed` and `glam` packages of this repository.
+`nalgebra-cairo` and `rapier-cairo` depend on the `glam` package of this repository. The scalar
+`fixed` lives in [`fixed-cairo`](https://github.com/bal7hazar/fixed-cairo) (`glam` depends on its
+published `0.3.0`) and `glamx` in [`glamx-cairo`](https://github.com/bal7hazar/glamx-cairo); see
+`docs/SPLIT.md`.
 
 Read `docs/DESIGN.md` before writing any code. It is short and every rule in it is measured.
 
@@ -12,11 +15,12 @@ Read `docs/DESIGN.md` before writing any code. It is short and every rule in it 
 
 | path | content |
 |---|---|
-| `packages/fixed` | signed Q32.32 scalar `Fixed { raw: i64 }`, fused kernels (`wide`), transcendentals (`trig`) |
 | `packages/glam` | the glam-rs port; one module per glam-rs type, same names |
+| `packages/consumer` | unpublished: the `GlamSink` Starknet contract fixture whose class size is tracked in `gas/bytecode.size` |
 | `packages/benches` | unpublished: `tests/bench_<module>.cairo`, `src/harness.cairo` (`bb`, `sink`), `src/alt/` (losing variants) |
 | `gas/<module>.snap` | committed gas/step snapshots, one file per bench module |
 | `scripts/check.sh` | the full gate; `scripts/bench.py` the bench runner |
+| `docs/SPLIT.md` | the repository split: `fixed-cairo`, `glam-cairo` (this one, home of the orchestrator), `glamx-cairo` |
 | `docs/DESIGN.md`, `docs/PLAN.md`, `docs/PORTING_STATUS.md` | decisions, sequencing, progress |
 | `docs/ORCHESTRATOR.md` | how the orchestrator session spawns and briefs sub-agents (CLIs, model choice, brief format) |
 | `docs/HANDOFF.md` | where a new orchestrator session starts: reading order, machine setup, operating loop, what remains |
@@ -35,6 +39,8 @@ Read `docs/DESIGN.md` before writing any code. It is short and every rule in it 
 | Bench one module (net cost table) | `scripts/bench.py run bench_vec3` |
 | Update the snapshot of one module | `scripts/bench.py snapshot bench_vec3` |
 | Check all snapshots | `scripts/bench.py check` |
+| Class size of the consumer fixture (`gas/bytecode.size`) | `scripts/bytecode_size.py check` (`snapshot` to rewrite) |
+| README gas tables / `docs/API_PARITY.md` | `python3 scripts/gas_tables.py`, `python3 scripts/api_parity.py` (`--check` in the gate) |
 
 Toolchain versions live in `.tool-versions` only (asdf).
 
