@@ -14,6 +14,26 @@ this repository; nothing depends on a previous session's scratchpad, worktrees o
    `CHANGELOG.md`.
 5. `docs/research/00-synthesis.md` then reports 01-06 when evidence is needed.
 
+## Repositories and local layout (since 2026-09-25, `docs/SPLIT.md`)
+
+This orchestrator owns three repositories; `glam-cairo` is its home (orchestration documents,
+briefs, research, audits):
+
+| repository | package | local checkout |
+|---|---|---|
+| `bal7hazar/fixed-cairo` | `fixed` | `/home/claude/projects/fixed-cairo` |
+| `bal7hazar/glam-cairo` | `glam` (depends on the published `fixed`) | `/home/claude/projects/glam-cairo` |
+| `bal7hazar/glamx-cairo` | `glamx` (depends on the published `fixed`, `glam`) | `/home/claude/projects/glamx-cairo` |
+
+The siblings `nalgebra-cairo` and `rapier-cairo` have their own orchestrators; they escalate to
+this one (scalar kernels go to `fixed-cairo`). A task on `fixed-cairo` / `glamx-cairo`: write the
+brief here (`docs/briefs/`, pushed to `glam-cairo` `main`), create the worktree in that
+repository's checkout (`git -C /home/claude/projects/fixed-cairo worktree add
+.claude/worktrees/cli-<task> -b <branch> origin/main`), launch with that repository's own
+`scripts/agent.sh` (same interface), and tell the agent to read the brief and `COMMON.md` /
+`R1-common.md` from the `glam-cairo` checkout (absolute path, read-only). A MINOR bump of `fixed`
+means a pull request in each consuming repository (`glam-cairo`, `glamx-cairo`, the siblings).
+
 ## Machine setup
 
 - asdf with `scarb` and `starknet-foundry` at the versions of `.tool-versions`; Rust (`cargo`)
@@ -48,27 +68,23 @@ this repository; nothing depends on a previous session's scratchpad, worktrees o
 
 ## What remains (see `docs/PORTING_STATUS.md` for the live state)
 
-- Every porting task of `docs/PLAN.md` and the R1 release audit are merged as of 2026-09-22
-  (glam-rs 0.33.8 parity: 0 missing item; `glamx`: `Rot2`, `Rot3`, `Pose2`, `Pose3`,
-  `SdpMatrix2/3`, `SymmetricEigen3`; audits in `docs/audits/`: deviations, bytecode size, panic
-  coverage; checkers `scripts/{deviations,panic_coverage,bytecode_size}.py`). `CHANGELOG.md` is
-  frozen at `0.1.0`.
-- `v0.1.0`: the tag and the GitHub release are cut by the orchestrator with the owner's
-  go-ahead; `scarb publish -p fixed`, then `glam`, then `glamx` (each depends on the previous
-  one being on the registry) need the owner's scarbs.xyz token (`SCARB_REGISTRY_AUTH_TOKEN`),
-  which the orchestrator never handles.
-- Known debt, not blocking: six test files exceed the 1 200-line budget (camera, vec2/3/4,
-  ivec3/4; `Test glam` ~23 min in CI); splitting them into `test_<m>_panics.cairo` needs the
-  orchestrator-owned `tests/lib.cairo`. The appendix of `docs/audits/R1-deviations.md` is a
-  snapshot of 2026-09-21 (not gated).
-- Next: whatever the sibling repositories escalate (missing `fixed` kernels get added here with
-  their bench and snapshot; any numeric change is a MINOR bump, DESIGN section 6). Coordination
-  decision taken on 2026-09-22: `nalgebra-cairo` keeps its `simba` trait layer and drops its
-  duplicate Q32.32 scalar in favour of `fixed` pinned on `v0.1.0` (the Rust model: one primitive
-  scalar, simba is traits only).
-- Operational lessons of the R1 session (all recorded in `docs/ORCHESTRATOR.md`): launch agents
-  as systemd user units (`scripts/agent.sh`), never as children of the session; Sonnet agents
-  end their turn on background commands despite the written rule, so the launch prompt itself
-  must say "foreground only"; a shared machine at full CPU gets agents OOM-killed, resume them
-  with their context rather than relaunching; `gh pr merge --delete-branch` fails on the agent's
-  untracked `REPORT.md`, archive it and remove the worktree by hand.
+- Released: `fixed`, `glam`, `glamx` 0.3.0 on scarbs.xyz (tags `v0.1.0`..`v0.3.0` of this
+  repository). The owner gives a go per release, conditioned on green CI; the orchestrator then
+  tags and publishes (`SCARB_REGISTRY_AUTH_TOKEN` is in the owner's `~/.claude/settings.json`).
+  From now on each package is released from its own repository.
+- Next task: **D2** (`docs/briefs/D2-test-runtime.md`): split the `glam` test crate (CI `Test
+  glam` is 22 min, ~19 of them running 1 684 tests in one crate) and run only what a change
+  affects on pull requests (`scripts/affected.py`), full run on `main`. Until it lands, the
+  interim rule holds: agents run targeted checks, the pull request CI is the full gate.
+- Debt: D1 (in `fixed-cairo`: `gen_trig.py` / `gen_exp.py` need numpy / mpmath and their fits
+  depend on the numpy version); Dependabot is active on the two new repositories; the golden
+  files of `fixed-cairo` still say "glam-rs 0.33.8 (f64)" in their header (kept byte-identical
+  on purpose).
+- Sibling coordination: `nalgebra-cairo` pins `fixed` 0.3.0 and delegates `Real::div` / `recip`
+  to `/` / `recip`; it splits its `simba` crate into `simba-cairo`; `rapier-cairo` decides
+  whether a `parry-cairo` is split out. Their orchestrators own those tasks.
+- Operational lessons (all in `docs/ORCHESTRATOR.md`): agents run as systemd user units
+  (`scripts/agent.sh`), never as children of the session; Sonnet agents end their turn on
+  background commands unless the launch prompt says "foreground only"; resume interrupted
+  agents with their context (`claude --continue`, `codex exec resume <id>`); merge with
+  `gh pr merge --squash` without `--delete-branch`, archive `REPORT.md`, remove the worktree.
