@@ -1027,6 +1027,31 @@ fn fuzz_mul_vec3(a: i64, b: i64, c: i64, d: i64) {
 #[test]
 #[fuzzer(runs: 128, seed: 403)]
 fn fuzz_axis_angle(a: i64, b: i64, c: i64, d: i64) {
+    axis_angle_property(a, b, c, d);
+}
+
+/// Regression of `fuzz_axis_angle`: a counterexample of its former, measured 16 ULP bound on the
+/// `Mat3 -> Quat -> Mat3` round trip (found by another fuzz order on CI). Nothing is degenerate:
+/// a plain axis, an angle of -4.28 rad, `|q|^2 - 1 = 2.51` ULP. The `w` branch of
+/// `from_rotation_axes` is taken while `|y| > |w|`, the rounding stays under 0.9 ULP per
+/// component, and the round trip is 17 ULP off on `m00`: the bound of the property was wrong.
+#[test]
+fn test_axis_angle_fuzz_regression() {
+    let (a, b, c, d) = (
+        -5252968756010171118, -3096882712146088177, -8084405785948374804, -3340032920127808801,
+    );
+    axis_angle_property(a, b, c, d);
+    let q = unit_q(a, b, c, d);
+    assert_eq!(q, quat(f(476293224), f(2734659733), f(2316178370), f(-2318802008)));
+    assert_eq!(drift(q), 2);
+    let m = Mat3Trait::from_quat(q);
+    let r = QuatTrait::from_mat3(m);
+    assert_eq!(r, quat(f(-476293225), f(-2734659737), f(-2316178373), f(2318802006)));
+    assert_eq!(m.x_axis.x - Mat3Trait::from_quat(r).x_axis.x, f(17));
+}
+
+/// The properties of `fuzz_axis_angle`.
+fn axis_angle_property(a: i64, b: i64, c: i64, d: i64) {
     let q = unit_q(a, b, c, d);
     let (axis, angle) = q.to_axis_angle();
     // The axis is a unit vector as long as the vector part is not tiny, and the angle is in
@@ -1042,13 +1067,31 @@ fn fuzz_axis_angle(a: i64, b: i64, c: i64, d: i64) {
         QuatTrait::from_scaled_axis(q.to_scaled_axis()).abs_diff_eq(back, f(0x10000))
             || QuatTrait::from_scaled_axis(q.to_scaled_axis()).abs_diff_eq(-back, f(0x10000)),
     );
-    // The matrix round trip: `q` and `-q` are the same rotation; measured at most 4 raw ULP
-    // per component over 50 000 random unit quaternions of the Python mirror, 16 on the
-    // matrix. The 4x4 constructors agree with the 3x3 one.
+    // The matrix round trip, bounded from the documented error bounds (u = 1 raw ULP):
+    // * `q = unit_q(..)` is within 1.5u per component of a unit quaternion (`normalize`), so
+    //   `|q|^2 = 1 + delta` with `|delta| < drift(q) + 1` (`length_squared` is floored).
+    // * `m = floor(M(q))`, `M` the exact polynomial of `Mat3::from_quat`: 9 floors in `[0, u)`.
+    // * On the exact `M(q)` the value under the root of `from_rotation_axes` is exactly `4 c^2`
+    //   in the `x`, `y`, `z` branches and `4 w^2 - 4 delta` in the `w` one, and every other
+    //   numerator is exactly `4 c a`: the exact image of `M(q)` is `+-q` but for `delta`. The
+    //   branch component satisfies `|c| >= 1/2`, but it is only the larger of its pair
+    //   (`|a| / |c| <= 2`). Hence on the exact image of `m`: `c` is off by less than
+    //   `(3u + 4 |delta|) / (8 |c|) <= 0.75u + |delta|` (three floors under the root), every other
+    //   component by less than `2u / (4 |c|) + 2 (0.75u + |delta|) = 2.5u + 2 |delta|` (two
+    //   floors in the numerator, the ratio times the error of `c`). Plus the documented 3u of
+    //   rounding of `from_rotation_axes`: `|r -+ q| < 5.5u + 2 |delta| < 7.5u + 2 drift(q)`.
+    // * `M(r) - M(q)` is `grad M . (r -+ q)` plus a second-order term far below 1u; the 1-norm
+    //   of the gradient is `4 (|a| + |b|) <= 4 sqrt(2)` on the diagonal, `2 |q|_1 <= 4` off it.
+    //   With the two floors (their difference is below 1u):
+    //   `|from_quat(r) - m| < 4 sqrt(2) (7.5 + 2 drift(q)) u + u < (44 + 12 drift(q)) u`.
+    // The former bounds (8 and 16 ULP) were measured over random inputs, not derived; the
+    // replayed counterexample (`drift(q) = 2`, 4 and 17 ULP) is in
+    // `test_axis_angle_fuzz_regression`. The 4x4 constructors agree with the 3x3 one.
     let m = Mat3Trait::from_quat(q);
     let r = QuatTrait::from_mat3(m);
-    assert!(r.abs_diff_eq(q, f(8)) || (-r).abs_diff_eq(q, f(8)));
-    assert!(Mat3Trait::from_quat(r).abs_diff_eq(m, f(16)));
+    let dq = drift(q);
+    assert!(r.abs_diff_eq(q, f(8 + 2 * dq)) || (-r).abs_diff_eq(q, f(8 + 2 * dq)));
+    assert!(Mat3Trait::from_quat(r).abs_diff_eq(m, f(44 + 12 * dq)));
     assert_eq!(QuatTrait::from_mat4(Mat4Trait::from_quat(q)), r);
 }
 
