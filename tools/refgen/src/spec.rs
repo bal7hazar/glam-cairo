@@ -157,11 +157,8 @@ impl Spec {
         if !is_ident(&self.module) {
             return Err(format!("invalid module name {:?}", self.module));
         }
-        if !matches!(self.package.as_str(), "fixed" | "glam" | "glamx") {
-            return Err(format!(
-                "package must be \"fixed\", \"glam\" or \"glamx\", got {:?}",
-                self.package
-            ));
+        if self.package != "glam" {
+            return Err(format!("package must be \"glam\", got {:?}", self.package));
         }
         let mut seen = std::collections::BTreeSet::new();
         for f in &self.functions {

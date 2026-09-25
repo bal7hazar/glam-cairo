@@ -35,6 +35,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import tomllib
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -145,18 +146,9 @@ def fixtures():
 # any library arithmetic, so that it cancels out of the difference.
 
 ITEMS = [
-    ("Fixed mul", True, "a: Fixed, b: Fixed", "Fixed", "a", "a * b"),
-    ("Fixed div", True, "a: Fixed, b: Fixed", "Fixed", "a", "a / b"),
-    ("Fixed sqrt", True, "a: Fixed", "Fixed", "a", "a.sqrt()"),
-    ("Fixed sin_cos", False, "a: Fixed", "(Fixed, Fixed)", "(a, a)", "a.sin_cos()"),
-    ("Fixed atan2", False, "a: Fixed, b: Fixed", "Fixed", "a", "a.atan2(b)"),
-    ("Fixed exp", False, "a: Fixed", "Fixed", "a", "a.exp()"),
-    ("Fixed ln", False, "a: Fixed", "Fixed", "a", "a.ln()"),
-    ("Fixed powf", False, "a: Fixed, b: Fixed", "Fixed", "a", "a.powf(b)"),
     ("Vec3 dot (dot3)", True, "u: Vec3, v: Vec3", "Fixed", "u.x", "u.dot(v)"),
     ("Vec3 cross", True, "u: Vec3, v: Vec3", "Vec3", "u", "u.cross(v)"),
     ("Vec3 normalize", True, "u: Vec3", "Vec3", "u", "u.normalize()"),
-    ("Rot2 from_angle", True, "a: Fixed", "Rot2", "Rot2 { re: a, im: a }", "Rot2Trait::from_angle(a)"),
     ("Mat3 mul_mat3", True, "m: Mat3, n: Mat3", "Mat3", "m", "m.mul_mat3(n)"),
     ("Mat3 inverse", False, "m: Mat3", "Mat3", "m", "m.inverse()"),
     ("Mat3 from_quat", True, "q: Quat", "Mat3",
@@ -174,29 +166,16 @@ ITEMS = [
      "QuatTrait::from_xyzw(a, b, c, a)", "QuatEulerTrait::from_euler(EulerRot::YXZ, a, b, c)"),
     ("Quat to_euler (YXZ)", False, "q: Quat", "(Fixed, Fixed, Fixed)", "(q.x, q.y, q.z)",
      "q.to_euler(EulerRot::YXZ)"),
-    ("Pose2 inv_mul", True, "p: Pose2, r: Pose2", "Pose2", "p", "p.inv_mul(r)"),
-    ("Pose3 mul", True, "p: Pose3, r: Pose3", "Pose3", "p", "p * r"),
-    ("Pose3 inv_mul", True, "p: Pose3, r: Pose3", "Pose3", "p", "p.inv_mul(r)"),
-    ("Pose3 transform_point", True, "p: Pose3, v: Vec3", "Vec3", "v", "p.transform_point(v)"),
-    ("SdpMatrix3 from_rotated_diagonal", False, "q: Quat, d: Vec3", "SdpMatrix3",
-     "SdpMatrix3Trait::new(d.x, d.y, d.z, q.x, q.y, q.z)",
-     "SdpMatrix3Trait::from_rotated_diagonal(q, d)"),
-    ("SymmetricEigen3 new", False, "m: Mat3", "SymmetricEigen3",
-     "SymmetricEigen3 { eigenvalues: m.x_axis, eigenvectors: m }", "SymmetricEigen3Trait::new(m)"),
     ("rh opengl perspective", True, "a: Fixed, b: Fixed, c: Fixed, d: Fixed", "Mat4",
      "Mat4Trait::from_diagonal(Vec4Trait::new(a, b, c, d))", "opengl::perspective(a, b, c, d)"),
 ]
 
 PROBE_PRELUDE = """\
-    use fixed::{ExpTrait, Fixed, FixedTrait, TrigTrait};
+    use fixed::Fixed;
     use glam::camera::rh::proj::opengl;
     use glam::{
         EulerRot, Mat3, Mat3Trait, Mat4, Mat4Trait, Quat, QuatEulerTrait, QuatTrait, Vec3,
         Vec3Trait, Vec4Trait,
-    };
-    use glamx::{
-        Pose2, Pose2Trait, Pose3, Pose3Trait, Rot2, Rot2Trait, SdpMatrix3, SdpMatrix3Trait,
-        SymmetricEigen3, SymmetricEigen3Trait,
     };
 """
 
@@ -223,9 +202,9 @@ def temp_package(work, strategy, items):
     """Consumer fixtures + probes as a standalone package (its own workspace) in `work`."""
     src = work / "src"
     shutil.copytree(ROOT / "packages" / PACKAGE / "src", src)
-    deps = "\n".join(
-        f'{p} = {{ path = "{(ROOT / "packages" / p).as_posix()}" }}' for p in ("fixed", "glam", "glamx")
-    )
+    # `fixed` comes from the registry, pinned like the workspace (`[workspace.dependencies]`).
+    fixed = tomllib.loads((ROOT / "Scarb.toml").read_text())["workspace"]["dependencies"]["fixed"]
+    deps = f'fixed = "{fixed}"\nglam = {{ path = "{(ROOT / "packages" / "glam").as_posix()}" }}'
     (work / "Scarb.toml").write_text(
         f'[package]\nname = "{PACKAGE}"\nversion = "0.1.0"\nedition = "2024_07"\n\n'
         f'[dependencies]\n{deps}\nstarknet = "2.19.4"\n\n'

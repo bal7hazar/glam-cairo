@@ -10,14 +10,20 @@ by the orchestrator, never by a porting sub-agent.
 `docs/audits/`, `docs/briefs/` and the past `CHANGELOG.md` entries keep that name) ports
 [glam-rs](https://github.com/bitshifter/glam-rs) **0.33.8** to pure Cairo
 (no `starknet` dependency). It is the base layer of a provable game physics stack; the sibling
-repositories `nalgebra-cairo` and `rapier-cairo` consume the published packages:
+repositories consume the published packages. Since 2026-09-25 each repository mirrors one Rust
+reference repository ([`docs/SPLIT.md`](SPLIT.md)):
 
-| package | role |
-|---|---|
-| `fixed` | the signed Q32.32 scalar, its fused kernels and its transcendental functions. Zero dependencies. |
-| `glam` | `Vec2/3/4`, `Mat2/3/4`, `Quat`, `Affine2/3`, `BVec*`, `IVec*`, `UVec*`, `EulerRot`, swizzles, camera |
-| `glamx` | physics-oriented extensions mirroring Dimforge's `glamx` 0.3.1 (what parry and rapier are written against): `Rot2`, `Rot3 = Quat`, `Pose2`, `Pose3`, `SdpMatrix2/3`, `SymmetricEigen3`. Separate package so that `glam` stays a clean glam-rs parity surface and `glam_tests` does not pay for it |
-| `benches` | unpublished: gas/step benchmarks and the losing alternative implementations |
+| repository | packages | depends on (registry) |
+|---|---|---|
+| [`bal7hazar/fixed-cairo`](https://github.com/bal7hazar/fixed-cairo) | `fixed`: the signed Q32.32 scalar, its fused kernels and its transcendental functions | - |
+| `bal7hazar/glam-cairo` (this one) | `glam`: `Vec2/3/4`, `Mat2/3/4`, `Quat`, `Affine2/3`, `BVec*`, `IVec*`, `UVec*`, `EulerRot`, swizzles, camera | `fixed` |
+| [`bal7hazar/glamx-cairo`](https://github.com/bal7hazar/glamx-cairo) | `glamx`: Dimforge's `glamx` 0.3.1 extensions (`Rot2`, `Rot3 = Quat`, `Pose2/3`, `SdpMatrix2/3`, `SymmetricEigen3`) | `fixed`, `glam` |
+| `bal7hazar/nalgebra-cairo` | `nalgebra` | `fixed` |
+| `bal7hazar/rapier-cairo` | `rapier*` | all of the above |
+
+This workspace also holds two unpublished packages: `benches` (gas/step benchmarks and the
+losing alternative implementations) and `consumer` (the `GlamSink` contract fixture whose class
+size is tracked in `gas/bytecode.size`).
 
 Type mapping from glam-rs (one scalar, so the f32/f64/SIMD/aligned variants collapse):
 
@@ -37,89 +43,31 @@ Type mapping from glam-rs (one scalar, so the f32/f64/SIMD/aligned variants coll
 
 ## 2. The scalar: `fixed::Fixed`
 
-```cairo
-#[derive(Copy, Drop, Serde, PartialEq, Debug, Default, Hash)]
-pub struct Fixed { pub raw: i64 }   // value = raw / 2^32
-```
+The scalar is owned by [`fixed-cairo`](https://github.com/bal7hazar/fixed-cairo), whose
+`docs/DESIGN.md` is the reference for its format, rounding, overflow, kernels and
+transcendentals; `glam` depends on the published `fixed = "0.3.0"`. What `glam` relies on:
 
-- **Format**: signed Q32.32 in a native two's-complement `i64`. Range `[-2^31, 2^31)`,
-  resolution `2^-32 ~= 2.3e-10`. One felt per value, a unique zero, native `Serde`/`Hash`/storage.
-- **Why** (report 05): add/sub/compare are one native libfunc each (840 / 770 gas vs 4 050 / 3 110
-  for cubit's sign-magnitude); every operand is <= 64 bits so every product fits 128 bits, below
-  the cost cliff of `u128` multiplication (5.7x) and `u256` (25x). Q16.16 costs the same as Q32.32
-  and overflows `length_squared` at |v| = 181; Q64.64 costs 2.4x on `mul`.
-- **Rejected**: sign-magnitude structs (cubit, orion), `u256` intermediates, Q64.64, biased
-  unsigned. A `felt252`-backed scalar is 12-19 % cheaper on kernels and 8x cheaper on `add`, but
-  loses the static "always a valid i64" invariant at every trust boundary; it is kept as a
-  documented alternative (report 05 section 3.4) should profiling of the physics step justify it.
-- **Rounding**: **floor** (toward negative infinity) for every rescale: `mul`, fused kernels,
-  polynomial evaluation. It is what the branch-free bias trick `((p + 2^k) div 2^32) - 2^(k-32)`
-  yields for free. Division follows the Rust reference (`f64 /`): `Fixed / Fixed`, `recip` and
-  `from_ratio` round to nearest, ties to even, and are exact whenever the quotient is
-  representable (since 0.3.0, #42; 4 140 gas vs 3 740 for the former truncation, which DESIGN
-  used to prefer for cost: the owner's rule "mirror the reference" wins). `div_nearest` /
-  `recip_nearest` are the same functions under explicit names, and `wide::RecipNearest` shares a
-  divisor with the same bits. `rem` is the exact truncated remainder (Rust's float `%`) and
-  `div_euclid` / `rem_euclid` are euclidean, as in Rust. Multiplication and the fused kernels
-  still floor: `f64 *` rounds to nearest, and aligning them is an open question (it would change
-  every result of the library). One deliberate exception:
-  `wide::RecipTrait::mul` (the shared-division kernel behind `normalize*` and `inverse`) rounds
-  to nearest, ties toward +infinity, at no extra cost, so that `x / d` is exact whenever the
-  quotient is representable (`normalize` of an axis-aligned vector is exactly `+-1`). Second
-  exception: the **final** rescale of a transcendental polynomial (`fixed::trig`) rounds to
-  nearest (symmetric error of about +-1 ULP instead of one-sided `[-2, 0]`, `cos(2^-32) = 1`,
-  <= 300 gas); intermediate rescales still floor. `exp2` / `exp` / `powf` (`fixed::exp`) keep
-  a floor final rescale: with round-to-nearest the generator found 1 ULP descents at segment
-  junctions, and monotonicity is worth more than the 1 ULP gained; the logarithms round to
-  nearest. Third exception: the Jacobi rotations of `glamx::eigen3` round to nearest (one-sided
-  floor errors accumulate over ~12 rotations: residual 14.0 -> 6.7 ULP measured). `sqrt` and `norm*` return the floor of the
-  exact root. Rounding is part of the API: results are bit-exact
-  and any change is a MINOR version bump.
-- **Overflow**: panics (native `i64` checks and the final `downcast` of each kernel). Never wraps,
-  never saturates. Panic messages are short strings, e.g. `'Fixed: overflow'`.
-- **Arithmetic internals**: `core::internal::bounded_int` behind
-  `#[feature("bounded-int-utils")]`, isolated in `fixed::internal` and never exposed. It is an
-  unstable corelib API: the toolchain is pinned, the plumbing (type aliases and helper impls with
-  computed bounds) is generated by a script, and a stable-API variant (1.8x the `mul` cost) stays
-  in `benches::alt` as the fallback.
-- **Concrete type, no generic scalar**: `#[inline(always)]` is rejected on functions with impl
-  generic parameters (E2143) and a non-inlined panicking call costs ~2 000 gas, i.e. as much as a
-  `mul`. glam-rs itself is monomorphic (generated from templates). All geometry types are written
-  against `Fixed` directly.
+- `Fixed { raw: i64 }`, signed Q32.32 (`value = raw / 2^32`), one felt per value, `Copy`,
+  `Serde`, `Hash`, `Default`. There is no generic scalar: every type is written against `Fixed`.
+- Rounding and overflow are API: products and fused kernels floor, `Fixed / Fixed` and `recip`
+  round to nearest (ties to even), `wide::RecipTrait::mul` rounds to nearest; every overflow
+  panics (never wraps or saturates). A change of any of them in `fixed` is a MINOR bump and one
+  pull request here (new `gas/*.snap`, golden vectors).
+- Escalations about the scalar (a missing kernel, a rounding question) go to `fixed-cairo`.
 
 ### 2.1 Fused kernels (`fixed::wide`)
 
-The single largest win (7x on `Mat4 * Mat4` vs cubit): multiply raw values into Q64.64 products
-(1 step, no range check), **sum the raw products, rescale once per output scalar**.
+Multiply raw values into exact wide products, sum them, **rescale once per output scalar**
+(`dot2/3/4`, `mul_sub`, `mul_add`, `det3`, `norm*`, `normalize*`, the shared division `Recip`,
+the accumulators `W1..W16` / `T1..T16`). Every product of `glam` goes through them, never through
+chains of `Fixed * Fixed` (`dot3` 2 080 fused vs 7 540 unfused gas). Quadruple products do not fit
+a felt: narrow a partial sum and re-lift.
 
-- `dot2/3/4`, `dot2/3_add`, `mul_sub` (`a*b - c*d`, the cross-product/determinant building
-  block), `mul_add`, `det3`, `norm*`, `distance*`, `normalize*`, the shared square root `Norm`
-  (one `sqrt` for `length` + `normalize` + `try_normalize`), the shared division `Recip` (divide
-  an adjugate once) and the typed accumulators `W1..W16` (sums of raw products, Q64.64) /
-  `T1..T16` (sums of triple products, Q96.96) with `add/sub/neg/mul/lift/narrow` are public API
-  of `fixed`: `glam`, `nalgebra` and `rapier` kernels must be written against them, never as
-  chains of `Fixed * Fixed` (measured: `dot3` 2 080 fused vs 7 540 unfused gas). Bounds are
-  tracked by the type system; `narrow` is the only range check; 16 terms is the ceiling
-  (narrow a partial sum and re-lift beyond that); quadruple products do not fit a felt.
-- `length = u128_sqrt(x^2 + y^2 + z^2)` on the **raw** sum: no rescale, no precision loss, and
-  `length_squared` underflow for tiny vectors disappears from `length`/`normalize`.
-- Rule of thumb: one rescale (`div_rem` by `2^32`) per output component, zero per intermediate.
+### 2.2 Transcendentals (`fixed::trig`, `fixed::exp`)
 
-### 2.2 Transcendentals (`fixed::trig`, later `fixed::exp`)
-
-Loop-free: constant-divisor range reduction (`DivRem` by a constant, with a Cody-Waite tail so
-that 1 000 turns still cost ~2 ULP), then a minimax polynomial in Horner form on wide
-accumulators, coefficients as constants. Report 05 section 4 measured the prototype with
-**constant inputs** (`sin` 18 420, `sin_cos` 28 060, `atan2` 22 420, `acos` 25 740 gas): those
-numbers are roughly half of what the repository's black-boxed protocol reports for the same
-algorithm; the baseline is `gas/trig.snap`, not report 05. Coefficients are
-generated by a checked-in script which also emits a bit-exact Python mirror used for error sweeps.
-LUT + lerp variants (12 680 gas, 1.2e-7) are optional and named `*_fast`. No CORDIC, no Taylor
-recursion.
-
-Tiers: **A** arithmetic, comparisons, rounding, `sqrt`, fused kernels; **B** `sin`, `cos`,
-`sin_cos`, `tan`, `atan2`, `acos`, `asin`; **C** (deferred, no internal consumer in glam) `exp`,
-`exp2`, `ln`, `log2`, `powf`.
+Loop-free, deterministic `sin`, `cos`, `sin_cos` (one call: ~31 300 gas, cheaper than `sin` +
+`cos`), `tan`, `atan2`, `asin`, `acos`, `exp`, `ln`, `powf`; `glam` uses them for rotations,
+Euler angles, `slerp` and the camera.
 
 ## 3. Semantics that differ from glam-rs
 

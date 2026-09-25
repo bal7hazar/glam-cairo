@@ -13,6 +13,7 @@ import argparse
 import difflib
 import json
 import re
+import subprocess
 import sys
 from dataclasses import dataclass
 from pathlib import Path
@@ -387,8 +388,30 @@ def parse_rust(glam_root: Path) -> list[Item]:
     return unique_items(items)
 
 
-def cairo_file_owner(path: Path, package: str) -> str:
-    rel = path.relative_to(ROOT / "packages" / package / "src")
+def fixed_package_root() -> Path:
+    """Root of the `fixed` sources that `glam` depends on: since the repository split, the
+    registry package pinned by `Scarb.lock` (checksum-verified), read from scarb's cache."""
+    out = subprocess.run(
+        ["scarb", "--offline", "metadata", "--format-version", "1"],
+        cwd=ROOT, capture_output=True, text=True,
+    )
+    if out.returncode != 0:
+        out = subprocess.run(
+            ["scarb", "metadata", "--format-version", "1"],
+            cwd=ROOT, capture_output=True, text=True, check=True,
+        )
+    roots = [Path(p["root"]) for p in json.loads(out.stdout)["packages"] if p["name"] == "fixed"]
+    if len(roots) != 1:
+        raise SystemExit(f"expected exactly one `fixed` package in scarb metadata, got {roots}")
+    return roots[0]
+
+
+def package_root(package: str, fixed_root: Path) -> Path:
+    return fixed_root if package == "fixed" else ROOT / "packages" / package
+
+
+def cairo_file_owner(path: Path, package: str, fixed_root: Path) -> str:
+    rel = path.relative_to(package_root(package, fixed_root) / "src")
     stem = path.stem
     if package == "fixed":
         return "fixed::wide" if stem == "wide" else "Fixed"
@@ -478,12 +501,14 @@ def parse_cairo() -> list[Item]:
     )
     module_re = re.compile(r"\bpub\s+mod\s+([A-Za-z_][A-Za-z0-9_]*)\s*\{")
 
-    paths = sorted((ROOT / "packages/glam/src").rglob("*.cairo"))
-    paths += sorted((ROOT / "packages/fixed/src").glob("*.cairo"))
-    for path in paths:
-        package = "glam" if "packages/glam" in str(path) else "fixed"
-        fallback = cairo_file_owner(path, package)
-        source = str(path.relative_to(ROOT))
+    fixed_root = fixed_package_root()
+    paths = [(p, "glam") for p in sorted((ROOT / "packages/glam/src").rglob("*.cairo"))]
+    paths += [(p, "fixed") for p in sorted((fixed_root / "src").glob("*.cairo"))]
+    for path, package in paths:
+        fallback = cairo_file_owner(path, package, fixed_root)
+        # The label of the former in-repository path, so that the output does not depend on
+        # where the registry cache lives.
+        source = f"packages/{package}/{path.relative_to(package_root(package, fixed_root))}"
         text = mask_comments(path.read_text())
         trait_blocks = blocks(text, trait_re)
         impl_blocks = blocks(text, impl_re)

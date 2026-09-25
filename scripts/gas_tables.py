@@ -46,59 +46,6 @@ class Table:
 # input-independent or worst-case function.
 # ------------------------------------------------------------------------------------------
 
-FIXED = [
-    Table("Scalar (`fixed::fixed`)", [
-        ("`+` / `-`", "fixed::add"),
-        ("`*`", "fixed::mul"),
-        ("`/`", "fixed::div"),
-        ("`%`", "fixed::rem"),
-        ("`<`", "fixed::lt"),
-        ("`sqrt`", "fixed::sqrt"),
-        ("`recip`", "fixed::recip"),
-        ("`floor`", "fixed::floor"),
-        ("`round`", "fixed::round"),
-        ("`lerp`", "fixed::lerp"),
-        ("`smoothstep`", "fixed::smoothstep"),
-        ("`powi(5)`", "fixed::powi_5"),
-    ]),
-    Table("Fused kernels (`fixed::wide`)", [
-        ("`dot2`", "wide::dot2"),
-        ("`dot3`", "wide::dot3"),
-        ("`dot4`", "wide::dot4"),
-        ("`mul_add`", "wide::mul_add"),
-        ("`mul_sub`", "wide::mul_sub"),
-        ("`det3`", "wide::det3"),
-        ("`norm3`", "wide::norm3"),
-        ("`distance3`", "wide::distance3"),
-        ("`normalize3`", "wide::normalize3"),
-        ("`Recip::new`", "wide::recip_new"),
-        ("`Recip::mul`", "wide::recip_mul"),
-    ]),
-    Table("Trigonometry (`fixed::trig`)", [
-        ("`sin`", "trig::sin__small"),
-        ("`cos`", "trig::cos__small"),
-        ("`sin_cos`", "trig::sin_cos__small"),
-        ("`tan`", "trig::tan__small"),
-        ("`atan`", "trig::atan__small"),
-        ("`atan2`", "trig::atan2__quadrant1"),
-        ("`asin`", "trig::asin__small"),
-        ("`acos`", "trig::acos__small"),
-        ("`acos_clamped`", "trig::acos_clamped__outside"),
-        ("`to_radians`", "trig::to_radians"),
-    ]),
-    Table("Exponentials (`fixed::exp`)", [
-        ("`exp`", "exp::exp__small"),
-        ("`exp2`", "exp::exp2__small"),
-        ("`exp_m1`", "exp::exp_m1"),
-        ("`ln`", "exp::ln__large"),
-        ("`log2`", "exp::log2__large"),
-        ("`log10`", "exp::log10"),
-        ("`ln_1p`", "exp::ln_1p"),
-        ("`log`", "exp::log"),
-        ("`powf`", "exp::powf__positive"),
-    ]),
-]
-
 GLAM = [
     Table("`Vec2`", [
         ("`add`", "vec2::add"),
@@ -209,70 +156,18 @@ GLAM = [
 ]
 
 # A module without a snapshot yet (still being ported) is skipped without error.
-GLAMX = [
-    Table("`Pose3`", [
-        ("`mul_pose3`", "pose3::mul_pose3"),
-        ("`inv_mul`", "pose3::inv_mul"),
-        ("`inverse`", "pose3::inverse"),
-        ("`transform_point`", "pose3::transform_point"),
-        ("`transform_vector`", "pose3::transform_vector"),
-        ("`inverse_transform_point`", "pose3::inverse_transform_point"),
-        ("`nlerp`", "pose3::nlerp"),
-        ("`to_mat4`", "pose3::to_mat4"),
-    ], optional=True),
-    Table("`Pose2`", [
-        ("`mul`", "pose2::mul"),
-        ("`inv_mul`", "pose2::inv_mul"),
-        ("`inverse`", "pose2::inverse"),
-        ("`transform_point`", "pose2::transform_point"),
-        ("`transform_vector`", "pose2::transform_vector"),
-    ], optional=True),
-    Table("`Rot2`", [
-        ("`mul`", "rot2::mul"),
-        ("`mul_vec2`", "rot2::mul_vec2"),
-        ("`inverse`", "rot2::inverse"),
-        ("`from_angle`", "rot2::from_angle"),
-        ("`angle`", "rot2::angle"),
-        ("`normalize`", "rot2::normalize"),
-        ("`lerp`", "rot2::lerp"),
-        ("`slerp`", "rot2::slerp"),
-    ], optional=True),
-    Table("`SdpMatrix3`", [
-        ("`mul_vec`", "sdp::mul_vec"),
-        ("`mul_mat`", "sdp::mul_mat"),
-        ("`add`", "sdp::add"),
-        ("`quadform`", "sdp::quadform"),
-        ("`inverse_regular`", "sdp::inverse_regular"),
-        ("`from_rotated_diagonal`", "sdp::from_rotated_diagonal"),
-    ], optional=True),
-]
-
 # Root README.  Figures of the cubit-style sign-magnitude scalar: docs/research/00-synthesis.md
 # section 2 (prototype measurements, same operations).
 CUBIT_SOURCE = "docs/research/00-synthesis.md"
 CUBIT = [
-    ("`+`", "fixed::add", 4050),
-    ("`*`", "fixed::mul", 2970),
-    ("`/`", "fixed::div", 2970),
     ("`Vec3::dot`", "vec3::dot", 15750),
     ("`Mat3 * Mat3`", "mat3::mul_mat3", 134250),
     ("`Mat4 * Mat4`", "mat4::mul_mat4", 335800),
     ("`Quat * Quat`", "quat::mul_quat", 87780),
     ("`Quat * Vec3`", "quat::mul_vec3", 115910),
-    ("`sin`", "trig::sin__small", 128670),
-    ("`sin_cos`", "trig::sin_cos__small", 263610),
 ]
 
 GLANCE = [
-    ("`fixed`", "`+`", "fixed::add"),
-    ("`fixed`", "`*`", "fixed::mul"),
-    ("`fixed`", "`/`", "fixed::div"),
-    ("`fixed`", "`sqrt`", "fixed::sqrt"),
-    ("`fixed`", "`dot3`", "wide::dot3"),
-    ("`fixed`", "`sin_cos`", "trig::sin_cos__small"),
-    ("`fixed`", "`atan2`", "trig::atan2__quadrant1"),
-    ("`fixed`", "`exp`", "exp::exp__small"),
-    ("`fixed`", "`ln`", "exp::ln__large"),
     ("`glam`", "`Vec3::normalize`", "vec3::normalize"),
     ("`glam`", "`Vec3::cross`", "vec3::cross"),
     ("`glam`", "`Mat3 * Vec3`", "mat3::mul_vec3"),
@@ -281,7 +176,6 @@ GLANCE = [
     ("`glam`", "`Quat * Quat`", "quat::mul_quat"),
     ("`glam`", "`Quat::slerp`", "quat::slerp"),
     ("`glam`", "`Affine3::transform_point3`", "affine3::transform_point3"),
-    ("`glamx`", "`Pose3::transform_point`", "pose3::transform_point"),
 ]
 
 
@@ -391,16 +285,15 @@ def render_root(snaps, errors):
     out += ["", "### Headline operations", "", "| package | op | l2 gas | steps | range checks |",
             "|---|---|---:|---:|---:|"]
     for pkg, label, key in GLANCE:
-        if pkg == "`glamx`" and not snaps.has(key):
-            continue
         r = snaps.get(key, errors)
         if r is not None:
             out.append(
                 f"| {pkg} | {label} | {group(r['l2_gas'])} | {group(r['steps'])} | "
                 f"{group(r['range_check'])} |"
             )
-    out += ["", "Full tables: [`fixed`](packages/fixed#gas), [`glam`](packages/glam#gas), "
-            "[`glamx`](packages/glamx#gas)."]
+    out += ["", "Full table: [`glam`](packages/glam#gas). The scalar (`fixed`) and `glamx` tables "
+            "live in [`fixed-cairo`](https://github.com/bal7hazar/fixed-cairo#gas) and "
+            "[`glamx-cairo`](https://github.com/bal7hazar/glamx-cairo#gas)."]
     return "\n".join(out)
 
 
@@ -420,9 +313,7 @@ def main():
     snaps, errors = Snapshots(), []
     outputs = {
         "README.md": render_root(snaps, errors),
-        "packages/fixed/README.md": render_package(FIXED, snaps, errors),
         "packages/glam/README.md": render_package(GLAM, snaps, errors),
-        "packages/glamx/README.md": render_package(GLAMX, snaps, errors),
     }
     if errors:
         sys.exit("gas_tables.py: the curated lists do not match gas/*.snap:\n  " +

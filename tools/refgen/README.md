@@ -45,8 +45,8 @@ You only ever touch two files of your own, never a shared one:
 
 Both are auto-discovered (`build.rs` scans `src/oracles/`, the CLI scans `specs/`). The output
 file `packages/<package>/tests/golden_<module>.cairo` already exists as a stub and is already
-declared in `tests/lib.cairo`. `specs/vec2.toml`, `specs/vec3.toml` (disabled worked examples)
-and `specs/fixed.toml` are the references to copy from.
+declared in `tests/lib.cairo`. `specs/vec2.toml` and `specs/vec3.toml` are the references to copy
+from (`specs/fixed.toml` moved to `fixed-cairo` with the scalar).
 
 1. Oracle, `src/oracles/<module>.rs`:
 
@@ -69,13 +69,13 @@ and `specs/fixed.toml` are the references to copy from.
    / `IVec*` / `UVec*` types, `bool`, `i32`, `u32`, `i64`, tuples up to 4, `Option<_>`
    (`None` skips), `skip("reason")`, and `Out::raw(i64)` / `Out::raw_checked(Option<i64>)` /
    `Out::raw_wide(i128)` for **integer oracles** that compute the exact raw result (no `max_abs`
-   guard, usable on the full `i64` range: see `oracles/fixed.rs`).
+   guard, usable on the full `i64` range: see `oracles/fixed.rs` in `fixed-cairo`).
 
 2. Spec, `specs/<module>.toml`:
 
    ```toml
    module = "vec3"                        # = file name, -> golden_vec3.cairo
-   package = "glam"                       # "fixed" | "glam"
+   package = "glam"                       # "glam" (the only package of this repository)
    # enabled = false                      # master switch: emits the bare stub
    imports = ["glam::vec3::Vec3Trait"]    # traits / consts used by `call`; types are automatic
 
