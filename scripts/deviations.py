@@ -18,11 +18,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 REPORT = ROOT / "docs" / "audits" / "R1-deviations.md"
-SOURCE_GLOBS = (
-    "packages/fixed/src/**/*.cairo",
-    "packages/glam/src/**/*.cairo",
-    "packages/glamx/src/**/*.cairo",
-)
+SOURCE_GLOBS = ("packages/glam/src/**/*.cairo",)
 INVENTORY_START = "<!-- deviations-inventory:start -->"
 INVENTORY_END = "<!-- deviations-inventory:end -->"
 
@@ -58,15 +54,9 @@ def source_paths() -> list[Path]:
 
 def module_owner(path: Path) -> str:
     special = {
-        "fixed": "Fixed",
-        "trig": "Fixed",
-        "exp": "Fixed",
-        "wide": "fixed::wide",
         "camera": "camera",
         "swizzles": "swizzles",
         "euler": "EulerRot",
-        "eigen3": "SymmetricEigen3",
-        "sdp": "SdpMatrix",
     }
     relative = path.relative_to(ROOT).as_posix()
     if "/camera/" in relative:

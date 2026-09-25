@@ -1,18 +1,16 @@
 # consumer
 
-Unpublished. Starknet contract fixtures that link `fixed`, `glam` and `glamx` into deployable
-classes, so that the compiled class size of a realistic consumer is tracked against the network
-limits:
+Unpublished. A Starknet contract fixture that links `glam` into a deployable class, so that the
+compiled class size of a realistic consumer is tracked against the network limits:
 
 | contract | content |
 |---|---|
-| `Scalar` | one entry point per `fixed` family (`mul`, `div`, `sqrt`, `sin_cos`, `atan2`, `exp`, `ln`, `powf`) |
-| `Particles2d` | a 2D integrator step on `Vec2` / `Rot2` / `Pose2` (semi-implicit Euler, circle-circle contact, particles in storage) |
-| `Rigid3d` | what one rapier-style 3D step touches (`Vec3`, `Quat`, `Mat3`, `Pose3`, `SdpMatrix3` world inertia, bodies in storage) |
-| `KitchenSink` | everything above plus `Mat4` inverse, `slerp`, Euler conversions, a camera projection and `SymmetricEigen3` |
+| `GlamSink` | the `glam` entry points of the former `KitchenSink`: circle contact on `Vec2`, a contact frame on `Vec3` / `Quat`, `Mat3` inverse of a rotated inertia tensor, `Mat4` inverse, `slerp` with Euler conversions, a camera projection |
 
-Every input comes from calldata or storage (nothing is constant-folded). The shared simulation
-logic is in `src/sim.cairo`.
+Every input comes from calldata (nothing is constant-folded). The logic is in `src/sim.cairo`.
+The scalar fixture (`Scalar`) now lives in
+[`fixed-cairo`](https://github.com/bal7hazar/fixed-cairo), the `glamx` ones (`Particles2d`,
+`Rigid3d`, `KitchenSink`) in [`glamx-cairo`](https://github.com/bal7hazar/glamx-cairo).
 
 Run from the repository root:
 
