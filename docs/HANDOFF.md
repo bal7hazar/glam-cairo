@@ -70,8 +70,8 @@ means a pull request in each consuming repository (`glam-cairo`, `glamx-cairo`, 
 
 ## What remains (see `docs/PORTING_STATUS.md` for the live state)
 
-- Released: `fixed`, `glam`, `glamx` 0.3.0 on scarbs.xyz (tags `v0.1.0`..`v0.3.0` of this
-  repository). **The owner or the programme session gives a go per release** (delegation
+- Released: `fixed`, `glam`, `glamx` 0.4.0 on scarbs.xyz (2026-09-25; each from its own repository,
+  tag `v0.4.0` in each; 0.1.0..0.3.0 were cut from this repository). **The owner or the programme session gives a go per release** (delegation
   confirmed by the owner in this orchestrator's session on 2026-09-25; conditions in
   `/home/claude/projects/pm/decisions/2026-09-25-release-go-delegated-to-pm.md`: green CI on
   `main` at the release commit, release checklist followed, version policy, dependency order,
@@ -79,10 +79,10 @@ means a pull request in each consuming repository (`glam-cairo`, `glamx-cairo`, 
   a line in `pm/decisions/` or `pm/STATUS.md`); the orchestrator then tags and publishes
   (`SCARB_REGISTRY_AUTH_TOKEN` is in the owner's `~/.claude/settings.json`; never handled).
   From now on each package is released from its own repository.
-- Next task: **D2** (`docs/briefs/D2-test-runtime.md`): split the `glam` test crate (CI `Test
-  glam` is 22 min, ~19 of them running 1 684 tests in one crate) and run only what a change
-  affects on pull requests (`scripts/affected.py`), full run on `main`. Until it lands, the
-  interim rule holds: agents run targeted checks, the pull request CI is the full gate.
+- Done since the split: D2 (#44: six-family test matrix, CI 24 -> 5.6 min, `scripts/affected.py`
+  selective runs on pull requests), D3 (#45, #46), F7 (hyperbolic functions in `fixed-cairo`).
+  No task is open; F8 (`asinh` / `acosh` / `atanh`) and P2 (`glamx::Pose2` kernels for a parry
+  split) wait for a request through the programme session.
 - Debt: D1 (in `fixed-cairo`: `gen_trig.py` / `gen_exp.py` need numpy / mpmath and their fits
   depend on the numpy version); Dependabot is active on the two new repositories; the golden
   files of `fixed-cairo` still say "glam-rs 0.33.8 (f64)" in their header (kept byte-identical
