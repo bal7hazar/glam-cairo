@@ -1,6 +1,7 @@
 # benches
 
-Unpublished. Gas and step benchmarks for `fixed` and `glam` (`tests/bench_<module>.cairo`), the
+Unpublished. Gas and step benchmarks for `glam` (`tests/bench_<module>.cairo`; those of `fixed`
+and `glamx` live in `fixed-cairo` / `glamx-cairo`), the
 measurement harness (`src/harness.cairo`) and the alternative implementations that lost a
 benchmark (`src/alt/`). Run with `scripts/bench.py` from the repository root.
 

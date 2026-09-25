@@ -7,7 +7,6 @@ version = "0.3.0"
 dependencies = [
  "fixed",
  "glam",
- "glamx",
  "snforge_std",
 ]
 
@@ -17,30 +16,19 @@ version = "0.3.0"
 dependencies = [
  "fixed",
  "glam",
- "glamx",
 ]
 
 [[package]]
 name = "fixed"
 version = "0.3.0"
-dependencies = [
- "snforge_std",
-]
+source = "registry+https://scarbs.xyz/"
+checksum = "sha256:2f5867291f4bc0660ee113c1cb5e3edac65515dc4fb8618283d26b30bd13a021"
 
 [[package]]
 name = "glam"
 version = "0.3.0"
 dependencies = [
  "fixed",
- "snforge_std",
-]
-
-[[package]]
-name = "glamx"
-version = "0.3.0"
-dependencies = [
- "fixed",
- "glam",
  "snforge_std",
 ]
 

@@ -1,6 +1,6 @@
 [package]
 name = "benches"
-description = "Gas and step benchmarks for the fixed and glam packages (not published)"
+description = "Gas and step benchmarks for the glam package (not published)"
 version.workspace = true
 edition.workspace = true
 cairo-version.workspace = true
@@ -12,7 +12,6 @@ publish = false
 [dependencies]
 fixed.workspace = true
 glam.workspace = true
-glamx.workspace = true
 
 [dev-dependencies]
 snforge_std.workspace = true
@@ -63,23 +62,8 @@ source-path = "tests/bench_camera.cairo"
 test-type = "integration"
 
 [[test]]
-name = "bench_eigen3"
-source-path = "tests/bench_eigen3.cairo"
-test-type = "integration"
-
-[[test]]
 name = "bench_euler"
 source-path = "tests/bench_euler.cairo"
-test-type = "integration"
-
-[[test]]
-name = "bench_exp"
-source-path = "tests/bench_exp.cairo"
-test-type = "integration"
-
-[[test]]
-name = "bench_fixed"
-source-path = "tests/bench_fixed.cairo"
 test-type = "integration"
 
 [[test]]
@@ -113,43 +97,13 @@ source-path = "tests/bench_mat4.cairo"
 test-type = "integration"
 
 [[test]]
-name = "bench_pose2"
-source-path = "tests/bench_pose2.cairo"
-test-type = "integration"
-
-[[test]]
-name = "bench_pose3"
-source-path = "tests/bench_pose3.cairo"
-test-type = "integration"
-
-[[test]]
 name = "bench_quat"
 source-path = "tests/bench_quat.cairo"
 test-type = "integration"
 
 [[test]]
-name = "bench_rot2"
-source-path = "tests/bench_rot2.cairo"
-test-type = "integration"
-
-[[test]]
-name = "bench_rot3"
-source-path = "tests/bench_rot3.cairo"
-test-type = "integration"
-
-[[test]]
-name = "bench_sdp"
-source-path = "tests/bench_sdp.cairo"
-test-type = "integration"
-
-[[test]]
 name = "bench_swizzles"
 source-path = "tests/bench_swizzles.cairo"
-test-type = "integration"
-
-[[test]]
-name = "bench_trig"
-source-path = "tests/bench_trig.cairo"
 test-type = "integration"
 
 [[test]]
@@ -180,9 +134,4 @@ test-type = "integration"
 [[test]]
 name = "bench_vec4"
 source-path = "tests/bench_vec4.cairo"
-test-type = "integration"
-
-[[test]]
-name = "bench_wide"
-source-path = "tests/bench_wide.cairo"
 test-type = "integration"
