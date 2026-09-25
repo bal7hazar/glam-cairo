@@ -41,9 +41,11 @@ means a pull request in each consuming repository (`glam-cairo`, `glamx-cairo`, 
 - `scripts/check.sh` is the full gate (fmt, lint, build, tests, gas snapshots, golden vectors,
   API parity, docs). It takes 10-30 minutes depending on the machine load.
 - Sub-agent CLIs: `claude` (check `claude auth status`: the account used for sub-agents is
-  separate from the orchestrator's) and `codex`. Models that worked: `opus` for ports with
-  numerics, `sonnet` for mechanical / tooling tasks, `fable` for genuinely hard numerics,
-  codex `gpt-5.6-sol` with `model_reasoning_effort=high` for standard ports.
+  separate from the orchestrator's) for **every implementation lot**: `opus` for ports with
+  numerics, `sonnet` for mechanical / tooling tasks, `fable` for genuinely hard numerics.
+  `codex` (`codex login status`) **only for audits and second opinions** (owner's rule,
+  2026-09-25: its quota is small and shared): a review of a merged lot, a numeric cross-check,
+  an independent design opinion (`gpt-5.6-sol`, effort `high`). See `docs/ORCHESTRATOR.md`.
 - Reference sources are re-cloned on demand into `/tmp` (the briefs say how): glam-rs 0.33.8,
   dimforge/glamx 0.3.1, parry, rapier.
 

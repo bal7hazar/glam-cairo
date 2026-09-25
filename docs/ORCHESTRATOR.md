@@ -13,8 +13,14 @@ large directly.
   research.
 - Every sub-task runs in its own git worktree + branch (`feat/<module>`), launched in the
   background with its output redirected to a log file.
-- Two interchangeable CLIs, on two accounts distinct from the session; alternate according to
-  the remaining quota of each:
+- Two CLIs with **distinct roles** (owner's rule, 2026-09-25, programme decision
+  `/home/claude/projects/pm/decisions/2026-09-25-codex-audits-only.md`):
+  - every **implementation / tooling lot runs on the `claude` CLI** (Opus or Sonnet by
+    difficulty, table below);
+  - **`codex` is used sparingly, only for audits and second opinions**: a review of a merged lot,
+    a cross-check of a numeric decision, an independent opinion on a design. Its quota is small
+    and shared between the repositories; it must stay available for that.
+  Commands:
   - `claude -p "$(cat brief.md)" --model <sonnet|opus|fable> --dangerously-skip-permissions --name <task>`;
     resume with context: `claude --continue -p "<follow-up>"` in the same worktree.
   - `codex exec -C <worktree> -m <model> -c model_reasoning_effort=<low|medium|high|xhigh> --dangerously-bypass-approvals-and-sandbox -o REPORT.md "$(cat brief.md)"`.
@@ -65,17 +71,26 @@ scratchpads do not survive a reboot; committed briefs do, and they document what
 
 ## Model choice by difficulty
 
-| difficulty | claude CLI | codex CLI | examples |
-|---|---|---|---|
-| mechanical, well framed | Sonnet | `gpt-5.5` or `gpt-5.6-*` (effort `medium`) | template-generated code, test compaction, spec alignment, benching variants already identified |
-| standard port with numerics | Opus | `gpt-5.6-*` (effort `high`) | a new module: kernels, tests, golden vectors, benches |
-| genuinely complex | Fable 5.1 | `gpt-6-astra` (effort `xhigh`) | novel numerics, hard debugging, cross-module design, API arbitration |
+Implementation lots (`claude` CLI):
+
+| difficulty | model | examples |
+|---|---|---|
+| mechanical, well framed | Sonnet (`--model sonnet`) | template-generated code, test compaction, spec alignment, benching variants already identified |
+| standard port with numerics | Opus (`--model opus`) | a new module: kernels, tests, golden vectors, benches |
+| genuinely complex | Fable 5.1 (`--model fable`) | novel numerics, hard debugging, cross-module design, API arbitration |
+
+Audits and second opinions only (`codex` CLI): `gpt-5.6-*` (effort `high`) for a review of a
+merged lot or a numeric cross-check, `gpt-6-astra` (effort `xhigh`) for an independent opinion on
+a hard design. Never an implementation lot. (History: R1e, R1h, R1d, F5, S2 and D2 ran on codex
+before this rule; D2 finishes there unless it hits the quota, then it resumes on `claude` from
+its worktree.)
 
 - The strong models are not the default, but do not rule them out when the problem warrants
   them.
 - The smaller the model (or the lower the effort), the tighter the brief must be.
 - The codex model tiering is inferred from the names (`gpt-6-astra` above `gpt-5.6-*`, which are
-  above `gpt-5.5`); adjust it if the actual ranking is known.
+  above `gpt-5.5`); adjust it if the actual ranking is known. An audit brief asks for a report
+  (findings with evidence), not for a pull request that changes the library.
 
 ## The brief (mandatory, in this order)
 
