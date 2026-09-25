@@ -82,16 +82,21 @@ jobs:
       - run: python3 scripts/panic_coverage.py --check
 
   test:
-    name: Test glam (serial layout measurement)
+    name: Test ${{ matrix.target }}
     needs: plan
     if: ${{ needs.plan.outputs.tests != '[]' }}
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        target: ${{ fromJSON(needs.plan.outputs.tests) }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: software-mansion/setup-scarb@2a96b748888e3329ee44ac9ac073d930e692b3cd # v1.6.2
       - uses: foundry-rs/setup-snfoundry@16e23ddd0e2845f38727c92f4b913a7b728cda9e # v6.0.0
+      # The filter executes one explicit family target; the six-target manifest bounds compile cost.
       - name: Test
-        run: /usr/bin/time -v snforge test -p glam --fuzzer-runs 32 --fuzzer-seed 1
+        run: /usr/bin/time -v snforge test "${{ matrix.target }}" -p glam --fuzzer-runs 32 --fuzzer-seed 1
 
   bench:
     name: Benches and gas snapshots
