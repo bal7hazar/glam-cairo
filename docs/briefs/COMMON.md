@@ -38,10 +38,14 @@ Appended to every task brief of `docs/briefs/`. The orchestrator launches a port
 - glam-rs 0.33.8 sources: clone with
   `git clone --depth 1 --branch 0.33.8 https://github.com/bitshifter/glam-rs /tmp/glam-rs` if the
   brief's path is missing. Mirror the scalar (non-SIMD) code paths.
-- DONE = `scarb fmt --workspace`; `scripts/check.sh` green in the FOREGROUND (never leave a
-  command running in the background and end your turn: in headless mode that ends the session);
-  `scripts/bench.py snapshot bench_<module>` for each of your bench modules; generator `--check`
-  clean; conventional commits (`feat(<module>): ...`) each ending with a `Co-Authored-By:` trailer
+- DONE = everything in the FOREGROUND (never leave a command running in the background and end
+  your turn: in headless mode that ends the session). Locally, the targeted checks only (interim
+  rule of 2026-09-25, see `R1-common.md`): `scarb fmt --workspace`, `scarb lint --workspace
+  --test --deny-warnings`, `snforge test -p <pkg> <filter>` on the modules you touched and on
+  their dependents, `scripts/bench.py snapshot bench_<module>` for each of your bench modules then
+  `scripts/bench.py check <module>`, every generator / script `--check` you affected
+  (`api_parity.py`, `gas_tables.py`, `panic_coverage.py`, codegen, refgen); the full
+  `scripts/check.sh` runs in CI; conventional commits (`feat(<module>): ...`) each ending with a `Co-Authored-By:` trailer
   naming the model that actually did the work (e.g. `Co-Authored-By: Claude Opus 5
   <noreply@anthropic.com>`); `git push -u origin <branch>`;
   `gh pr create --base main` following `.github/PULL_REQUEST_TEMPLATE.md` (gas table of headline

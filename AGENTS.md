@@ -27,7 +27,7 @@ Read `docs/DESIGN.md` before writing any code. It is short and every rule in it 
 
 | task | command |
 |---|---|
-| Full gate (must be green before reporting done) | `scripts/check.sh` |
+| Full gate (CI runs it on every pull request; locally only when a brief asks: interim rule, see `docs/briefs/COMMON.md`) | `scripts/check.sh` |
 | Format | `scarb fmt --workspace` |
 | Lint | `scarb lint --workspace --test --deny-warnings` |
 | Test one module | `snforge test -p glam test_vec3` |
@@ -69,7 +69,7 @@ needs to edit a shared file. If you believe you must, stop and escalate.
 2. Plan in <= 30 lines: API list, test list, which kernels of `fixed::wide` you use, open
    questions. Escalate open questions instead of guessing.
 3. Implement: source -> tests -> docs -> benches -> snapshot.
-4. Run `scripts/check.sh` until green.
+4. Run the targeted checks of what you touched (`docs/briefs/COMMON.md`, "DONE"); the pull request CI is the full gate, fix until green.
 5. Commit on your branch (conventional commits, scope = module: `feat(vec3): ...`), push, open a
    pull request with the template filled (gas table included). Do not merge.
 6. Report using the handoff format.
@@ -83,7 +83,7 @@ needs to edit a shared file. If you believe you must, stop and escalate.
       for every panic path
 - [ ] A `X__base` / `X__op` bench with `bb`-wrapped inputs for every public function that does
       arithmetic; `gas/<module>.snap` regenerated and committed
-- [ ] `scripts/check.sh` green
+- [ ] Pull request CI (`all-checks`, the full `scripts/check.sh`) green
 - [ ] Deviations from glam-rs documented on the item; anything that needs a `docs/DESIGN.md`
       change is escalated, not applied
 - [ ] No change outside the allowed files
