@@ -20,6 +20,18 @@ test program (58 tests: 28 s inside the big crate, 1.3 s alone); one crate per b
 bench run 12x faster (990 s -> 82 s), at the price of a longer cold compile (27 s -> 200 s: each
 crate recompiles the library).
 
+## Prior art in the sibling repositories (measured on their `main`, 2026-09-25)
+
+- `nalgebra-cairo` (`.github/workflows/ci.yml`, read it with `gh api
+  repos/bal7hazar/nalgebra-cairo/contents/.github/workflows/ci.yml -q .content | base64 -d`):
+  tests spread over ~20 small test packages and a **24-job matrix**, each job running
+  `snforge test -p <package> <filter>` for its shard and checking the benches it ran against the
+  snapshot (`--partial`), then a final job checking every bench against the full snapshot;
+  longest job ~6 min, whole run ~8 min.
+- `rapier-cairo`: a 4-group test matrix, longest job ~4.5 min, whole run ~5 min.
+Neither selects tests by diff yet: part 2 below is a pilot. Reuse what fits; `glam-cairo` keeps
+`all-checks` as the single required status.
+
 ## 1. Split the glam test crate
 
 Explicit `[[test]]` targets (`test-type = "integration"`) instead of the auto-detected
