@@ -13,6 +13,9 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Versioning pol
   `bal7hazar/glamx-cairo` (both with their full history); `glam` now depends on the published
   `fixed` 0.3.0. The `CHANGELOG` entries of `fixed` and `glamx` up to 0.3.0 stay below for the
   record; their next releases come from their own repositories (#43).
+- CI: the `glam` tests run as a six-family matrix (full run 24 min 28 s -> 5 min 38 s); pull
+  requests run only the tests and benches their diff affects (`scripts/affected.py`,
+  `scripts/check.sh --affected <base>`), pushes to `main` run everything (#44).
 
 ## [0.3.0] - 2026-09-23
 
