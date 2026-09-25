@@ -10,7 +10,7 @@ by the orchestrator, never by a porting sub-agent.
 `docs/audits/`, `docs/briefs/` and the past `CHANGELOG.md` entries keep that name) ports
 [glam-rs](https://github.com/bitshifter/glam-rs) **0.33.8** to pure Cairo
 (no `starknet` dependency). It is the base layer of a provable game physics stack; the sibling
-repositories `nalgebra.cairo` and `rapier.cairo` consume the published packages:
+repositories `nalgebra-cairo` and `rapier-cairo` consume the published packages:
 
 | package | role |
 |---|---|
