@@ -58,4 +58,4 @@ Status: `todo`, `inprogress`, `inreview`, `done`.
 | RN | repositories renamed `*.cairo` -> `*-cairo` (GitHub renames + live docs) | done | #41 |
 | S1 | split `fixed-cairo` out (history kept, standalone gate and CI), `docs/SPLIT.md` | done | [fixed-cairo](https://github.com/bal7hazar/fixed-cairo) `efa78b8` |
 | S2 | split `glamx-cairo` out (history kept, `fixed` / `glam` 0.3.0 from the registry; 145 benches identical to the snapshots) | done | [glamx-cairo](https://github.com/bal7hazar/glamx-cairo) `d8a2e81` |
-| S3 | remove `fixed` and `glamx` from `glam-cairo`, `fixed` 0.3.0 from the registry | inprogress | |
+| S3 | remove `fixed` and `glamx` from `glam-cairo`, `fixed` 0.3.0 from the registry (2 020 benches, goldens and `API_PARITY.md` identical; `GlamSink` bytecode fixture) | done | #43 |

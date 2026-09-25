@@ -9,6 +9,10 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Versioning pol
 - Repositories renamed `glam.cairo` -> `glam-cairo`, `nalgebra.cairo` -> `nalgebra-cairo`,
   `rapier.cairo` -> `rapier-cairo` (`https://github.com/bal7hazar/glam-cairo`; GitHub redirects
   the old URLs). Package names (`fixed`, `glam`, `glamx`) and the registry are unchanged.
+- Repository split (`docs/SPLIT.md`): `fixed` moved to `bal7hazar/fixed-cairo`, `glamx` to
+  `bal7hazar/glamx-cairo` (both with their full history); `glam` now depends on the published
+  `fixed` 0.3.0. The `CHANGELOG` entries of `fixed` and `glamx` up to 0.3.0 stay below for the
+  record; their next releases come from their own repositories (#43).
 
 ## [0.3.0] - 2026-09-23
 
