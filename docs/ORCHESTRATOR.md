@@ -40,6 +40,9 @@ large directly.
   scratch. Merge with `gh pr merge --squash` without `--delete-branch` (the agent's untracked
   `REPORT.md` blocks the worktree removal): archive the report, `git worktree remove --force`,
   delete the branch by hand.
+- Naming (owner's rule, 2026-09-25): every background task, monitor or agent-launch description
+  starts with the model used, e.g. `[gpt-5.6-sol] Wait for D2`, `[Sonnet 5] F7 hyperbolic
+  kernels`; the orchestrator's own model for its non-agent tasks.
 - Machine budget (programme rule, 2026-09-25, `/home/claude/projects/pm/OPERATIONS.md` section 3):
   **at most 4 sub-agents running machine-wide**, all repositories together. Count the running
   units (`systemctl --user list-units 'glam-agent-*' 'rapier-*' 'nalgebra-*' --state=running`)
