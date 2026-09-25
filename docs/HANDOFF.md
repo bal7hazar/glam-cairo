@@ -71,8 +71,13 @@ means a pull request in each consuming repository (`glam-cairo`, `glamx-cairo`, 
 ## What remains (see `docs/PORTING_STATUS.md` for the live state)
 
 - Released: `fixed`, `glam`, `glamx` 0.3.0 on scarbs.xyz (tags `v0.1.0`..`v0.3.0` of this
-  repository). The owner gives a go per release, conditioned on green CI; the orchestrator then
-  tags and publishes (`SCARB_REGISTRY_AUTH_TOKEN` is in the owner's `~/.claude/settings.json`).
+  repository). **The owner or the programme session gives a go per release** (delegation
+  confirmed by the owner in this orchestrator's session on 2026-09-25; conditions in
+  `/home/claude/projects/pm/decisions/2026-09-25-release-go-delegated-to-pm.md`: green CI on
+  `main` at the release commit, release checklist followed, version policy, dependency order,
+  publication from the package's own repository). The go is written (cross-session message +
+  a line in `pm/decisions/` or `pm/STATUS.md`); the orchestrator then tags and publishes
+  (`SCARB_REGISTRY_AUTH_TOKEN` is in the owner's `~/.claude/settings.json`; never handled).
   From now on each package is released from its own repository.
 - Next task: **D2** (`docs/briefs/D2-test-runtime.md`): split the `glam` test crate (CI `Test
   glam` is 22 min, ~19 of them running 1 684 tests in one crate) and run only what a change
