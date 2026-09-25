@@ -59,3 +59,5 @@ Status: `todo`, `inprogress`, `inreview`, `done`.
 | S1 | split `fixed-cairo` out (history kept, standalone gate and CI), `docs/SPLIT.md` | done | [fixed-cairo](https://github.com/bal7hazar/fixed-cairo) `efa78b8` |
 | S2 | split `glamx-cairo` out (history kept, `fixed` / `glam` 0.3.0 from the registry; 145 benches identical to the snapshots) | done | [glamx-cairo](https://github.com/bal7hazar/glamx-cairo) `d8a2e81` |
 | S3 | remove `fixed` and `glamx` from `glam-cairo`, `fixed` 0.3.0 from the registry (2 020 benches, goldens and `API_PARITY.md` identical; `GlamSink` bytecode fixture) | done | #43 |
+| F7 | `fixed-cairo`: hyperbolic kernels `sinh`, `cosh`, `tanh` (ideally `sinhc`) through `TrigTrait` / `ExpTrait` (nalgebra-cairo escalation of 2026-09-24, relayed by the programme session): next `fixed` MINOR, brief after D2 | todo | |
+| P2 | `glamx-cairo`: receive rapier-cairo's measured `Pose2` fused kernels (its PR #21) if the owner approves the parry split (`glamx::Pose2` is the pivot of `fixed -> glam -> glamx -> parry -> rapier`); nothing before that decision | todo | |

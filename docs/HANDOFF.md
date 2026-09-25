@@ -80,6 +80,12 @@ means a pull request in each consuming repository (`glam-cairo`, `glamx-cairo`, 
   depend on the numpy version); Dependabot is active on the two new repositories; the golden
   files of `fixed-cairo` still say "glam-rs 0.33.8 (f64)" in their header (kept byte-identical
   on purpose).
+- Programme management (since 2026-09-25): a project-manager session ("Angry Birds Cairo
+  orchestration", documents in `/home/claude/projects/pm/`, messages to this orchestrator in
+  `pm/messages/to-glam/`) coordinates the repositories for the target game (a 2D Angry Birds-like
+  game on rapier-cairo, local proving, on-chain verification). Escalations and cross-repository
+  questions go through it, not directly to the siblings. Pending from it: F7 (hyperbolic kernels
+  in `fixed-cairo`, after D2) and P2 (`glamx::Pose2` kernels, only if the parry split is approved).
 - Sibling coordination: `nalgebra-cairo` pins `fixed` 0.3.0 and delegates `Real::div` / `recip`
   to `/` / `recip`; it splits its `simba` crate into `simba-cairo`; `rapier-cairo` decides
   whether a `parry-cairo` is split out. Their orchestrators own those tasks.

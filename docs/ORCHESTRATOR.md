@@ -40,6 +40,10 @@ large directly.
   scratch. Merge with `gh pr merge --squash` without `--delete-branch` (the agent's untracked
   `REPORT.md` blocks the worktree removal): archive the report, `git worktree remove --force`,
   delete the branch by hand.
+- Machine budget (programme rule, 2026-09-25, `/home/claude/projects/pm/OPERATIONS.md` section 3):
+  **at most 4 sub-agents running machine-wide**, all repositories together. Count the running
+  units (`systemctl --user list-units 'glam-agent-*' 'rapier-*' 'nalgebra-*' --state=running`)
+  before launching.
 - A shared machine needs a lock around the full gate: briefs say
   `flock /tmp/glam-cairo-gate.lock scripts/check.sh` (the `glam_tests` compile peaks at ~12 GB).
 - The agent writes a `REPORT.md` (not committed) at the root of its worktree: the orchestrator
