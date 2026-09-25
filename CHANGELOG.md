@@ -5,6 +5,15 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Versioning pol
 
 ## [Unreleased]
 
+Nothing yet.
+
+## [0.4.0] - 2026-09-25
+
+First release of `glam` cut from `glam-cairo` after the split: depends on the published `fixed`
+0.4.0 (which adds the hyperbolic functions; no numeric result of `glam` changes, every gas
+snapshot is identical). Released so that `glam` and the consumers of `fixed` 0.4.0
+(`nalgebra-cairo`) share one `Fixed` type (pre-1.0, `^0.3.0` excludes `0.4.0`).
+
 ### Changed
 - Repositories renamed `glam.cairo` -> `glam-cairo`, `nalgebra.cairo` -> `nalgebra-cairo`,
   `rapier.cairo` -> `rapier-cairo` (`https://github.com/bal7hazar/glam-cairo`; GitHub redirects
@@ -16,6 +25,7 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Versioning pol
 - CI: the `glam` tests run as a six-family matrix (full run 24 min 28 s -> 5 min 38 s); pull
   requests run only the tests and benches their diff affects (`scripts/affected.py`,
   `scripts/check.sh --affected <base>`), pushes to `main` run everything (#44).
+- Depends on `fixed` 0.4.0 (registry); `docs/API_PARITY.md` lists the new `Fixed` hyperbolic methods.
 
 ## [0.3.0] - 2026-09-23
 
