@@ -4,14 +4,14 @@ Port of [glam-rs](https://github.com/bitshifter/glam-rs) 0.33.8 to Cairo on top 
 [`fixed`](https://github.com/bal7hazar/fixed-cairo) Q32.32 scalar (registry package `fixed` 0.3.0): `Vec2/3/4`, `Mat2/3/4`, `Quat`, `Affine2/3`, `BVec*`, `IVec*`,
 `UVec*`. Same module, type and method names as glam-rs.
 
-`glam` is a **facade**: it re-exports [`glam_core`](../glam_core) (vectors, matrices, quaternions,
-affines, camera, the integer vector types), [`glam_int`](../glam_int) (the integer vector methods),
-[`glam_swizzles`](../glam_swizzles) and [`glam_int_swizzles`](../glam_int_swizzles) under the paths
+`glam` is a **facade**: it re-exports [`glam_core`](https://github.com/bal7hazar/glam-cairo/tree/main/packages/glam_core) (vectors, matrices, quaternions,
+affines, camera, the integer vector types), [`glam_int`](https://github.com/bal7hazar/glam-cairo/tree/main/packages/glam_int) (the integer vector methods),
+[`glam_swizzles`](https://github.com/bal7hazar/glam-cairo/tree/main/packages/glam_swizzles) and [`glam_int_swizzles`](https://github.com/bal7hazar/glam-cairo/tree/main/packages/glam_int_swizzles) under the paths
 of a single crate (`glam::vec3::Vec3`, `glam::Vec3Trait`, `glam::swizzles::Vec3Swizzles`, ...).
 Depend on `glam` for everything, or on the smaller crates to pay for less code (`glam_core` alone
 is about 18 500 library lines). All five crates share the workspace version.
 
-Progress: [`docs/PORTING_STATUS.md`](../../docs/PORTING_STATUS.md).
+Progress: [`docs/PORTING_STATUS.md`](https://github.com/bal7hazar/glam-cairo/blob/main/docs/PORTING_STATUS.md).
 Compatible with Cairo 2.19.4.
 
 ## Gas

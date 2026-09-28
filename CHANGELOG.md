@@ -7,6 +7,23 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Versioning pol
 
 Nothing yet.
 
+## [0.4.1] - 2026-09-28
+
+Non-breaking: every public path of 0.4.0 resolves unchanged through the `glam` facade, no numeric
+result changes, every gas snapshot is identical (package-size rule of 2026-09-28: at most 40 000
+library lines per published crate; `glam` 0.4.0 had 41 484).
+
+### Added
+- Sub-crates; `glam` is now a facade (#50): `glam_core` (float vectors and matrices, `Quat`,
+  affines, Euler, camera, `BVec*`, and the integer vector types with their operator / conversion
+  impls: 18 727 lines), `glam_int` (integer vector methods and constants, 8 606),
+  `glam_swizzles` (float swizzles, 4 803), `glam_int_swizzles` (integer swizzles, 9 600); `glam`
+  re-exports all of them under the 0.4.0 paths (170 lines). A project that only needs the float
+  types can depend on `glam_core` (0.48 GB added to an empty consumer's build vs 0.73 GB for the
+  facade). The cut plan and its measurements: `docs/audits/PK-G-glam-cut-plan.md` (#48, #49).
+- CI job `Consumer cost` (`scripts/consumer_cost.py`, shared with the other repositories of the
+  programme), enforcing: lines, added cold-build time and memory per published crate (#48, #50).
+
 ## [0.4.0] - 2026-09-25
 
 First release of `glam` cut from `glam-cairo` after the split: depends on the published `fixed`
