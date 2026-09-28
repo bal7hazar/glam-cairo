@@ -58,3 +58,20 @@ Deliverable of part B: `docs/audits/PK-G-glam-cut-plan.md` in a pull request on 
 code moves in a later lot, after its go.
 
 Implementation on the claude CLI (Sonnet); no release in this lot.
+
+## Start signal and practical details (2026-09-28, programme session)
+
+NS0 is merged in nalgebra-cairo (PR #61, `bff3462`). Copy the script **unchanged**:
+`gh api "repos/bal7hazar/nalgebra-cairo/contents/scripts/consumer_cost.py?ref=bff3462" -q .content | base64 -d > scripts/consumer_cost.py`
+(stdlib Python, repository-agnostic), and read nalgebra's `consumer_cost.toml` the same way as the
+model of the per-repository configuration. Do not edit nalgebra-cairo or its checkout.
+- One `consumer_cost.toml` per repository; one CI job named `Consumer cost`, **non-blocking**
+  until glam's cut lands (then enforcing: the orchestrator flips it).
+- Its line count is physical lines reachable from the lib root minus test-only files and blocks.
+- Builds are sequential, under the programme's machine-wide lock:
+  `flock ~/orchestrator/heavy-build.lock <command>` for every cold build / measurement run locally
+  (it replaces `/tmp/glam-cairo-gate.lock` for heavy builds).
+- Worktrees prepared by the orchestrator: glam-cairo `.claude/worktrees/cli-pkg` (branch
+  `chore/consumer-cost`), fixed-cairo `.claude/worktrees/cli-pkg` (same branch), glamx-cairo
+  `.claude/worktrees/cli-pkg` (same branch). One pull request per repository for part A; part B's
+  plan in the glam-cairo pull request (or a second one), never code moved.
