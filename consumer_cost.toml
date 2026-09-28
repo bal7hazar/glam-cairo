@@ -1,7 +1,12 @@
-# Gates of scripts/consumer_cost.py (copied unchanged from nalgebra-cairo bff3462; see the docstring
+# Gates of scripts/consumer_cost.py (copied unchanged from nalgebra-cairo 7177cf3; see the docstring
 # at the top of that script). The values are the defaults of the package granularity rule: a
-# published crate has at most 40,000 library lines, and an empty consumer of it adds at most
-# 5 s / 1 GB to the no-dependency cold build.
+# published crate has at most 40,000 library lines, and its MARGINAL cost (an empty consumer of it
+# minus an empty consumer of its direct dependencies together) is at most 5 s / 1 GB; a typical
+# closure adds at most 15 s / 3 GB to the no-dependency cold build.
+# Top-level key (before any table). The facade `glam` only re-exports the four sub-crates: it is judged on the closure budget only
+# (gate 3: its own consumer against `closure_seconds` / `closure_gb`), not on lines or marginal cost.
+facades = ["glam"]
+
 [gates]
 max_lines = 40000
 max_seconds = 5
