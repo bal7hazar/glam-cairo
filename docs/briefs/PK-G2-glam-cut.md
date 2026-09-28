@@ -31,3 +31,16 @@ Report: lines and added cost per crate (GitHub runner), the identity checks, wha
 paths (nothing, or the variant-A `use`). Do not bump the version, do not edit `CHANGELOG.md`, do
 not release: the orchestrator prepares `glam` 0.5.0 (or a patch, if nothing breaks) after merge,
 on the programme session's written go. Implementation on the claude CLI (Sonnet).
+
+## Verdict (2026-09-28): variant B
+
+Implement **section 9** of `docs/audits/PK-G-glam-cut-plan.md` (variant B, #49): `glam_core` holds
+the integer vector types, their operator / conversion impls (Cairo finds an impl of a core trait
+without an import only in the type's own module) and the float -> int casts as methods of
+`Vec{n}Trait`, unchanged; `glam_int` holds the integer method traits and constants. **No path
+changes at all** (no `Vec{n}IntCastTrait`): no test, bench or consumer `use` may need an edit.
+The bodies that the prototype duplicated into `glam_core` (`*AssignScalar` impls, `Into<[i32; n],
+_>`) must come from one template in the generator, not be copied by hand; the helpers made `pub`
+in `glam_core` for `glam_int` are not re-exported by the facade (doc them as internal). The
+prototype (`scratch/make_vb.py`, runner workflow) is on `scratch/pk-g-glam-cut`: reuse it, do not
+merge that branch.
