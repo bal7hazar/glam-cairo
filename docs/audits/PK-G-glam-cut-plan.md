@@ -6,6 +6,12 @@ library lines; an empty cold consumer of it adds at most 5 s / 1 GB. Prototypes,
 measurement workflow are on the scratch branch `scratch/pk-g-glam-cut` (never merged; run
 `36407831302`, two attempts); nothing in this plan changes `packages/`.
 
+> **Verdict of part B2 (section 9): variant B wins** (integer vector types and their core-trait impls in
+> `glam_core`, the float -> int casts stay in `Vec{n}Trait`): `glam_core` 18 498 lines (< 22 000) and, measured
+> interleaved on the same runner, +2 to +3 % time and +8 to +10 % memory against variant A (c3, section 5).
+> **No path changes at all**: the extension trait `Vec{n}IntCastTrait` of sections 1 and 5 is dropped.
+> Sections 1 to 8 describe variant A (c3), the reference; implement section 9.
+
 ## 1. Summary
 
 * `glam` fails the rule on **lines only** (41 484 > 40 000). Its cold consumer already passes the time
@@ -233,3 +239,123 @@ scripts/consumer_cost.py /tmp/w/ && (cd /tmp/w && python3 consumer_cost.py --rep
 on the scratch branch, or the workflow `.github/workflows/pkg-cost.yml` of that branch (matrix
 `today`, `a`, `b`, `c1`, `c2`, `c3`, artifacts `cost-<variant>`). Local heavy runs go through
 `flock ~/orchestrator/heavy-build.lock`.
+
+## 9. Variant B (part B2): the integer types stay in `glam_core`
+
+Asked by the programme session after the plan: keep every path, including `Vec{n}Trait::as_ivec*` /
+`as_uvec*`, by putting the integer vector *types* in `glam_core`. Prototype `scratch/make_vb.py`
+(scratch branch `scratch/pk-g-glam-cut`), built and measured like A. The decision rule of
+`docs/briefs/PK-G-package-size.md` (Part B2): B wins if `glam_core` stays under 22 000 lines and its
+measured cost is within 15 % of A's, otherwise A.
+
+### 9.1 Layout (exactly what was measured)
+
+```
+fixed <- glam_core (float types and traits, bvec, camera, euler, integer TYPES + core-trait impls)
+glam_core <- glam_int            (IVec{n}Trait / UVec{n}Trait and their impls, constructors, helpers)
+glam_core <- glam_swizzles       (float swizzles)
+glam_core <- glam_int_swizzles   (integer swizzles; the types are in the core: no dependency on glam_int)
+facade glam -> all four
+```
+
+Per generated module `ivec{n}.cairo` / `uvec{n}.cairo` (the classification is mechanical, the prototype
+does it by text):
+
+| item | crate |
+|---|---|
+| `struct IVec{n}` / `UVec{n}` and its derives (`Copy, Drop, Serde, PartialEq, Debug, Default, Hash`) | `glam_core::ivec{n}` |
+| every `impl` of a **core** trait for the type: `Add`, `Sub`, `Mul`, `Div`, `Rem`, `Neg`, the `*Assign` and `*AssignScalar`, `BitAnd/Or/Xor/Not`, `IndexView`, the array / tuple `Into`, `Into<BVec{n}, _>`, `TryInto` | `glam_core::ivec{n}` |
+| `Into<IVec{n}, Vec{n}>`, `Into<UVec{n}, Vec{n}>` (int -> float casts) | unchanged in `glam_core::vec{n}` |
+| `Vec{n}Trait::as_ivec{n}`, `as_uvec{n}`, `to_u32` | unchanged in `glam_core::vec{n}` (`vec{n}.cairo` is not touched) |
+| `pub fn ivec{n}` constructor, `pub trait IVec{n}Trait`, `pub impl IVec{n}Impl` | `glam_int::ivec{n}` |
+| private helpers (`checked_*`, `wrapping_*`, `pow2`, ...) | `glam_int::ivec{n}`, except those the core impls reach (`bitand_i32`, `bitor_i32`, `bitxor_i32`, `i32_as_u32`, `u32_as_i32` for `ivec`; none for `uvec`), which live in `glam_core::ivec{n}` as `pub fn` (not re-exported by the facade) |
+
+Two consequences, both measured and both forced by Cairo, not by taste:
+
+* **Where the operator impls go.** An impl of a core trait for a type of another crate is found without
+  an import only if it sits in the module of that type: on a scratch crate, `a + b` on a `ca::V2` with
+  `impl Add<V2>` in a dependent crate fails with E2311 unless the impl is imported (with the impl in the
+  type's own module it compiles unchanged). So the operator impls, the conversions and, for the same
+  reason, the int -> float `Into` impls (they name `Vec{n}`) cannot live in `glam_int`: they stay in the
+  core. Their lines are counted in `glam_core`: 1 980 lines for the six integer modules.
+* **Bodies that call a method of `IVec{n}Trait`** from a core impl (`AddAssign<IVec2, i32>` calls
+  `add_scalar`, ..., `Into<[i32; 2], IVec2>` calls `from_array`) cannot, since the core cannot depend on
+  `glam_int`: the prototype inlines the method body at the call (the same statements, `#[inline(always)]`
+  on both sides). Five scalar-assign bodies per type (`div` / `rem` are 4 lines) and one `from_array`
+  are therefore written twice: the generator must emit them from one template. The gas snapshots show
+  no difference (9.2).
+
+The facade: `pub use glam_core::vec2;` as before, and for each integer module an explicit merge, e.g.
+
+```
+pub mod ivec2 {
+    pub use glam_core::ivec2::{IVec2, IVec2Add, ..., UVec2TryIntoIVec2};   // every pub item of the core module but the helpers
+    pub use glam_int::ivec2::{ivec2, IVec2Trait, IVec2Impl};
+}
+```
+
+(70 lines for the whole facade file, generated from the two modules' `pub` items.) Everything else of
+section 5 stays: swizzle re-exports, root re-exports, `.into()` between integer and float vectors.
+
+### 9.2 Measurements
+
+Lines (`consumer_cost.py`): `glam_core` **18 498**, `glam_int` 8 579, `glam_swizzles` 4 797,
+`glam_int_swizzles` 9 594, `glam` 70; sum 41 538 (+54 against today). A (c3): 16 330 / 10 781 / 4 798 /
+9 595 / 53.
+
+**Paired measurement** (`scratch/paired.py`, GitHub runner, both variants' consumers built alternately
+in the same job, 15 cold builds each, median; "added" = minus the empty consumer of the same job; two
+attempts, run `36414019987`), reported as A / B / B over A:
+
+| profile | added s (attempt 1) | added s (attempt 2) | added GB (attempt 1) | added GB (attempt 2) |
+|---|---|---|---|---|
+| core (`glam_core`) | 1.75 / 1.81 / **1.03** | 1.77 / 1.80 / **1.02** | 0.43 / 0.48 / **1.10** | 0.44 / 0.47 / **1.08** |
+| core + swizzles | 2.00 / 2.07 / 1.04 | 2.10 / 1.99 / 0.95 | 0.49 / 0.53 / 1.08 | 0.49 / 0.53 / 1.09 |
+| core + integers | 2.18 / 2.16 / 0.99 | 2.21 / 2.17 / 0.98 | 0.56 / 0.56 / 1.00 | 0.56 / 0.55 / 0.99 |
+| core + integer swizzles (A: `glam_int` + `glam_int_swizzles`) | 2.34 / 2.12 / 0.91 | 2.36 / 2.14 / 0.91 | 0.66 / 0.58 / 0.88 | 0.66 / 0.58 / 0.88 |
+| everything (facade) | 2.54 / 2.62 / 1.03 | 2.58 / 2.54 / 0.99 | 0.71 / 0.72 / 1.01 | 0.71 / 0.72 / 1.01 |
+
+Baselines (empty consumer): 1.22 s / 0.54 GB and 1.18 s / 0.54 GB. Lines of the profiles for B:
+`core + swizzles` 23 295, `core + integers` 27 077, `core + integer swizzles` 28 092 (A: 21 128,
+27 111, 20 376).
+
+The unpaired runs of the same commit (3 attempts of run `36412414042`, 5 builds each, one job per
+variant, so different VMs) agree on the memory (core 0.46 / 0.46 / 0.45 GB for B against 0.43 / 0.44 /
+0.44 GB for A) and show what the pairing removes on the time: B 1.9 / 1.8 / 1.7 s against A 1.6 / 1.3 /
+1.6 s, a +6 to +38 % that is VM noise (the same-VM ratio is 1.02 to 1.03; the empty baseline itself
+moves by 0.3 s between jobs).
+
+### 9.3 Path identity and step / Sierra / CASM identity (prototype B, same commit)
+
+| check | result |
+|---|---|
+| the 95 distinct `use glam::...` statements of `packages/glam/tests`, `packages/benches`, `packages/consumer` | all resolve against the facade |
+| `snforge test` of the six family targets, **no test or bench file edited** (A needed nine added `use` lines) | 477 + 15 + 500 + 198 + 246 + 251 passed, 0 failed |
+| `scripts/bench.py check` `bench_ivec2/3/4`, `bench_uvec2/3/4`, `bench_vec2/3/4`, `bench_swizzles`, `bench_quat` | `gas snapshot OK` for the twelve modules (l2_gas, steps, builtins byte-identical) |
+| `scripts/bytecode_size.py check` (`GlamSink`) | Sierra felts 9 773, CASM felts 21 040, CASM bytes 622 848 identical; Sierra class bytes +182 (510 547 -> 510 729) |
+
+`.into()`, `as_ivec2`, `v + w`, `IVec2Trait::abs(v)` and `use glam::ivec2::{IVec2, IVec2Trait, ivec2};`
+all keep working: nothing is added or renamed for callers, and no `#### Deviations` bullet is needed.
+
+### 9.4 Verdict
+
+| criterion | A (c3) | B |
+|---|---|---|
+| `glam_core` lines, limit 22 000 | 16 330 | **18 498** (pass) |
+| `glam_core` time, within 15 % of A | 1.75 / 1.77 s | +3 % / +2 % (pass) |
+| `glam_core` memory, within 15 % of A | 0.43 / 0.44 GB | +10 % / +8 % (pass) |
+| paths changed | `as_ivec*`, `as_uvec*` (one `use`) | none |
+| steps / felts | identical | identical |
+
+**B wins.** The recommended layout is section 9.1. It costs about 0.04 GB and 0.05 s on the core-only
+consumer, and it makes the integer-swizzle profile cheaper (0.58 GB against 0.66 GB, since
+`glam_int_swizzles` needs only the core). What it costs in maintenance: the generator splits every
+integer module into two files, the five scalar-assign bodies and `from_array` are emitted twice, five
+helpers of `ivec*` are `pub` in `glam_core` (public in that crate, not in the facade).
+The rest of section 7 applies with `Vec{n}IntCastTrait` and the nine test / bench edits removed; the
+generators to adapt are `tools/codegen/intvec.py` (two outputs per module, facade `pub mod` merge) and
+`tools/codegen/swizzles.py`; `fvec.py` is untouched.
+
+Reproduce: `python3 scratch/make_vb.py packages/glam/src /tmp/wB`; paired measurement `python3
+scratch/paired.py /tmp/wA /tmp/wB 15` after `python3 scratch/make.py packages/glam/src /tmp/wA c3`
+(workflow `.github/workflows/pkg-cost.yml` of the scratch branch).
