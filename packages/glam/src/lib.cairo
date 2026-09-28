@@ -1,28 +1,21 @@
 //! Port of glam-rs (https://github.com/bitshifter/glam-rs) on top of the `fixed` Q32.32 scalar.
 //!
 //! Module names mirror glam-rs one-to-one. See `docs/PORTING_STATUS.md` for progress.
+//!
+//! This crate is a facade: it re-exports `glam_core`, `glam_int`, `glam_swizzles` and
+//! `glam_int_swizzles` under the paths of a single crate (`glam::vec3::Vec3`, `glam::Vec3Trait`,
+//! `glam::swizzles::Vec3Swizzles`, ...). Depend on the smaller crates to pay for less code.
 
-pub mod affine2;
-pub mod affine3;
-pub mod bvec2;
-pub mod bvec3;
-pub mod bvec4;
-pub mod camera;
-pub mod euler;
+pub use glam_core::{
+    affine2, affine3, bvec2, bvec3, bvec4, camera, euler, mat2, mat3, mat4, quat, vec2, vec3, vec4,
+};
 pub mod ivec2;
 pub mod ivec3;
 pub mod ivec4;
-pub mod mat2;
-pub mod mat3;
-pub mod mat4;
-pub mod quat;
 pub mod swizzles;
 pub mod uvec2;
 pub mod uvec3;
 pub mod uvec4;
-pub mod vec2;
-pub mod vec3;
-pub mod vec4;
 pub use affine2::{Affine2, Affine2Trait};
 pub use affine3::{Affine3, Affine3RigidTrait, Affine3Trait};
 

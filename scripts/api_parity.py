@@ -21,6 +21,9 @@ from pathlib import Path
 
 VERSION = "0.33.8"
 ROOT = Path(__file__).resolve().parents[1]
+# The crates of the glam cut; `glam` is the facade (re-exports only).
+SWIZZLE_CRATES = ("glam_swizzles", "glam_int_swizzles")
+GLAM_CRATES = ("glam_core", "glam_int", *SWIZZLE_CRATES, "glam")
 OUTPUT = ROOT / "docs" / "API_PARITY.md"
 INVENTORY_START = "<!-- api-parity-rust-inventory\n"
 INVENTORY_END = "\napi-parity-rust-inventory -->"
@@ -420,7 +423,7 @@ def cairo_file_owner(path: Path, package: str, fixed_root: Path) -> str:
         if stem not in ("camera", "camera_impl", "lib"):
             parts.append(stem)
         return "::".join(parts)
-    if rel.parts[0] == "swizzles" and len(rel.parts) > 1:
+    if package in SWIZZLE_CRATES:
         return type_from_stem(stem)
     if stem == "euler":
         return "EulerRot"
@@ -502,14 +505,18 @@ def parse_cairo() -> list[Item]:
     module_re = re.compile(r"\bpub\s+mod\s+([A-Za-z_][A-Za-z0-9_]*)\s*\{")
 
     fixed_root = fixed_package_root()
-    paths = [(p, "glam") for p in sorted((ROOT / "packages/glam/src").rglob("*.cairo"))]
+    paths = [(p, crate) for crate in GLAM_CRATES
+             for p in sorted((ROOT / "packages" / crate / "src").rglob("*.cairo"))]
     paths += [(p, "fixed") for p in sorted((fixed_root / "src").glob("*.cairo"))]
     for path, package in paths:
         fallback = cairo_file_owner(path, package, fixed_root)
         # The label of the former in-repository path, so that the output does not depend on
         # where the registry cache lives.
         source = f"packages/{package}/{path.relative_to(package_root(package, fixed_root))}"
-        text = mask_comments(path.read_text())
+        raw = path.read_text()
+        # `pub fn` helpers of `glam_core` that `glam_int` reaches: documented as internal.
+        internal = set(re.findall(r"/// Internal:[^\n]*\n(?:///[^\n]*\n)*(?:#\[[^\n]*\n)*pub fn (\w+)", raw))
+        text = mask_comments(raw)
         trait_blocks = blocks(text, trait_re)
         impl_blocks = blocks(text, impl_re)
         excluded = [(start, end) for _, start, end in trait_blocks + impl_blocks]
@@ -540,6 +547,8 @@ def parse_cairo() -> list[Item]:
                 items.add(Item(owner, "impl", "Default", source))
         for match in re.finditer(r"\bpub\s+fn\s+([A-Za-z_][A-Za-z0-9_]*)", text):
             if any(start < match.start() < end for start, end in excluded):
+                continue
+            if match.group(1) in internal:
                 continue
             nested = [name for name, start, end in modules if start < match.start() < end]
             owner = "::".join([fallback, *nested]) if nested else fallback

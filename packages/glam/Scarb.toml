@@ -1,6 +1,6 @@
 [package]
 name = "glam"
-description = "Port of glam-rs: fixed-point vector, matrix and quaternion math for provable games"
+description = "Port of glam-rs: fixed-point vector, matrix and quaternion math for provable games (facade over glam_core, glam_int, glam_swizzles, glam_int_swizzles)"
 version.workspace = true
 edition.workspace = true
 cairo-version.workspace = true
@@ -10,6 +10,10 @@ readme = "README.md"
 
 [dependencies]
 fixed.workspace = true
+glam_core.workspace = true
+glam_int.workspace = true
+glam_int_swizzles.workspace = true
+glam_swizzles.workspace = true
 
 [dev-dependencies]
 snforge_std.workspace = true

@@ -18,7 +18,12 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 REPORT = ROOT / "docs" / "audits" / "R1-deviations.md"
-SOURCE_GLOBS = ("packages/glam/src/**/*.cairo",)
+# The crates of the glam cut: the facade `glam` re-exports the others and documents no item.
+SWIZZLE_CRATES = ("glam_swizzles", "glam_int_swizzles")
+SOURCE_GLOBS = tuple(
+    f"packages/{crate}/src/**/*.cairo"
+    for crate in ("glam_core", "glam_int", *SWIZZLE_CRATES, "glam")
+)
 INVENTORY_START = "<!-- deviations-inventory:start -->"
 INVENTORY_END = "<!-- deviations-inventory:end -->"
 
@@ -59,10 +64,11 @@ def module_owner(path: Path) -> str:
         "euler": "EulerRot",
     }
     relative = path.relative_to(ROOT).as_posix()
+    crate = relative.split("/")[1]
     if "/camera/" in relative:
-        namespace = Path(relative).relative_to("packages/glam/src").with_suffix("")
+        namespace = Path(relative).relative_to(f"packages/{crate}/src").with_suffix("")
         return "::".join(namespace.parts)
-    if "/swizzles/" in relative:
+    if crate in SWIZZLE_CRATES:
         return "".join(part.capitalize() for part in path.stem.split("_"))
     if path.stem in special:
         return special[path.stem]

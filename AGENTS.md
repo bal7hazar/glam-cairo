@@ -15,7 +15,8 @@ Read `docs/DESIGN.md` before writing any code. It is short and every rule in it 
 
 | path | content |
 |---|---|
-| `packages/glam` | the glam-rs port; one module per glam-rs type, same names |
+| `packages/glam_core`, `glam_int`, `glam_swizzles`, `glam_int_swizzles` | the glam-rs port cut in four crates (core: floats, `BVec*`, integer vector types and their operator impls; integer methods; float swizzles; integer swizzles); one module per glam-rs type, same names |
+| `packages/glam` | the facade re-exporting the four crates under the paths of a single crate (`glam::vec3::Vec3`), and the tests (`tests/`) |
 | `packages/consumer` | unpublished: the `GlamSink` Starknet contract fixture whose class size is tracked in `gas/bytecode.size` |
 | `packages/benches` | unpublished: `tests/bench_<module>.cairo`, `src/harness.cairo` (`bb`, `sink`), `src/alt/` (losing variants) |
 | `gas/<module>.snap` | committed gas/step snapshots, one file per bench module |

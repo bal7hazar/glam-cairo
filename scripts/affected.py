@@ -21,15 +21,44 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 GLAM = ROOT / "packages" / "glam"
-GLAM_SRC = GLAM / "src"
 GLAM_TESTS = GLAM / "tests"
 BENCH_TESTS = ROOT / "packages" / "benches" / "tests"
 
-MODULES = {
-    path.relative_to(GLAM_SRC).parts[0].removesuffix(".cairo")
-    for path in GLAM_SRC.rglob("*.cairo")
-    if path.name != "lib.cairo"
+# The crates of the glam cut (docs/audits/PK-G-glam-cut-plan.md, section 9). `glam` is the facade:
+# it holds the tests and, next to `lib.cairo`, only re-exports. A source file is a "unit"
+# `<crate>:<file>`; imports link units, so a change in `glam_int` selects the integer targets only
+# while a change of a `glam_core` module selects everything that imports it, across crates. What the
+# test targets are named after is a "module" (`test_ivec2` tests the units `glam_core:ivec2` and
+# `glam_int:ivec2` together; every file of the swizzle crates belongs to the module `swizzles`).
+CRATES = ("glam_core", "glam_int", "glam_swizzles", "glam_int_swizzles", "glam")
+SWIZZLE_CRATES = ("glam_swizzles", "glam_int_swizzles")
+SRC_ROOTS = {crate: ROOT / "packages" / crate / "src" for crate in CRATES}
+SRC_RE = re.compile(r"packages/(" + "|".join(CRATES) + r")/src/(.+)\.cairo")
+
+
+def unit_of(crate: str, relative: str) -> str:
+    """`glam_core`, `camera/rh/view.cairo` -> `glam_core:camera`; `lib.cairo` -> `glam_core:lib`."""
+    return f"{crate}:{Path(relative).parts[0].removesuffix('.cairo')}"
+
+
+def module_of(unit: str) -> str:
+    """The module the test and bench targets are named after: `glam_int:ivec2` -> `ivec2`."""
+    crate, name = unit.split(":")
+    return "swizzles" if crate in SWIZZLE_CRATES and name != "lib" else name
+
+
+def source_files() -> list[tuple[str, Path]]:
+    return [
+        (crate, path)
+        for crate, root in SRC_ROOTS.items()
+        for path in sorted(root.rglob("*.cairo"))
+    ]
+
+
+UNITS = {
+    unit_of(crate, str(path.relative_to(SRC_ROOTS[crate]))) for crate, path in source_files()
 }
+MODULES = {module_of(unit) for unit in UNITS if not unit.endswith(":lib")}
 
 CODEGEN_MODULES = {
     "fvec.py": {"vec2", "vec3", "vec4"},
@@ -42,7 +71,7 @@ CODEGEN_MODULES = {
     "swizzles.py": {"swizzles"},
 }
 
-USE_RE = re.compile(r"\buse\s+(?:crate|glam)::([a-zA-Z_][a-zA-Z0-9_]*)")
+USE_RE = re.compile(r"\buse\s+(crate|glam_core|glam_int)::([a-zA-Z_][a-zA-Z0-9_]*)")
 PATH_RE = re.compile(r'#\[path\("([^"\n]+)"\)\]')
 
 
@@ -125,19 +154,16 @@ def check_targets() -> None:
     print(f"glam test targets OK ({len(targets)} targets, {len(expected)} files)")
 
 
-def owner_module(path: Path) -> str:
-    relative = path.relative_to(GLAM_SRC)
-    return relative.parts[0].removesuffix(".cairo")
-
-
-def reverse_imports(src_dir: Path = GLAM_SRC) -> dict[str, set[str]]:
+def reverse_imports() -> dict[str, set[str]]:
+    """imported unit -> units that import it, across the five crates."""
     reverse: dict[str, set[str]] = defaultdict(set)
-    for path in src_dir.rglob("*.cairo"):
-        if path.name == "lib.cairo":
+    for crate, path in source_files():
+        owner = unit_of(crate, str(path.relative_to(SRC_ROOTS[crate])))
+        if owner.endswith(":lib"):
             continue
-        owner = owner_module(path)
-        for imported in USE_RE.findall(path.read_text()):
-            if imported in MODULES and imported != owner:
+        for target, name in USE_RE.findall(path.read_text()):
+            imported = f"{crate if target == 'crate' else target}:{name}"
+            if imported in UNITS and imported != owner:
                 reverse[imported].add(owner)
     return reverse
 
@@ -194,14 +220,13 @@ def plan_paths(
     select_all = False
 
     for path in paths:
-        match = re.fullmatch(r"packages/glam/src/(.+)\.cairo", path)
+        match = SRC_RE.fullmatch(path)
         if match:
-            relative = Path(match.group(1))
-            module = relative.parts[0]
-            if module == "lib" or module not in modules:
+            unit = unit_of(match.group(1), match.group(2))
+            if unit.endswith(":lib") or module_of(unit) not in modules:
                 select_all = True
                 break
-            affected = dependents({module}, reverse)
+            affected = {module_of(u) for u in dependents({unit}, reverse)}
             selected_modules.update(affected)
             selected_tests.update(module_test_targets(affected, files))
             selected_benches.update(affected & bench_modules)

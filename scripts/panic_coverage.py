@@ -141,12 +141,16 @@ class PanicTest:
 
 
 def package_of(path: str) -> str:
-    return path.split("/")[1]
+    """`packages/glam_core/src/vec2.cairo` -> `glam`: the crates of the cut are one package."""
+    return "glam"
 
 
 def source_module(path: str) -> str:
-    """`packages/glam/src/camera/rh/proj.cairo` -> `camera/rh/proj`."""
-    return path.split("/src/", 1)[1].removesuffix(".cairo")
+    """`packages/glam_core/src/camera/rh/proj.cairo` -> `camera/rh/proj`; a file of a swizzle
+    crate is under `swizzles/` (`packages/glam_swizzles/src/vec2.cairo` -> `swizzles/vec2`)."""
+    crate = path.split("/")[1]
+    module = path.split("/src/", 1)[1].removesuffix(".cairo")
+    return f"swizzles/{module}" if crate in deviations.SWIZZLE_CRATES else module
 
 
 def inner_modules(lines: list[str]) -> list[tuple[int, int, str]]:

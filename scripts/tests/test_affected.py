@@ -10,8 +10,12 @@ SPEC.loader.exec_module(affected)
 
 
 class AffectedTests(unittest.TestCase):
-    targets = ["test_mat3", "test_quat", "test_vec2", "test_vec3", "test_vec4"]
+    targets = ["test_ivec2", "test_mat3", "test_quat", "test_swizzles", "test_vec2", "test_vec3", "test_vec4"]
     files = {
+        "test_ivec2.cairo": "test_ivec2",
+        "golden_ivec2.cairo": "test_ivec2",
+        "test_swizzles.cairo": "test_swizzles",
+        "golden_swizzles.cairo": "test_swizzles",
         "test_mat3.cairo": "test_mat3",
         "golden_mat3.cairo": "test_mat3",
         "test_quat.cairo": "test_quat",
@@ -23,8 +27,8 @@ class AffectedTests(unittest.TestCase):
         "test_vec4.cairo": "test_vec4",
         "golden_vec4.cairo": "test_vec4",
     }
-    reverse = {"vec2": {"vec3"}, "vec3": {"mat3"}}
-    modules = {"mat3", "quat", "vec2", "vec3", "vec4"}
+    reverse = {"glam_core:vec2": {"glam_core:vec3"}, "glam_core:vec3": {"glam_core:mat3"}}
+    modules = {"ivec2", "mat3", "quat", "swizzles", "vec2", "vec3", "vec4"}
     benches = modules
 
     def plan(self, *paths):
@@ -36,13 +40,18 @@ class AffectedTests(unittest.TestCase):
         cases = [
             (("docs/DESIGN.md", "README.md"), False, True, [], []),
             (
-                ("packages/glam/src/vec2.cairo",),
+                ("packages/glam_core/src/vec2.cairo",),
                 False,
                 False,
                 ["test_mat3", "test_vec2", "test_vec3"],
                 ["mat3", "vec2", "vec3"],
             ),
             (("packages/glam/tests/test_vec2.cairo",), False, False, ["test_vec2"], []),
+            (("packages/glam_swizzles/src/vec3.cairo",), False, False, ["test_swizzles"], ["swizzles"]),
+            (("packages/glam_int_swizzles/src/uvec2.cairo",), False, False, ["test_swizzles"], ["swizzles"]),
+            (("packages/glam_int/src/ivec2.cairo",), False, False, ["test_ivec2"], ["ivec2"]),
+            (("packages/glam_core/src/lib.cairo",), True, False, self.targets, sorted(self.benches)),
+            (("packages/glam/src/lib.cairo",), True, False, self.targets, sorted(self.benches)),
             (("packages/benches/tests/bench_vec3.cairo",), False, False, [], ["vec3"]),
             (
                 ("tools/codegen/fvec_tests.py",),
