@@ -6,7 +6,9 @@
 glam-rs generates these types from a single template too (`codegen/templates/vec.rs.tera`);
 this script plays the same role. For every type it emits
 
-    packages/glam/src/<m>.cairo               the library module
+    packages/glam_core/src/<m>.cairo          the type and the impls of the core traits
+    packages/glam_int/src/<m>.cairo           the methods (`<T>Trait`), constants, constructor
+    packages/glam/src/<m>.cairo               the facade module: `pub use` of the two above
     packages/glam/tests/test_<m>.cairo        the tests (expected values computed here, in Python)
     packages/benches/tests/bench_<m>.cairo    one `X__base` / `X__op` pair per public function
     packages/benches/src/alt/<m>.cairo        the losing formulations, kept for comparison
@@ -21,6 +23,7 @@ The generator is split in three files (dependency-free, python >= 3.8):
     intvec_bench.py  bench and `alt` templates
 """
 import argparse
+import re
 import subprocess
 import sys
 import textwrap
@@ -314,6 +317,32 @@ def consts(t):
     return out
 
 
+def scalar_body(t, op):
+    """Body of `{op}_scalar(self, rhs)`: the last line is the resulting struct literal. The
+    `{Op}AssignScalar` impls of `glam_core` are emitted from the same text (`assign_body`): the
+    core cannot call `{T}Trait`, which lives in `glam_int`."""
+    S = t.S
+    if op in ("add", "sub", "mul"):
+        s = {"add": "+", "sub": "-", "mul": "*"}[op]
+        return t.cw(lambda c: f"self.{c} {s} rhs")
+    pick = (lambda c: f"let ({c}, _)") if op == "div" else (lambda c: f"let (_, {c})")
+    return ("let d: NonZero<" + S + "> = rhs.try_into().expect('Division by 0');\n"
+            + "\n".join(f"{pick(c)} = DivRem::div_rem(self.{c}, d);" for c in t.c)
+            + f"\n{t.name} {{ {', '.join(t.c)} }}")
+
+
+def assign_body(t, op):
+    """`scalar_body` as the body of `{op}_assign(ref self, rhs)`."""
+    *lines, last = scalar_body(t, op).split("\n")
+    return "\n".join(lines + [f"self = {last};"])
+
+
+def from_array_body(t, arg):
+    """Body of `from_array`, shared with the `Into<[S; N], T>` impl of `glam_core`."""
+    cs = ", ".join(t.c)
+    return f"let [{cs}] = {arg};\n{t.name} {{ {cs} }}"
+
+
 def methods(t):
     T, S, n, B, o = t.name, t.S, t.n, t.B, t.other
     add_msg = f"`'{S}_add Overflow'`" + (f" / `'{S}_add Underflow'`" if t.signed else "")
@@ -342,7 +371,7 @@ def methods(t):
         "from `if_true`, and false uses the element from `if_false`.",
         t.cw(lambda c: f"if mask.{c} {{ if_true.{c} }} else {{ if_false.{c} }}"))
     add("from_array", f"(a: [{S}; {n}]) -> {T}", "Creates a new vector from an array.",
-        f"let [{', '.join(t.c)}] = a;\n{T} {{ {', '.join(t.c)} }}")
+        from_array_body(t, "a"))
     add("to_array", f"(self: {T}) -> [{S}; {n}]",
         f"Converts `self` to `[{', '.join(t.c)}]`.",
         "[" + t.join(", ", lambda c: f"self.{c}") + "]")
@@ -540,22 +569,18 @@ def methods(t):
     for op, s, msg in [("add", "+", add_msg), ("sub", "-", sub_msg), ("mul", "*", mul_msg)]:
         add(f"{op}_scalar", f"(self: {T}, rhs: {S}) -> {T}",
             f"Returns `[self.x {s} rhs, self.y {s} rhs, ..]`.",
-            t.cw(lambda c: f"self.{c} {s} rhs"), [f"{msg} on overflow."],
+            scalar_body(t, op), [f"{msg} on overflow."],
             [scalar_dev[0].replace("{Op}", op.capitalize())],
             mirrors=f"impl {op.capitalize()}<{S}> for glam::{T}")
     div_panics = ["`'Division by 0'` if `rhs` is 0."] + (
         ["`'attempt to divide with overflow'` for `i32::MIN / -1`."] if t.signed else [])
     add("div_scalar", f"(self: {T}, rhs: {S}) -> {T}",
         "Returns `[self.x / rhs, self.y / rhs, ..]` (truncated division).",
-        "let d: NonZero<" + S + "> = rhs.try_into().expect('Division by 0');\n"
-        + "\n".join(f"let ({c}, _) = DivRem::div_rem(self.{c}, d);" for c in t.c)
-        + f"\n{T} {{ {', '.join(t.c)} }}", div_panics,
+        scalar_body(t, "div"), div_panics,
         [scalar_dev[0].replace("{Op}", "Div")], mirrors=f"impl Div<{S}> for glam::{T}")
     add("rem_scalar", f"(self: {T}, rhs: {S}) -> {T}",
         "Returns `[self.x % rhs, self.y % rhs, ..]` (the remainder has the sign of `self`).",
-        "let d: NonZero<" + S + "> = rhs.try_into().expect('Division by 0');\n"
-        + "\n".join(f"let (_, {c}) = DivRem::div_rem(self.{c}, d);" for c in t.c)
-        + f"\n{T} {{ {', '.join(t.c)} }}", div_panics,
+        scalar_body(t, "rem"), div_panics,
         [scalar_dev[0].replace("{Op}", "Rem")]
         + (["`i32::MIN % -1` panics (the quotient overflows); Rust returns 0 in release builds."]
            if t.signed else []), mirrors=f"impl Rem<{S}> for glam::{T}")
@@ -1032,7 +1057,7 @@ def operators(t):
     for tr, (fn, s) in names.items():
         impl(f"Mirrors `impl {tr}Assign<{S}> for glam::{T}` (see `{T}Trait::{fn}_scalar`).",
              f"{T}{tr}AssignScalar of {tr}Assign<{T}, {S}>",
-             f"{fn}_assign(ref self: {T}, rhs: {S})", f"self = {T}Trait::{fn}_scalar(self, rhs);")
+             f"{fn}_assign(ref self: {T}, rhs: {S})", assign_body(t, fn))
 
     # bit operators
     cell = "One bitwise builtin cell per component."
@@ -1070,7 +1095,7 @@ def operators(t):
     P = S.upper()[0] + S[1:]  # I32 / U32
     tup = "(" + ", ".join([S] * n) + ")"
     into(f"Mirrors `impl From<[{S}; {n}]> for glam::{T}`.", f"{P}ArrayInto{T}", f"[{S}; {n}]",
-         T, f"{T}Trait::from_array(self)")
+         T, from_array_body(t, "self"))
     into(f"Mirrors `impl From<glam::{T}> for [{S}; {n}]`.", f"{T}Into{P}Array", T,
          f"[{S}; {n}]", "[" + t.join(", ", lambda c: f"self.{c}") + "]")
     into(f"Mirrors `impl From<{tup}> for glam::{T}`.", f"{P}TupleInto{T}", tup, T,
@@ -1108,7 +1133,53 @@ def indent(text, n):
 # --------------------------------------------------------------------------------------------
 # The module
 # --------------------------------------------------------------------------------------------
-def gen_module(t):
+INTERNAL = ("Internal: `pub` only so that `glam_int` can reach it; it is not re-exported by the\n"
+            "`glam` facade and not part of the API.")
+
+
+def strip_comments(code):
+    return "\n".join(l for l in code.split("\n") if not l.lstrip().startswith("//"))
+
+
+def has(code, sym):
+    return re.search(rf"\b{re.escape(sym)}\b", code) is not None
+
+
+def use_lines(code, cands, force=()):
+    """`use` lines for the candidates `(path, [symbols])` that `code` references (or that are in
+    `force`: a trait used through method syntax), one line per path, symbols sorted; nothing is
+    imported that is not used (the lint denies it)."""
+    code = strip_comments(code)
+    out = []
+    for path, syms in cands:
+        used = sorted(x for x in syms if x in force or has(code, x))
+        if used:
+            out.append(f"use {path}::{used[0]};" if len(used) == 1
+                       else f"use {path}::{{{', '.join(used)}}};")
+    return "\n".join(out)
+
+
+def pub_helper(src):
+    """A helper of `glam_core` that `glam_int` reaches: `pub`, documented as internal."""
+    src = src.replace("\nfn ", "\npub fn ", 1)
+    lines = src.split("\n")
+    k = next(i for i, l in enumerate(lines) if l.startswith("#[") or l.startswith("pub fn "))
+    return "\n".join(lines[:k] + ["///"] + [f"/// {l}" for l in INTERNAL.split("\n")] + lines[k:])
+
+
+def pub_names(code):
+    return re.findall(r"^pub (?:struct|trait|impl|fn|const) (\w+)", code, flags=re.M)
+
+
+def split_module(t):
+    """The three files of one integer vector type: `(core, int, facade)`.
+
+    Cairo finds an impl of a core trait (`Add`, `Into`, `IndexView`, ...) for a type without an
+    import only when the impl sits in the module of the type, so the type and every such impl
+    (`operators`) go to `glam_core`; the constructor, `{T}Trait` and its impl (`methods`) go to
+    `glam_int`, which depends on `glam_core`. The helpers that the operators reach are `pub` in
+    `glam_core`, the others private in `glam_int`. The facade module re-exports both under the
+    path of the single crate (`glam::ivec2::IVec2Trait`)."""
     T, S, n, o = t.name, t.S, t.n, t.other
     ms = methods(t)
     ops = operators(t)
@@ -1125,42 +1196,71 @@ def gen_module(t):
         attr = "    #[inline(always)]\n" if m.inline else ""
         impl.append(f"{attr}    fn {m.name}{m.sig} {{\n{indent(m.body, 8)}\n    }}\n")
 
-    body = "\n".join(impl) + ops
-    helpers = "".join(helper_src(HELPERS[h]) for h in used_helpers(body)).replace("@T@", T)
-    code = body + helpers
+    core_helpers = used_helpers(ops)
+    trait_code = "\n".join(impl)
+    int_helpers = [h for h in used_helpers(trait_code) if h not in core_helpers]
+    int_helper_src = "".join(helper_src(HELPERS[h]).replace("@T@", T) for h in int_helpers)
+    core_helper_src = "".join(pub_helper(helper_src(HELPERS[h]).replace("@T@", T))
+                              for h in core_helpers)
+    int_code = trait_code + int_helper_src
+    imported = [h for h in core_helpers if has(strip_comments(int_code), h)]
 
-    uses = ["use core::num::traits::WideMul;"]
-    arith = [tr + "Assign" for tr in ["Add", "Sub", "Mul", "Div", "Rem"]]
-    uses.append("use core::ops::{" + ", ".join(arith) + "};")
-    uses.append("use core::ops::index::IndexView;")
-    uses.append("use core::traits::{BitAnd, BitNot, BitOr, BitXor, DivRem};")
-    nt = [x for x in ["CheckedAdd", "CheckedSub", "CheckedMul", "WrappingAdd", "WrappingSub",
-                      "WrappingMul", "SaturatingAdd", "SaturatingSub", "SaturatingMul"]
-          if ("." + camel_to_snake(x) + "(") in code]
-    if nt:
-        uses.append("use core::num::traits::{" + ", ".join(nt) + "};")
-    if "i32_diff(" in code:
-        uses.append("use core::integer::i32_diff;")
-    uses.append(f"use crate::{t.bmod}::{{{t.B}, {t.B}Trait}};" if ".bitmask()" in code
-                else f"use crate::{t.bmod}::{t.B};")
+    ctor = f"""/// Creates a {n}-dimensional `{S}` vector.
+///
+/// Mirrors `glam::{t.mod}`.
+/// #### Panics
+/// * Never.
+/// #### Deviations
+/// * None.
+#[inline(always)]
+pub fn {t.mod}({t.args()}) -> {T} {{
+    {T} {{ {', '.join(t.c)} }}
+}}
+"""
+    trait = f"""pub trait {T}Trait {{
+{chr(10).join(decl)}
+}}
+
+pub impl {T}Impl of {T}Trait {{
+{chr(10).join(impl)}}}
+"""
+    core_code = ops + core_helper_src
     others = sorted({x.name for x in (o, t.dim(n - 1) if n > 2 else None,
                                        t.dim(n + 1) if n < 4 else None,
                                        t.dim(2) if n == 4 else None) if x})
-    for name in others:
-        uses.append(f"use crate::{name.lower()}::{name};")
+    def uses(code, prefix, own_helpers=()):
+        cands = [
+            ("core::num::traits", ["WideMul"]),
+            ("core::ops", [tr + "Assign" for tr in ["Add", "Sub", "Mul", "Div", "Rem"]]),
+            ("core::ops::index", ["IndexView"]),
+            ("core::traits", ["BitAnd", "BitNot", "BitOr", "BitXor", "DivRem"]),
+            ("core::integer", ["i32_diff"]),
+        ]
+        chk = strip_comments(code)
+        nt = [x for x in ["CheckedAdd", "CheckedSub", "CheckedMul", "WrappingAdd", "WrappingSub",
+                          "WrappingMul", "SaturatingAdd", "SaturatingSub", "SaturatingMul"]
+              if ("." + camel_to_snake(x) + "(") in chk]
+        text = use_lines(code, cands, force=["WideMul"] if ".wide_mul(" in chk else [])
+        if nt:
+            text += "\nuse core::num::traits::{" + ", ".join(nt) + "};"
+        text += "\n" + use_lines(code, [(f"{prefix}::{t.bmod}", [t.B, t.B + "Trait"])],
+                                  force=[t.B + "Trait"] if ".bitmask(" in chk else [])
+        text += "\n" + use_lines(code, [(f"{prefix}::{x.lower()}", [x]) for x in others])
+        return "\n".join(l for l in text.split("\n") if l)
 
-    fam = "signed" if t.signed else "unsigned"
-    head = f"""{HEADER}//! Port of glam-rs `{S}/{t.mod}.rs` @ 0.33.8: a {n}-dimensional `{S}` vector.
+    core_head = f"""{HEADER}//! Port of glam-rs `{S}/{t.mod}.rs` @ 0.33.8: the {n}-dimensional `{S}` vector type and the
+//! impls of the core traits for it (operators, conversions, indexing).
 //!
-//! The six integer vector modules are generated from one template (`tools/codegen/intvec.py`),
-//! as in glam-rs. Every formulation is the cheapest of the candidates measured in
-//! `gas/{t.mod}.snap`; the losing candidates live in `benches::alt::{t.mod}`.
+//! The methods of the type (`{T}Trait`, `{T}Impl`), its constants and the `{t.mod}` constructor are in
+//! `glam_int::{t.mod}`; the `glam` facade merges both modules under `glam::{t.mod}`. They are split
+//! because Cairo finds an impl of a core trait for a type without an import only in the module of
+//! the type, and `glam_int` depends on this crate, not the reverse. Every scalar-assign body and
+//! `from_array` is emitted from the same template as the corresponding method
+//! (`tools/codegen/intvec.py`), since this crate cannot call `{T}Trait`.
 //!
-//! Overflow: the operators and the plain methods panic (corelib messages, or `{ovf(t)}` for
-//! the fused kernels); the `checked_*` / `wrapping_*` / `saturating_*` families never do. They
-//! exist for their semantics: they are slower than the panicking operators.
+//! Overflow: the operators panic with the corelib messages.
 
-{chr(10).join(uses)}
+{uses(core_code, "crate")}
 
 /// A {n}-dimensional `{S}` vector.
 ///
@@ -1178,27 +1278,37 @@ pub struct {T} {{
 {chr(10).join(f"    pub {c}: {S}," for c in t.c)}
 }}
 
-/// Creates a {n}-dimensional `{S}` vector.
-///
-/// Mirrors `glam::{t.mod}`.
-/// #### Panics
-/// * Never.
-/// #### Deviations
-/// * None.
-#[inline(always)]
-pub fn {t.mod}({t.args()}) -> {T} {{
-    {T} {{ {', '.join(t.c)} }}
-}}
+{core_code}"""
+    int_own = ", ".join([T] + imported)
+    int_head = f"""{HEADER}//! Port of glam-rs `{S}/{t.mod}.rs` @ 0.33.8: the methods of the {n}-dimensional `{S}` vector.
+//!
+//! The six integer vector modules are generated from one template (`tools/codegen/intvec.py`),
+//! as in glam-rs. Every formulation is the cheapest of the candidates measured in
+//! `gas/{t.mod}.snap`; the losing candidates live in `benches::alt::{t.mod}`.
+//!
+//! The type `{T}` and the impls of the core traits for it (operators, conversions) are in
+//! `glam_core::{t.mod}`; the `glam` facade merges both modules under `glam::{t.mod}`.
+//!
+//! Overflow: the operators and the plain methods panic (corelib messages, or `{ovf(t)}` for
+//! the fused kernels); the `checked_*` / `wrapping_*` / `saturating_*` families never do. They
+//! exist for their semantics: they are slower than the panicking operators.
 
-pub trait {T}Trait {{
-{chr(10).join(decl)}
-}}
+{uses(int_code, "glam_core")}
+use glam_core::{t.mod}::{{{int_own}}};
 
-pub impl {T}Impl of {T}Trait {{
-{chr(10).join(impl)}}}
+{ctor}
+{trait}
+{int_helper_src}"""
+    core_names = [x for x in pub_names(core_head) if x not in imported]
+    int_names = pub_names(int_head)
+    facade = f"""{HEADER}//! `glam::{t.mod}`: the module of `glam_core` (the type and the impls of the core traits)
+//! merged with the module of `glam_int` (`{T}Trait`, `{T}Impl` and the `{t.mod}` constructor).
+//! The helpers that `glam_int` reaches in `glam_core` are internal and not re-exported.
 
-{ops}{helpers}"""
-    return head
+pub use glam_core::{t.mod}::{{{', '.join(sorted(core_names))}}};
+pub use glam_int::{t.mod}::{{{', '.join(sorted(int_names))}}};
+"""
+    return core_head, int_head, facade
 
 
 def camel_to_snake(s):
@@ -1214,7 +1324,10 @@ def outputs():
     import intvec_tests
     files = {}
     for t in TYPES:
-        files[ROOT / f"packages/glam/src/{t.mod}.cairo"] = gen_module(t)
+        core, integ, facade = split_module(t)
+        files[ROOT / f"packages/glam_core/src/{t.mod}.cairo"] = core
+        files[ROOT / f"packages/glam_int/src/{t.mod}.cairo"] = integ
+        files[ROOT / f"packages/glam/src/{t.mod}.cairo"] = facade
         files[ROOT / f"packages/glam/tests/test_{t.mod}.cairo"] = intvec_tests.gen_tests(t)
         files[ROOT / f"packages/benches/tests/bench_{t.mod}.cairo"] = intvec_bench.gen_bench(t)
         files[ROOT / f"packages/benches/src/alt/{t.mod}.cairo"] = intvec_bench.gen_alt(t)
@@ -1235,10 +1348,10 @@ def main():
 
     files = outputs()
     if args.only:
-        kinds = {"src": "/glam/src/", "tests": "/glam/tests/", "bench": "/benches/tests/",
+        kinds = {"src": "packages/glam[a-z_]*/src/", "tests": "/glam/tests/", "bench": "/benches/tests/",
                  "alt": "/benches/src/alt/"}
         keep = [kinds[k] for k in args.only.split(",")]
-        files = {p: c for p, c in files.items() if any(k in str(p) for k in keep)}
+        files = {p: c for p, c in files.items() if any(re.search(k, str(p)) for k in keep)}
     before = {p: (p.read_text() if p.exists() else None) for p in files}
     for p, content in files.items():
         p.write_text(content)

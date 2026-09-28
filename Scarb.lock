@@ -29,7 +29,42 @@ name = "glam"
 version = "0.4.0"
 dependencies = [
  "fixed",
+ "glam_core",
+ "glam_int",
+ "glam_int_swizzles",
+ "glam_swizzles",
  "snforge_std",
+]
+
+[[package]]
+name = "glam_core"
+version = "0.4.0"
+dependencies = [
+ "fixed",
+]
+
+[[package]]
+name = "glam_int"
+version = "0.4.0"
+dependencies = [
+ "fixed",
+ "glam_core",
+]
+
+[[package]]
+name = "glam_int_swizzles"
+version = "0.4.0"
+dependencies = [
+ "fixed",
+ "glam_core",
+]
+
+[[package]]
+name = "glam_swizzles"
+version = "0.4.0"
+dependencies = [
+ "fixed",
+ "glam_core",
 ]
 
 [[package]]

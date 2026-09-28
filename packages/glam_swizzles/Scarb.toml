@@ -1,0 +1,17 @@
+[package]
+name = "glam_swizzles"
+description = "Float vector swizzles of the glam port (Vec2/3/4)"
+version.workspace = true
+edition.workspace = true
+cairo-version.workspace = true
+license.workspace = true
+repository.workspace = true
+readme = "README.md"
+
+[dependencies]
+fixed.workspace = true
+glam_core.workspace = true
+
+[tool]
+fmt.workspace = true
+scarb.workspace = true

@@ -1,0 +1,17 @@
+[package]
+name = "glam_int_swizzles"
+description = "Integer vector swizzles of the glam port (IVec2/3/4, UVec2/3/4)"
+version.workspace = true
+edition.workspace = true
+cairo-version.workspace = true
+license.workspace = true
+repository.workspace = true
+readme = "README.md"
+
+[dependencies]
+fixed.workspace = true
+glam_core.workspace = true
+
+[tool]
+fmt.workspace = true
+scarb.workspace = true

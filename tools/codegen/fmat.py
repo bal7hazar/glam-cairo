@@ -1585,7 +1585,7 @@ def outputs(kinds=None):
     import fmat_tests
     files = {}
     for t in TYPES:
-        files[ROOT / f"packages/glam/src/{t.mod}.cairo"] = gen_module(t)
+        files[ROOT / f"packages/glam_core/src/{t.mod}.cairo"] = gen_module(t)
         files[ROOT / f"packages/glam/tests/test_{t.mod}.cairo"] = fmat_tests.gen_tests(t)
         files[ROOT / f"packages/benches/tests/bench_{t.mod}.cairo"] = gen_bench(t)
         files[ROOT / f"packages/benches/src/alt/{t.mod}.cairo"] = gen_alt(t)
@@ -1606,10 +1606,10 @@ def main():
 
     files = outputs()
     if args.only:
-        kinds = {"src": "/glam/src/", "tests": "/glam/tests/", "bench": "/benches/tests/",
+        kinds = {"src": "packages/glam[a-z_]*/src/", "tests": "/glam/tests/", "bench": "/benches/tests/",
                  "alt": "/benches/src/alt/"}
         keep = [kinds[k] for k in args.only.split(",")]
-        files = {p: c for p, c in files.items() if any(k in str(p) for k in keep)}
+        files = {p: c for p, c in files.items() if any(re.search(k, str(p)) for k in keep)}
     before = {p: (p.read_text() if p.exists() else None) for p in files}
     for p, content in files.items():
         p.write_text(content)

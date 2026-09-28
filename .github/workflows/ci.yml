@@ -157,11 +157,10 @@ jobs:
       - uses: software-mansion/setup-scarb@2a96b748888e3329ee44ac9ac073d930e692b3cd # v1.6.2
       - run: scarb doc --workspace --disable-remote-linking
 
-  # Package granularity rule (docs/briefs/PK-G-package-size.md): the published crates against the
-  # size gates (library lines, cold-build time and memory an empty consumer adds),
-  # scripts/consumer_cost.py, configured by consumer_cost.toml. `glam` is over the line gate until
-  # the cut of docs/audits/PK-G-glam-cut-plan.md lands: that one verdict is allowlisted below
-  # (time and memory stay enforced); the orchestrator drops the allowlist when the cut lands.
+  # Package granularity rule (docs/briefs/PK-G-package-size.md): the five published crates
+  # (`glam_core`, `glam_int`, `glam_swizzles`, `glam_int_swizzles`, `glam`) and the closures of
+  # consumer_cost.toml against the size gates (library lines, cold-build time and memory an empty
+  # consumer adds), scripts/consumer_cost.py. Enforcing: any failing verdict fails the job.
   consumer-cost:
     name: Consumer cost
     runs-on: ubuntu-latest
@@ -175,23 +174,7 @@ jobs:
           status=0
           python3 scripts/consumer_cost.py --modules --json consumer_cost.json | tee consumer_cost.md || status=$?
           { echo "### Consumer cost"; echo; cat consumer_cost.md; } >> "$GITHUB_STEP_SUMMARY"
-          if [[ "$status" != 0 ]]; then
-            # Known failure allowlist: only the line verdict of `glam` (PK-G part B pending).
-            python3 - <<'PY'
-          import json
-          import sys
-
-          allowed = {("glam", "FAIL: lines > 40,000")}
-          bad = [
-              (r["crate"], r["verdict"])
-              for r in json.load(open("consumer_cost.json"))["results"]
-              if r["verdict"] != "ok" and (r["crate"], r["verdict"]) not in allowed
-          ]
-          if bad:
-              sys.exit(f"consumer cost gates failed: {bad}")
-          print("only the allowlisted known failure (glam lines, PK-G part B): tolerated")
-          PY
-          fi
+          exit "$status"
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         if: always()
         with:

@@ -9,7 +9,12 @@ max_gb = 1
 closure_seconds = 15
 closure_gb = 3
 
-# Known failure (allowlisted in the `Consumer cost` CI job): `glam` is over the line gate (41,484
-# lines) until the cut planned in docs/audits/PK-G-glam-cut-plan.md lands; see
-# docs/briefs/PK-G-package-size.md. The job stays green while this is the only failing verdict;
-# time and memory are still enforced. Drop the allowlist step of the job when the cut lands.
+# The published crates are the workspace packages without `publish = false`: `glam_core`,
+# `glam_int`, `glam_swizzles`, `glam_int_swizzles` and the facade `glam` (docs/audits/
+# PK-G-glam-cut-plan.md, section 9). Each is measured alone (lines, time, memory), and the
+# closures below are the profiles of a consumer that pulls in several of them but not the facade.
+# `glam_core` alone is the core-only profile; `glam` is the everything profile.
+[closures]
+core_swizzles = ["glam_core", "glam_swizzles"]
+core_int = ["glam_core", "glam_int"]
+core_int_swizzles = ["glam_core", "glam_int_swizzles"]

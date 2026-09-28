@@ -2,13 +2,13 @@
 //! Port of glam-rs `swizzles/vec_traits.rs` (`Vec4Swizzles`) and
 //! `swizzles/uvec4_impl.rs` @ 0.33.8 for `UVec4`: 372 swizzle methods.
 //!
-//! The nine swizzle modules are generated from one template (`tools/codegen/swizzles.py`), as in
+//! The swizzle modules are generated from one template (`tools/codegen/swizzles.py`), as in
 //! glam-rs. Every method is a struct construction from the components of `self`: no
 //! arithmetic, no branch, no range check.
 
-use crate::uvec2::UVec2;
-use crate::uvec3::UVec3;
-use crate::uvec4::UVec4;
+use glam_core::uvec2::UVec2;
+use glam_core::uvec3::UVec3;
+use glam_core::uvec4::UVec4;
 
 /// The 372 swizzles of `UVec4` (scalar: `u32`): every permutation with
 /// repetition of its components of length 2, 3 and 4 (`yx`, `xxyz`, ...) and the `with_*`
