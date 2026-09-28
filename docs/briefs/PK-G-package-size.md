@@ -75,3 +75,22 @@ model of the per-repository configuration. Do not edit nalgebra-cairo or its che
   `chore/consumer-cost`), fixed-cairo `.claude/worktrees/cli-pkg` (same branch), glamx-cairo
   `.claude/worktrees/cli-pkg` (same branch). One pull request per repository for part A; part B's
   plan in the glam-cairo pull request (or a second one), never code moved.
+
+## Part B2 - variant B (programme session, 2026-09-28): remove the path change
+
+The four crates and the names `glam_core` / `glam_swizzles` / `glam_int` / `glam_int_swizzles` are
+agreed. Variant B, to measure on the scratch branch `scratch/pk-g-glam-cut` (never merged):
+`glam_core` also holds the integer vector **types** (`struct IVec2/3/4`, `UVec2/3/4` and their
+derives), and the float -> int casts (`as_ivec*`, `as_uvec*`) stay methods of the existing
+`Vec{n}Trait`; `glam_int` holds everything else about the integer vectors (their method traits,
+constants, int -> float casts). Operator impls of core traits for the integer types (`Add`, `Sub`,
+`Mul`, `Neg`, `PartialEq`...): put them where Cairo's impl lookup finds them without an import
+for a consumer of `glam_int`; if that forces them into `glam_core`, count their lines there.
+
+Report for A (the plan) and B: `glam_core` lines, added time / memory (GitHub runners), whether
+every `use glam::...` path of today is unchanged, and the step / Sierra / CASM identity.
+**Decision rule**: B wins if `glam_core` stays under 22 000 lines and its measured cost is within
+15 % of A's; otherwise A, with the extra `use glam::casts::Vec{n}IntCastTrait` recorded as a
+deviation from glam-rs. Update `docs/audits/PK-G-glam-cut-plan.md` with the B measurements and
+the verdict (a small pull request on glam-cairo), and put a two-line result at the top of
+`REPORT.md`. No code moved on `main`.
