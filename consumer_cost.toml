@@ -1,0 +1,15 @@
+# Gates of scripts/consumer_cost.py (copied unchanged from nalgebra-cairo bff3462; see the docstring
+# at the top of that script). The values are the defaults of the package granularity rule: a
+# published crate has at most 40,000 library lines, and an empty consumer of it adds at most
+# 5 s / 1 GB to the no-dependency cold build.
+[gates]
+max_lines = 40000
+max_seconds = 5
+max_gb = 1
+closure_seconds = 15
+closure_gb = 3
+
+# Known failure (allowlisted in the `Consumer cost` CI job): `glam` is over the line gate (41,484
+# lines) until the cut planned in docs/audits/PK-G-glam-cut-plan.md lands; see
+# docs/briefs/PK-G-package-size.md. The job stays green while this is the only failing verdict;
+# time and memory are still enforced. Drop the allowlist step of the job when the cut lands.
