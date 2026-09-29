@@ -97,3 +97,51 @@ definition of done of `AGENTS.md`; and the report format. Agents read `AGENTS.md
 | f32-tuned epsilons meaningless at 2^-32 resolution | re-derived per call site in ULPs (DESIGN section 3) |
 | bytecode growth from `inline(always)` + polynomial segments | track class size once a consumer contract exists (wave 5 audit) |
 | gas numbers shift with compiler releases | snapshots are per-toolchain; bumps are dedicated PRs |
+
+## Resume point (2026-09-29, clean stop: weekly quota nearly exhausted)
+
+Everything below is on `main` of each repository; no agent runs, no pull request is open, no
+release is pending, no work sits in a worktree (the only worktree left is the orchestrator's own).
+
+**Published** (scarbs.xyz, each from its own repository, each on the programme session's written
+go under the owner's delegation):
+- `fixed` 0.4.0 (fixed-cairo `v0.4.0`, `d3215fe`): adds `ExpTrait::{sinh, cosh, tanh, sinhc,
+  coshc}` (<= 1.5 ULP, round-half-even division since 0.3.0).
+- `glam` 0.4.1 (glam-cairo `v0.4.1`, `674b613`): non-breaking split, `glam` is a facade over
+  `glam_core` (18.7k lines: float types, `BVec*`, integer vector types and their operator impls,
+  `as_ivec*` kept on `Vec{n}Trait`), `glam_int`, `glam_swizzles`, `glam_int_swizzles`; every 0.4.0
+  path unchanged, every gas snapshot identical (`docs/audits/PK-G-glam-cut-plan.md`, #48-#50).
+- `glamx` 0.4.1 (glamx-cairo `v0.4.1`, `30dbdb6`): depends on `glam_core` 0.4.1 + `fixed` 0.4.0
+  instead of the `glam` facade (-0.45 s / -0.25 GB); `packages/facade_check` proves that `glam`
+  facade values are glamx's types.
+
+**Gates**: `Consumer cost` enforcing in the three repositories (`scripts/consumer_cost.py` and
+`scripts/packages_table.py` copied unchanged from nalgebra-cairo `ded2847`); `docs/PACKAGES.md` in
+each repository shows every package against 40 000 lines / 5 s / 1 GB marginal and every closure
+against 15 s / 3 GB: all pass, smallest margin `glam_core` lines (+53 %). CI: six-family test
+matrix and `scripts/affected.py` selective runs on pull requests (full run on `main`, ~6 min).
+
+**Open backlog** (`docs/PORTING_STATUS.md` for the rows; nothing is urgent, nothing is started):
+- F8 (`fixed-cairo`, next MINOR 0.5.0): `ExpTrait::sinh_cosh(x) -> (Fixed, Fixed)` sharing one
+  exponential (nalgebra-cairo escalation: separate `sinh` + `cosh` = 57 540 gas at x = 1.5, ~29 890
+  expected); `asinh` / `acosh` / `atanh` only if asked. Launch when more `fixed` work accumulates
+  or a consumer asks for the release; then `glam` / `glamx` follow only if their dependency must
+  move (pure addition in `fixed`: `^0.4` consumers need a MINOR bump of `fixed` to 0.5.0 only if
+  they want the new function).
+- P2 (`glamx-cairo`): rapier's measured `Pose2` fused kernels (its PR #21), only if the owner
+  approves a parry split.
+- D1 (`fixed-cairo`): `gen_trig.py` fit is still platform-dependent (`gen_exp.py` fixed in F7).
+- Small debts: the golden headers of `fixed-cairo` still say "glam-rs 0.33.8 (f64)"; one relative
+  link in the generated region of `packages/glam/README.md` (`scripts/gas_tables.py`); the
+  appendix of `docs/audits/R1-deviations.md` is a dated snapshot (not gated); the branch
+  `scratch/pk-g-glam-cut` on glam-cairo holds the PK-G prototype (never merge; delete when
+  unneeded).
+
+**How the next session starts**: read `docs/HANDOFF.md` (reading order, repositories and local
+layout, operating loop, rules), then this section and the inbox `pm/messages/to-glam/`. Rules in
+force: implementation lots on the `claude` CLI (Sonnet / Opus / Fable by difficulty), codex only
+for audits; at most 6 sub-agents machine-wide; task descriptions start with the model; agents run
+crate-scoped checks, the pull request CI is the full gate; cold builds under
+`flock ~/orchestrator/heavy-build.lock`; releases only on a written go of the owner or the
+programme session ("Angry Birds Cairo orchestration"); launch agents with `scripts/agent.sh`
+(systemd user units), check `scripts/agent.sh status` before relaunching anything.

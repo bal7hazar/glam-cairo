@@ -70,6 +70,9 @@ means a pull request in each consuming repository (`glam-cairo`, `glamx-cairo`, 
 
 ## What remains (see `docs/PORTING_STATUS.md` for the live state)
 
+**Latest resume point: `docs/PLAN.md`, section "Resume point (2026-09-29)"; it supersedes the
+lines below where they differ.**
+
 - Released: `fixed`, `glam`, `glamx` 0.4.0 on scarbs.xyz (2026-09-25; each from its own repository,
   tag `v0.4.0` in each; 0.1.0..0.3.0 were cut from this repository). **The owner or the programme session gives a go per release** (delegation
   confirmed by the owner in this orchestrator's session on 2026-09-25; conditions in
