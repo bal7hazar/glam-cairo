@@ -53,11 +53,13 @@ means a pull request in each consuming repository (`glam-cairo`, `glamx-cairo`, 
 1. `hp context slingfall-glam`, `git fetch && gh pr list`. A pull request left by a thread is
    checked (scope = the brief's allowlist, report, gas table), then **reviewed by a review thread
    on another model: every pull request, documents included** (Overseer's rule, 2026-10-02).
-   After a verdict that does not oppose it and green checks, merge with
-   `gh pr checks <n> && gh pr merge <n> --squash --match-head-commit <sha>` (or prompt the owning
-   thread with `Merge the PR: review <verdict> at <sha>`). Then the orchestrator alone updates
-   re-exports (`packages/*/src/lib.cairo`), `docs/PORTING_STATUS.md`, `CHANGELOG.md`, and
-   `docs/DESIGN.md` when a decision was taken.
+   After a verdict that does not oppose it and green checks, merge:
+   the coordinator runs
+   `gh pr checks <n> -R <owner>/<repo> && gh pr comment <n> -R <owner>/<repo> --body "Review: <verdict>, highest finding <severity or none>, <model of the reviewer>, at <sha>" && gh pr merge <n> -R <owner>/<repo> --squash --match-head-commit <sha>`;
+   or prompt the owning thread with `Merge the PR: review <verdict> at <sha>`, which then runs
+   `gh pr checks <n> && gh pr merge <n> --squash --match-head-commit <sha>`. Then the shared-file updates
+   (re-exports in `packages/*/src/lib.cairo`, `docs/PORTING_STATUS.md`, `CHANGELOG.md`, and
+   `docs/DESIGN.md` when a decision was taken) go through a thread's pull request.
 2. After merging a pull request that touched shared generated files (`docs/API_PARITY.md`,
    `tools/refgen/src/**`, the READMEs' gas tables), re-run the matching `--check` on `main`
    (`python3 scripts/api_parity.py --check`, `python3 scripts/gas_tables.py --check`, `cargo run

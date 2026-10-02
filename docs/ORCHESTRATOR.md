@@ -26,15 +26,17 @@ What is specific to this track:
 |---|---|---|
 | mechanical, well framed | `impl-sonnet` (default) | template-generated code, test compaction, spec alignment, benching variants already identified |
 | standard port with numerics, hard or numeric work | `impl-opus` | a new module: kernels, tests, golden vectors, benches |
-| genuinely complex (exceptional) | `impl-fable` | novel numerics, hard debugging, cross-module design |
+| exceptional | `impl-fable` | only when the owner asks for it by name, or after `impl-opus` has failed twice on the same task; never because a task looks hard |
 
 - Reviews: **every pull request, documents included, gets a review thread on another model before
   merge** (Overseer's rule, 2026-10-02): `review` (Sonnet) for code written by Opus or Fable,
   `review-opus` for code written by Sonnet, with the standard's review text. An audit thread
   (`audit`) is the exception, not routine. Codex is not used.
-- Merges: after a review that does not oppose it and green checks,
-  `gh pr checks <n> && gh pr merge <n> --squash --match-head-commit <sha>`, by the coordinator or by
-  the owning thread on the line `Merge the PR: review <verdict> at <sha>`. Never `--admin`; a
+- Merges (the standard, section "Close a task"), after a review that does not oppose it and green
+  checks: the coordinator runs
+  `gh pr checks <n> -R <owner>/<repo> && gh pr comment <n> -R <owner>/<repo> --body "Review: <verdict>, highest finding <severity or none>, <model of the reviewer>, at <sha>" && gh pr merge <n> -R <owner>/<repo> --squash --match-head-commit <sha>`;
+  the owning thread runs `gh pr checks <n> && gh pr merge <n> --squash --match-head-commit <sha>` on the line
+  `Merge the PR: review <verdict> at <sha>`. Never `--admin`; a
   refusal by the permission system is not worked around, its text goes up to the project manager.
 - Capacity: read `machine-capacity` before placing a thread (the VPS is shared, one heavy suite at
   a time; the Mac with `--machine mac`). Under 20 % of pool quota, fewer threads.
@@ -80,8 +82,8 @@ Committed briefs document what was asked and survive any session.
 - Pre-declare every stub (modules, tests, benches, golden files) in the shared files before
   launching a wave; one gas snapshot per module. Parallel PRs then never touch a common file.
 - Waves follow the dependency graph; a wave starts when its dependencies are merged.
-- After each merge, the orchestrator alone updates re-exports, status, changelog and design
-  decisions, then pushes to `main`.
+- After each merge, updates to re-exports, status, changelog and design decisions are shared-file
+  changes: they go through a thread's pull request like any other change.
 
 ## Quality control
 
