@@ -52,7 +52,8 @@ Appended to every task brief of `docs/briefs/`. The orchestrator launches a port
   `scripts/check.sh --affected <base>` is the consolidated selective gate; use the machine-wide
   lock described in `R1-common.md` when other agents run. Pull requests run this affected set in
   CI, while pushes to `main` run the full suite. The full `scripts/check.sh` is reserved for
-  `main` CI or briefs that explicitly request it. Conventional commits (`feat(<module>): ...`)
+  `main` CI or briefs that explicitly request it. Run `scripts/prepush.sh` before every push (the
+  `.githooks/pre-push` hook does it). Conventional commits (`feat(<module>): ...`)
   each end with a `Co-Authored-By:` trailer
   naming the model that actually did the work (e.g. `Co-Authored-By: Claude Opus 5
   <noreply@anthropic.com>`); `git push -u origin <branch>`;
