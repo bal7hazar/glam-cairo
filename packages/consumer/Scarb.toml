@@ -12,7 +12,7 @@ publish = false
 [dependencies]
 fixed.workspace = true
 glam.workspace = true
-starknet = "2.19.4"
+starknet = "2.20.0"
 
 [[target.starknet-contract]]
 sierra = true

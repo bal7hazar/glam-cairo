@@ -10,4 +10,4 @@ an import only in the module of the type. Use both through the [`glam`](https://
 (`glam::ivec2::{IVec2, IVec2Trait, ivec2}`); depend on `glam_int` directly to skip the float
 swizzles.
 
-Compatible with Cairo 2.19.4.
+Compatible with Cairo 2.20.0.

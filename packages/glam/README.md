@@ -12,7 +12,7 @@ Depend on `glam` for everything, or on the smaller crates to pay for less code (
 is about 18 500 library lines). All five crates share the workspace version.
 
 Progress: [`docs/PORTING_STATUS.md`](https://github.com/bal7hazar/glam-cairo/blob/main/docs/PORTING_STATUS.md).
-Compatible with Cairo 2.19.4.
+Compatible with Cairo 2.20.0.
 
 ## Gas
 
