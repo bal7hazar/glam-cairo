@@ -40,15 +40,17 @@ how the CI chooses its jobs. Nothing else.
    `gh pr checks` must always report it: the standard's merge command depends on it. A path skip and a skip for
    another reason both report `skipped`, so do not rely on `contains(needs.*.result, ...)` alone: for each gated
    job, compare its result with the flag that gates it (the `changes` job's output): flag true and result not
-   `success` fails; flag false and result not `skipped` fails. A misspelt output name must fail this check, never
-   pass in silence; the `changes` job itself must have succeeded.
+   `success` fails; flag false and result not `skipped` fails. This flag-versus-result comparison applies to pull
+   requests only: on a push to `main` and on `workflow_dispatch` every job runs (rule 2), so the final job passes
+   only when every needed job succeeded, whatever the flags say. A misspelt output name must fail this check,
+   never pass in silence; the `changes` job itself must have succeeded.
 6. **Concurrency:** a new push to a pull request cancels its superseded run, and every main commit keeps its own
    full run. GitHub keeps at most one pending run per group and cancels an older pending one whatever
    `cancel-in-progress` says, so a push to main must get a group of its own commit:
    `group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && github.ref || github.sha }}` and
    `cancel-in-progress: ${{ github.event_name == 'pull_request' }}`.
 7. **No tool-download retries in this lot:** they need `continue-on-error`, which stays refused; they are a
-   separate task. Also refused and never used here: `continue-on-error`, `if: false`, a narrowed test command, a
+   separate task. glamx-cairo's existing retry steps stay as they are; this lot adds none. Also refused and never used here: `continue-on-error`, `if: false`, a narrowed test command, a
    deleted job.
 8. Change nothing else in the workflow: no step, flag or check is weakened or removed.
 
