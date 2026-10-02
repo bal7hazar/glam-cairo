@@ -17,28 +17,43 @@ how the CI chooses its jobs. Nothing else.
    below changed. The workflow computes this itself from the changed paths, never from a label. Use
    `dorny/paths-filter` pinned by commit sha, as nalgebra-cairo does:
    `dorny/paths-filter@ceb8a2b8f2d89434be7ff52d3de7ec3738c5cc9d # v4.0.3`, in one `changes` job whose outputs
-   the other jobs read in their `if:`. glam-cairo already has a `plan` job (`scripts/affected.py`): keep it for
+   the other jobs read in their `if:` (these repositories are public; a private one would need
+   `permissions: pull-requests: read` on that job). glam-cairo already has a `plan` job (`scripts/affected.py`): keep it for
    the test matrix and the bench modules, and use it or the filter for the other jobs, your choice, said in the PR.
 2. **Pushes to `main` and `workflow_dispatch` run everything**, as now (release gates need a full result at every
    main commit, and a regression must stay traceable to its merge).
 3. **The toolchain row triggers every job:** `.tool-versions`, `Scarb.toml`, `Scarb.lock`,
-   `.github/workflows/**`. A path that matches no row also triggers every job (safe default).
+   `.github/workflows/**`. A path that matches no row also triggers every job (safe default). Build that catch-all
+   filter from negated patterns with `predicate-quantifier: 'every'` (with the default `some`, a list of
+   `!pattern` entries matches almost every path), or, in glam-cairo, reuse `affected.py`, which already selects
+   everything for an unknown path.
 4. **Prose `.md` triggers nothing.** But a `.md` that a job checks is not prose: it triggers the job that checks it.
    In these repositories: `docs/API_PARITY.md` (glam: `api_parity.py --check`), `docs/PACKAGES.md` (the
    consumer-cost job, if it compares the table), the generated regions of `README.md` and `packages/*/README.md`
-   (`gas_tables.py --check`), `docs/PORTING_STATUS.md` or any other file a script regenerates and compares. Find
-   each such file by reading the scripts the workflow runs; list them in the PR.
+   (`gas_tables.py --check`), and any other file a script regenerates and compares. `docs/PORTING_STATUS.md` is
+   read by no script; `docs/PACKAGES.md` is only written as an artefact by the consumer-cost job, not compared:
+   both are prose for this rule unless your reading of the scripts shows otherwise. Find each checked file by
+   reading the scripts the workflow runs; list them in the PR.
 5. **The final job always runs** (`all-checks`, `if: always()`, `needs:` every other job). It passes only when every
    needed job either succeeded or was skipped by the paths rule; it fails when any job that ran failed or was
    cancelled, and when a job was skipped for any other reason (for example because its own dependency failed).
-   `gh pr checks` must always report it: the standard's merge command depends on it.
-6. **Concurrency:** set `cancel-in-progress: ${{ github.event_name == 'pull_request' }}` (keep the group), so that
-   a new push to a pull request cancels its superseded run while every main commit keeps its own run.
+   `gh pr checks` must always report it: the standard's merge command depends on it. A path skip and a skip for
+   another reason both report `skipped`, so do not rely on `contains(needs.*.result, ...)` alone: for each gated
+   job, compare its result with the flag that gates it (the `changes` job's output): flag true and result not
+   `success` fails; flag false and result not `skipped` fails. A misspelt output name must fail this check, never
+   pass in silence; the `changes` job itself must have succeeded.
+6. **Concurrency:** a new push to a pull request cancels its superseded run, and every main commit keeps its own
+   full run. GitHub keeps at most one pending run per group and cancels an older pending one whatever
+   `cancel-in-progress` says, so a push to main must get a group of its own commit:
+   `group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && github.ref || github.sha }}` and
+   `cancel-in-progress: ${{ github.event_name == 'pull_request' }}`.
 7. **Tool-download retries** (glam-cairo and fixed-cairo only; glamx-cairo has them): every
    `software-mansion/setup-scarb` and `foundry-rs/setup-snfoundry` step gets up to two retries, as glamx-cairo
-   main does (attempt 1 with an `id` and `continue-on-error: true`, `run: sleep 20` then attempt 2 under
-   `if: steps.<id>.outcome == 'failure'` with its own `id` and `continue-on-error: true`, `sleep 20` then attempt 3
-   with no `continue-on-error`). Keep the pinned action SHAs.
+   main does (`git show origin/main:.github/workflows/ci.yml` in that clone: the local checkout may be stale):
+   attempt 1 with an `id` and `continue-on-error: true`; `run: sleep 20` and attempt 2 under
+   `if: steps.<id1>.outcome == 'failure'`, attempt 2 with its own `id` and `continue-on-error: true`; a second
+   `sleep 20` and attempt 3 under `if: steps.<id1>.outcome == 'failure' && steps.<id2>.outcome == 'failure'`,
+   attempt 3 with no `continue-on-error`. Keep the pinned action SHAs.
 8. Change nothing else in the workflow: no step, flag or check is weakened or removed.
 
 ## The table: job → paths that trigger it (on a pull request)
@@ -54,7 +69,7 @@ body. The toolchain row (rule 3) is implied for every job.
 | Benches, gas snapshots, bytecode size | `packages/**`, `gas/**`, `scripts/bench.py`, `scripts/bytecode_size.py` | the `plan` job's bench selection, plus `gas/**`, `scripts/bench.py`, `scripts/bytecode_size.py` | `packages/**`, `gas/**`, `scripts/bench.py`, `scripts/bytecode_size.py` |
 | Golden vectors (`tools/refgen` test and check) | `tools/refgen/**`, the golden test files | the same | the same |
 | Docs build (`scarb doc`) | `packages/*/src/**`, `packages/*/Scarb.toml` | the same | the same |
-| Consumer cost | the published packages' `src/**` and `Scarb.toml`, `consumer_cost.toml`, `scripts/consumer_cost.py`, `scripts/packages_table.py`, `docs/PACKAGES.md` | the same | the same |
+| Consumer cost | the published packages' `src/**` and `Scarb.toml`, `consumer_cost.toml`, `scripts/consumer_cost.py`, `scripts/packages_table.py` | the same | the same |
 | All checks passed (final) | always | always | always |
 
 A step that can run cheaply without a build (the Python freshness checks) may run whenever its own paths change,
