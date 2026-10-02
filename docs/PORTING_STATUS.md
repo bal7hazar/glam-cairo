@@ -72,3 +72,4 @@ Status: `todo`, `inprogress`, `inreview`, `done`.
 | TC-F | toolchain bump (owner's D-180) of `fixed-cairo`: Scarb 2.20.1 / snforge 0.64.0, results bit-identical; brief `docs/briefs/TC-F-fixed-scarb-2.20.md`; 76 of 278 gas rows -120 l2_gas, nothing else changed | done | fixed-cairo #5 |
 | TC-G | toolchain bump of `glam-cairo` (same versions), after TC-F; brief `docs/briefs/TC-G-glam-scarb-2.20.md`; 1 160 gas rows -120 l2_gas (Bitwise-builtin calls +100 relative: uvec bit ops net +100, ivec net -20; `benches::alt` bvec span literals +10 per element), steps / builtins / bytecode sizes unchanged | done | #55 |
 | TC-X | toolchain bump of `glamx-cairo` (same versions), after TC-G; brief `docs/briefs/TC-X-glamx-scarb-2.20.md`; 82 gas rows -120 l2_gas, nothing else changed | done | glamx-cairo #7 |
+| PP | pre-push check for `fixed-cairo`, `glam-cairo`, `glamx-cairo`; brief `docs/briefs/PP-prepush.md` | todo | |
