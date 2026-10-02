@@ -47,13 +47,9 @@ how the CI chooses its jobs. Nothing else.
    `cancel-in-progress` says, so a push to main must get a group of its own commit:
    `group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && github.ref || github.sha }}` and
    `cancel-in-progress: ${{ github.event_name == 'pull_request' }}`.
-7. **Tool-download retries** (glam-cairo and fixed-cairo only; glamx-cairo has them): every
-   `software-mansion/setup-scarb` and `foundry-rs/setup-snfoundry` step gets up to two retries, as glamx-cairo
-   main does (`git show origin/main:.github/workflows/ci.yml` in that clone: the local checkout may be stale):
-   attempt 1 with an `id` and `continue-on-error: true`; `run: sleep 20` and attempt 2 under
-   `if: steps.<id1>.outcome == 'failure'`, attempt 2 with its own `id` and `continue-on-error: true`; a second
-   `sleep 20` and attempt 3 under `if: steps.<id1>.outcome == 'failure' && steps.<id2>.outcome == 'failure'`,
-   attempt 3 with no `continue-on-error`. Keep the pinned action SHAs.
+7. **No tool-download retries in this lot:** they need `continue-on-error`, which stays refused; they are a
+   separate task. Also refused and never used here: `continue-on-error`, `if: false`, a narrowed test command, a
+   deleted job.
 8. Change nothing else in the workflow: no step, flag or check is weakened or removed.
 
 ## The table: job → paths that trigger it (on a pull request)
