@@ -110,6 +110,9 @@ and the script says so and passes. Never push red and never use `--no-verify`. T
 the workspace-wide build and lint, the lint of dependents, the generator unit tests of `tools/refgen`,
 and the consumer-cost measures.
 
+CI runs a job on a pull request only when a path that concerns it changed (the `changes` and `plan`
+jobs of `.github/workflows/ci.yml`; prose `.md` triggers nothing); pushes to `main` run every job.
+
 ## Handoff format
 
 Summary (3 lines) / Files changed / Commands run and their result / Gas table of the headline
