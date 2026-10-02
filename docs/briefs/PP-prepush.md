@@ -33,8 +33,9 @@ the Python checks are not locked. Print the lock wait apart from the step time w
 with the lock free and say so).
 
 The checks run on the working tree, but a push sends commits: the script refuses (exit 1, with a clear message) when
-tracked files differ from the commit being checked (`git diff --quiet <sha>` fails), so that an uncommitted `scarb
-fmt` result or unrelated edits never make the hook lie.
+tracked files differ from the commit being checked or untracked files exist (`git status --porcelain` is not empty,
+or HEAD is not `<sha>`), so that an uncommitted `scarb fmt` result, a new file never added, or unrelated edits never
+make the hook lie. The message names the checked sha and HEAD, and says to commit or stash: never `--no-verify`.
 
 Always:
 - `scarb fmt --check --workspace`;
@@ -44,12 +45,12 @@ Always:
   example `gas_tables.py --check`, `panic_coverage.py --check`, `api_parity.py --check`, `affected.py --check` where
   they exist and take seconds).
 
-Only when their inputs changed since the base (decide from `git diff --name-only <base>...HEAD` plus uncommitted
-changes):
+Only when their inputs changed since the base (decide from `git diff --name-only <base>...<sha>`):
 - the compile of the touched packages **and of the workspace packages that depend on them** (a change in `fixed`
-  also builds `benches` and `consumer`; in glam-cairo a change to any library crate also builds the facade `glam`,
-  which depends on all four, and `affected.py` has the import graph; in glamx-cairo `glamx` also builds
-  `facade_check` and `consumer`): `scarb build -p <package>` each (`scarb check -p` instead if Scarb 2.20.1 has it
+  also builds `benches` and `consumer`; in glam-cairo a change to any library crate also builds the facade `glam`
+  and `benches` and `consumer`, and `affected.py` has the import graph; in glamx-cairo `glamx` also builds
+  `benches`, `facade_check` and `consumer`; in general every workspace package whose `Scarb.toml` depends on a
+  touched package, transitively): `scarb build -p <package>` each (`scarb check -p` instead if Scarb 2.20.1 has it
   and it catches the same errors faster: measure both, say which you kept); a change to `Scarb.toml`, `Scarb.lock`
   or `.tool-versions` compiles the workspace;
 - the lint of the same packages, with CI's flags: `scarb lint -p <package> --test --deny-warnings` (`--test` also
@@ -65,7 +66,9 @@ changes):
 
 `.githooks/pre-push` (executable) reads the `<local ref> <local sha> <remote ref> <remote sha>` lines git gives it on
 stdin and runs `scripts/prepush.sh <local sha>` for each line that pushes a commit; it blocks the push on failure; a
-line that only deletes a ref (local sha all zeros) runs nothing. Set `git config core.hooksPath .githooks` in this repository's clone on the VPS
+line that only deletes a ref (local sha all zeros) runs nothing. Read all the lines first, then run the script for
+each with `</dev/null`, so that no child process consumes the remaining lines.
+Set `git config core.hooksPath .githooks` in this repository's clone on the VPS
 (`/home/claude/projects/<repo>`: the setting is shared by every worktree of the clone). The Mac clones are set later
 by the orchestrator. Never bypass the hook (`--no-verify` is forbidden): your own push of this branch is its first
 test.
@@ -87,8 +90,8 @@ in the workflow.
 ## Measures and report
 
 Run on this VPS and paste the real output of `time scripts/prepush.sh`: (a) on the branch with no Cairo change (only
-your scripts and docs); (b) after a throw-away local change of one Cairo source file of the main package (revert it,
-never commit it). Name the machine. Show the hook blocking a push: with a throw-away formatting error, run the hook
+your scripts and docs); (b) with one throw-away change to a Cairo source file of the main package, committed on a throw-away local branch
+(run the script there, then delete the branch; never push it). Name the machine. Show the hook blocking a push: with a throw-away formatting error, run the hook
 directly with a real line on stdin, `printf 'refs/heads/<b> %s refs/heads/<b> %s\n' "$(git rev-parse HEAD)"
 0000000000000000000000000000000000000000 | .githooks/pre-push origin <url>` (commit the error on a throw-away
 local branch first, then delete that branch), and paste its failing output; never push the error. The CI of the PR
