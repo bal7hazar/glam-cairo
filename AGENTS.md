@@ -101,10 +101,12 @@ needs to edit a shared file. If you believe you must, stop and escalate.
 Run `scripts/prepush.sh` (the hook `.githooks/pre-push` does it; enable it once per clone with
 `git config core.hooksPath .githooks`). It refuses a tree that is not exactly the commit to push, then
 runs `scarb fmt --check`, the Python self-tests and unit tests, the document `--check` scripts and,
-when Cairo files changed, the build and lint of the touched packages and their dependents, the
-generators' `--check` and the class size. Never push red and never use `--no-verify`. The full gate is
-CI (`scripts/check.sh`); the pre-push leaves to it the snforge suites, the gas snapshots, `scarb doc`,
-the workspace-wide build and lint, and the consumer-cost measures.
+when Cairo files changed, the generators' `--check` and, in one group under the shared
+`~/orchestrator/heavy-build.lock`, the build of the touched packages and their dependents, the lint
+of the touched packages and the class size. When that lock stays busy for 90 s the group is left to CI
+and the script says so and passes. Never push red and never use `--no-verify`. The full gate is CI
+(`scripts/check.sh`); the pre-push leaves to it the snforge suites, the gas snapshots, `scarb doc`,
+the workspace-wide build and lint, the lint of dependents, and the consumer-cost measures.
 
 ## Handoff format
 
