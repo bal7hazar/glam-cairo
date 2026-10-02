@@ -100,12 +100,24 @@ definition of done of `AGENTS.md`; and the report format. Agents read `AGENTS.md
 
 ## Status (2026-10-02)
 
-The track now runs as the herdr project `slingfall-glam` (coordinator plus threads, see
-`docs/ORCHESTRATOR.md` and `docs/HANDOFF.md`). Objectives, in order:
-1. align the orchestration documents with herdr and the organisation's standard (this change);
-2. the toolchain bump D-180 to Scarb 2.20.1 / snforge 0.64.0, one task per repository, `fixed`
-   first, then `glam`, then `glamx` (results bit-identical; a numeric change stops the task);
-3. then idle; the backlog F8, P2 and D1 only on request.
+The track runs as the herdr project `slingfall-glam` (coordinator plus threads, see
+`docs/ORCHESTRATOR.md` and `docs/HANDOFF.md`). Everything planned for the day is merged:
+- orchestration documents aligned with herdr (glam-cairo #53) and the toolchain briefs (#54);
+- toolchain bump D-180, in order: TC-F fixed-cairo #5 (`d444ffe`), TC-G glam-cairo #55
+  (`ca32b37`), TC-X glamx-cairo #7 (`230d848`). The three repositories are on Scarb 2.20.1 /
+  starknet-foundry 0.64.0, Cairo pins 2.20.0 (Scarb 2.20.1 bundles Cairo 2.20.0). No numeric
+  change anywhere and no release: the published `fixed` 0.4.0, `glam` 0.4.1 and `glamx` 0.4.1 are
+  unchanged.
+- Gas: `l2_gas` only; steps, builtins and bytecode sizes are unchanged. `fixed`: 76 of 278 rows
+  -120. `glam`: 1 160 rows -120, with calls that use the Bitwise builtin +100 relative to that
+  (uvec bit operations net +100, ivec net -20) and `bvec` `benches::alt` span literals +10 per
+  element. `glamx`: 82 rows -120.
+
+The track is idle. Backlog, on request only: F8, P2, D1.
+
+Rule to carry: the first Cairo / Scarb release carrying starkware-libs/cairo#10359 (closure names
+become path-free) changes every closure-holding class hash and needs a re-pin lot of its own; no
+class hash is pinned in this track today.
 
 ## Resume point (2026-09-29, clean stop: weekly quota nearly exhausted)
 
