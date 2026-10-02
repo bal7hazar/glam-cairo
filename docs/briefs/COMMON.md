@@ -1,5 +1,9 @@
 # Common rules of every porter brief
 
+Since 2026-10-02 tasks run as herdr threads (project `slingfall-glam`). Where this file names
+`scripts/agent.sh`, `codex exec`, the launcher of `docs/ORCHESTRATOR.md` or a `REPORT.md` at the
+worktree root, the thread's own brief and report format win (see `docs/ORCHESTRATOR.md`).
+
 Appended to every task brief of `docs/briefs/`. The orchestrator launches a porter with
 `claude -p "Read docs/briefs/<TASK>.md and docs/briefs/COMMON.md, then execute the task."` (or the
 `codex exec` equivalent) from the task's own worktree; see `docs/ORCHESTRATOR.md`.

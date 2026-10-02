@@ -63,7 +63,7 @@ means a pull request in each consuming repository (`glam-cairo`, `glamx-cairo`, 
 2. After merging a pull request that touched shared generated files (`docs/API_PARITY.md`,
    `tools/refgen/src/**`, the READMEs' gas tables), re-run the matching `--check` on `main`
    (`python3 scripts/api_parity.py --check`, `python3 scripts/gas_tables.py --check`, `cargo run
-   --manifest-path tools/refgen/Cargo.toml -- check`, `cargo test --manifest-path tools/refgen/Cargo.toml`) and regenerate if stale.
+   --manifest-path tools/refgen/Cargo.toml -- check`, `cargo test --manifest-path tools/refgen/Cargo.toml`); if stale, start a thread to regenerate them.
 3. New work: write `docs/briefs/<TASK>.md`, pre-declare any new stub in the shared `lib.cairo`
    files, merge, then start a thread (profile per `docs/ORCHESTRATOR.md`) whose task points at the
    brief and `docs/briefs/COMMON.md`.
