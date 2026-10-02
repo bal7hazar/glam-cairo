@@ -98,6 +98,15 @@ definition of done of `AGENTS.md`; and the report format. Agents read `AGENTS.md
 | bytecode growth from `inline(always)` + polynomial segments | track class size once a consumer contract exists (wave 5 audit) |
 | gas numbers shift with compiler releases | snapshots are per-toolchain; bumps are dedicated PRs |
 
+## Status (2026-10-02)
+
+The track now runs as the herdr project `slingfall-glam` (coordinator plus threads, see
+`docs/ORCHESTRATOR.md` and `docs/HANDOFF.md`). Objectives, in order:
+1. align the orchestration documents with herdr and the organisation's standard (this change);
+2. the toolchain bump D-180 to Scarb 2.20.1 / snforge 0.64.0, one task per repository, `fixed`
+   first, then `glam`, then `glamx` (results bit-identical; a numeric change stops the task);
+3. then idle; the backlog F8, P2 and D1 only on request.
+
 ## Resume point (2026-09-29, clean stop: weekly quota nearly exhausted)
 
 Everything below is on `main` of each repository; no agent runs, no pull request is open, no
