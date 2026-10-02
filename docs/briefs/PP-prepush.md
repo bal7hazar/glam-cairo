@@ -35,7 +35,8 @@ with the lock free and say so).
 The checks run on the working tree, but a push sends commits: the script refuses (exit 1, with a clear message) when
 tracked files differ from the commit being checked or untracked files exist (`git status --porcelain` is not empty,
 or HEAD is not `<sha>`), so that an uncommitted `scarb fmt` result, a new file never added, or unrelated edits never
-make the hook lie. The message names the checked sha and HEAD, and says to commit the changes (or remove them): never `--no-verify`.
+make the hook lie. The message names the checked sha and HEAD, and says to commit the changes (or remove
+them): never `--no-verify`.
 
 Always:
 - `scarb fmt --check --workspace`;
@@ -90,9 +91,9 @@ in the workflow.
 ## Measures and report
 
 Run on this VPS and paste the real output of `time scripts/prepush.sh`: (a) on the branch with no Cairo change (only
-your scripts and docs); (b) with one throw-away change to a Cairo source file of the main package, a valid change (for example a new
-private function), so that every step runs and passes, committed on a throw-away local branch (run the script
-there, then delete the branch; never push it). Name the machine. Show the hook blocking a push: with a
+your scripts and docs); (b) with one throw-away change to a Cairo source file of the main package, a valid
+change (for example a new private function), so that every step runs and passes, committed on a throw-away
+local branch (run the script there, then delete the branch; never push it). Name the machine. Show the hook blocking a push: with a
 throw-away formatting error, run the hook directly with a real line on stdin,
 `printf 'refs/heads/<b> %s refs/heads/<b> %s\n' "$(git rev-parse HEAD)" 0000000000000000000000000000000000000000
 | .githooks/pre-push origin <url>` (commit the error on a throw-away local branch first, then delete that

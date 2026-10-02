@@ -6,6 +6,7 @@
 # <sha> is the commit to check (default HEAD; the hook passes the pushed sha), <base> the commit the
 # change is measured from (default: the merge base of <sha> and origin/main). The checks run on the
 # working tree, so the script refuses when the tree is not exactly <sha>.
+# Needs bash 3.2 or later (no bash 4 feature is used) and Python >= 3.11 (tomllib).
 #
 # Always: `scarb fmt --check`, the self-tests of the Python scripts, the unit tests under
 # scripts/tests, and the `--check` modes of the scripts that compare documents with committed sources.
@@ -69,7 +70,14 @@ fi
 
 sha=$(git rev-parse --verify "${1:-HEAD}^{commit}")
 head=$(git rev-parse HEAD)
-base=${2:-$(git merge-base "$sha" origin/main)}
+if [[ -n "${2:-}" ]]; then
+  base=$2
+else
+  base=$(git merge-base "$sha" origin/main 2>/dev/null) || {
+    echo "prepush: no merge base of $sha with origin/main: git fetch origin, or pass <base>." >&2
+    exit 1
+  }
+fi
 
 if [[ "$head" != "$sha" || -n "$(git status --porcelain)" ]]; then
   {
@@ -156,7 +164,7 @@ TOUCHED=$(sed -n 's/^touched *//p' <<<"$selection")
 DEPENDENTS=$(sed -n 's/^dependents *//p' <<<"$selection")
 [[ -n "$TOUCHED" ]] || { echo "prepush: no package selected" >&2; exit 1; }
 RUN_BYTECODE=false
-changed_matching '^packages/(glam_core|glam_int|glam_swizzles|glam_int_swizzles|glam|consumer)/(src/|Scarb\.toml)|^Scarb\.(toml|lock)$|^\.tool-versions$|^gas/bytecode\.size$' &&
+changed_matching '^packages/(glam_core|glam_int|glam_swizzles|glam_int_swizzles|glam|consumer)/(src/|Scarb\.toml)|^Scarb\.(toml|lock)$|^\.tool-versions$' &&
   RUN_BYTECODE=true
 export TOUCHED DEPENDENTS RUN_BYTECODE
 
@@ -167,7 +175,7 @@ scarb_path=$(command -v scarb)
 ancestor_holds_lock() {
   local p=$PPID
   while [[ -n "$p" && "$p" -gt 1 ]] 2>/dev/null; do
-    if ls -l "/proc/$p/fd" 2>/dev/null | grep -qF -- "$lock"; then return 0; fi
+    if ls -l "/proc/$p/fd" 2>/dev/null | grep -F -- "$lock" >/dev/null; then return 0; fi
     p=$(awk '{print $4}' "/proc/$p/stat" 2>/dev/null) || return 1
   done
   return 1
@@ -188,6 +196,7 @@ elif [[ -d "$(dirname "$lock")" ]] && command -v flock >/dev/null 2>&1 && grep -
   flock -w 90 -E 75 "$lock" bash -c '
     echo locked >"$1"
     export HEAVY_BUILD_LOCK_HELD=1 SCARB="$2"
+    export RAYON_NUM_THREADS="${RAYON_NUM_THREADS:-4}" CARGO_BUILD_JOBS="${CARGO_BUILD_JOBS:-4}"
     exec nice -n 10 bash "$3" --heavy-group
   ' _ "$marker" "$real" "$(readlink -f "$0")" || rc=$?
   if [[ "$rc" -eq 75 && ! -s "$marker" ]]; then

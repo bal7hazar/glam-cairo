@@ -10,6 +10,6 @@ while read -r _local_ref local_sha _remote_ref _remote_sha; do
   [[ -n "${local_sha:-}" && "$local_sha" != "$zero" ]] && shas+=("$local_sha")
 done
 
-for sha in "${shas[@]}"; do
+for sha in ${shas[@]+"${shas[@]}"}; do
   scripts/prepush.sh "$sha" </dev/null
 done
