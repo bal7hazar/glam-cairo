@@ -14,4 +14,4 @@ them under the paths of a single crate.
 The `pub fn` helpers of `glam_core::ivec*` / `uvec*` (`bitand_i32`, ...) exist so that `glam_int`
 can reach them: they are internal, not re-exported by `glam`, and not part of the API.
 
-Compatible with Cairo 2.19.4. Gas tables: [`glam`](https://github.com/bal7hazar/glam-cairo/tree/main/packages/glam#gas).
+Compatible with Cairo 2.20.0. Gas tables: [`glam`](https://github.com/bal7hazar/glam-cairo/tree/main/packages/glam#gas).

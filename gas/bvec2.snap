@@ -47,8 +47,8 @@ bench_bvec2::alt_set_match_noinline_first: 2200 15 0 0 0
 bench_bvec2::alt_set_match_noinline_last: 2200 16 0 0 0
 bench_bvec2::alt_set_match_rebuild_first: 610 6 0 0 0
 bench_bvec2::alt_set_match_rebuild_last: 600 6 0 0 0
-bench_bvec2::alt_test_bitmask_first: 4450 39 6 0 0
-bench_bvec2::alt_test_bitmask_last: 4440 39 6 0 0
+bench_bvec2::alt_test_bitmask_first: 4330 39 6 0 0
+bench_bvec2::alt_test_bitmask_last: 4320 39 6 0 0
 bench_bvec2::alt_test_if_chain_first: 510 5 0 0 0
 bench_bvec2::alt_test_if_chain_last: 600 6 0 0 0
 bench_bvec2::alt_test_match_first: 510 5 0 0 0
