@@ -20,7 +20,7 @@ use fixed::fixed::{Fixed, FixedTrait};
 use fixed::trig::TrigTrait;
 use fixed::wide::{
     NormTrait, Recip, RecipTrait, WideAdd, WideMul, WideNarrow, WideSub, dot4, is_unit4, mul_sub,
-    norm2_wide, norm3_wide, norm4, norm4_squared, norm4_wide, wide_mul,
+    norm2_wide, norm3_wide, norm4, norm4_squared, norm4_wide, normalize3, wide_mul,
 };
 use crate::affine3::Affine3;
 use crate::mat3::Mat3;
@@ -389,15 +389,21 @@ pub trait QuatTrait {
     fn from_rotation_arc_2d(from: Vec2, to: Vec2) -> Quat;
     /// Returns the rotation axis (normalized) and angle (in radians) of `self`.
     ///
+    /// Implementation notes:
+    /// * The axis is `xyz / length` with a floored length, so `|axis|` is off by up to
+    ///   `1 ULP / length`. A vector part shorter than `2^-8` is scaled by `2^16` (exact) first:
+    ///   `|axis|` is within `2^-24` of one for every vector part. Without the scaling it was
+    ///   `1.5e-5` off near [`AXIS_EPS`], which `from_scaled_axis(to_scaled_axis())` read back as
+    ///   an angle up to `tau * 1.5e-5` too long near an angle of `tau`.
+    ///
     /// Mirrors `glam::Quat::to_axis_angle`.
     /// #### Panics
     /// * `'Fixed: overflow'` if `self.xyz().length()` does not fit the scalar range.
     /// #### Deviations
     /// * `(Vec3::X, 0)` is returned when the vector part is shorter than [`AXIS_EPS`]
-    ///   (`2^-16`), where glam-rs uses `1e-8`: the axis is `xyz / length` with a floored
-    ///   length, so its own length is off by up to `1 ULP / length` and a shorter vector part
-    ///   cannot produce a unit axis (`1.5e-5` at the threshold). The rotation dropped that way
-    ///   is at most `2 * 2^-16 = 3.1e-5` rad.
+    ///   (`2^-16`), where glam-rs uses `1e-8`: the components of a shorter vector part carry
+    ///   fewer than 16 significant bits, so its direction is not known to better than `1.5e-5`
+    ///   rad. The rotation dropped that way is at most `2 * 2^-16 = 3.1e-5` rad.
     /// * `atan2` is accurate to 3.22 ULP and the doubling is exact: the angle is within 7 ULP.
     fn to_axis_angle(self: Quat) -> (Vec3, Fixed);
     /// Returns the rotation axis scaled by the rotation angle in radians.
@@ -896,10 +902,22 @@ pub impl QuatImpl of QuatTrait {
 
     fn to_axis_angle(self: Quat) -> (Vec3, Fixed) {
         let n = norm3_wide(self.x, self.y, self.z);
-        if n.to_fixed() >= AXIS_EPS {
-            let a = n.to_fixed().atan2(self.w);
-            let r = n.recip();
-            (Vec3 { x: r.mul(self.x), y: r.mul(self.y), z: r.mul(self.z) }, a + a)
+        let length = n.to_fixed();
+        if length >= AXIS_EPS {
+            let a = length.atan2(self.w);
+            if length >= AXIS_RESCALE {
+                let r = n.recip();
+                (Vec3 { x: r.mul(self.x), y: r.mul(self.y), z: r.mul(self.z) }, a + a)
+            } else {
+                // A short vector part is scaled by 2^16 (exact) before it is normalized, so that
+                // the floored length is at least 1 and `|axis|` is off by at most 1 ULP.
+                let (x, y, z) = normalize3(
+                    Fixed { raw: self.x.raw * 0x10000 },
+                    Fixed { raw: self.y.raw * 0x10000 },
+                    Fixed { raw: self.z.raw * 0x10000 },
+                );
+                (Vec3 { x, y, z }, a + a)
+            }
         } else {
             (Vec3Trait::X, F_ZERO)
         }
@@ -1285,9 +1303,16 @@ pub const NEAR_ONE: Fixed = Fixed { raw: 0xfffff000 };
 pub const NEG_NEAR_ONE: Fixed = Fixed { raw: -0xfffff000 };
 
 /// `2^-16`, the shortest vector part `to_axis_angle` and `to_scaled_axis` accept before
-/// returning the identity axis, where glam-rs uses `1e-8`: the axis is `xyz / length` with a
-/// floored length, so `|axis|` is off by up to `1 ULP / length`, i.e. `1.5e-5` at the threshold.
+/// returning the identity axis, where glam-rs uses `1e-8`: the components of a shorter vector
+/// part carry fewer than 16 significant bits, so its direction is not known to better than
+/// `1.5e-5` rad.
 pub const AXIS_EPS: Fixed = Fixed { raw: 0x10000 };
+
+/// `2^-8`: below this length, `to_axis_angle` scales the vector part by `2^16` before
+/// normalizing it. The axis is `xyz / length` with a floored length, so `|axis|` is off by up to
+/// `1 ULP / length`: `2^-24` from this threshold up, `2^-32` for the scaled vector part (a
+/// length of at least 1), where it was `1.5e-5` at `AXIS_EPS` without the scaling.
+const AXIS_RESCALE: Fixed = Fixed { raw: 0x1000000 };
 
 /// `1 - 1e-6` quantized (`1 - 4295 ULP`), the `is_near_identity` threshold of glam-rs: an angle
 /// of `2 acos(1 - 1e-6) = 2.83e-3` rad.
