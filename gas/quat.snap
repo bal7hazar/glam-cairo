@@ -76,7 +76,7 @@ bench_quat::slerp_long__near: 121650 208 48 0 0
 bench_quat::sub: 4160 36 8 0 0
 bench_quat::sub_assign: 4160 36 8 0 0
 bench_quat::sum3: 15400 140 20 0 0
-bench_quat::to_axis_angle: 41610 302 69 0 0
-bench_quat::to_axis_angle__short: 41610 44 7 0 0
-bench_quat::to_scaled_axis: 48680 354 81 0 0
-bench_quat::to_scaled_axis__short: 48680 96 19 0 0
+bench_quat::to_axis_angle: 46080 304 69 0 0
+bench_quat::to_axis_angle__short: 46080 44 7 0 0
+bench_quat::to_scaled_axis: 53150 356 81 0 0
+bench_quat::to_scaled_axis__short: 53150 96 19 0 0

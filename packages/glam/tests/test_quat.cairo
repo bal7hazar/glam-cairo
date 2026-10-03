@@ -141,7 +141,7 @@ const AXIS_ANGLE: [[i64; 12]; 10] = [
     [-1874477404, 937238702, 3748954808, 10307921510, -1747086207, 873543103, 3494172412, 1556314705, -1874477405, 937238702, 3748954808, 10307921510],
     [4294967296, 0, 0, 0, 0, 0, 0, 4294967296, 4294967296, 0, 0, 0],
     [4294967296, 0, 0, 26986075409, 1, 0, 0, -4294967296, 4294967296, 0, 0, 0],
-    [1147878294, 2295756587, 3443634881, 200000, 26726, 53452, 80178, 4294967295, 1147884438, 2295768877, 3443653315, 199998],
+    [1147878294, 2295756587, 3443634881, 200000, 26726, 53452, 80178, 4294967295, 1147878294, 2295756587, 3443634881, 199998],
     [-1874477404, 937238702, 3748954808, 100000, -21822, 10910, 43643, 4294967296, 4294967296, 0, 0, 0],
     [0, 0, 4294967296, -7516192768, 0, 0, -3296574241, 2753060542, 0, 0, -4294967296, 7516192770],
 ];
@@ -1048,6 +1048,19 @@ fn test_axis_angle_fuzz_regression() {
     let r = QuatTrait::from_mat3(m);
     assert_eq!(r, quat(f(-476293225), f(-2734659737), f(-2316178373), f(2318802006)));
     assert_eq!(m.x_axis.x - Mat3Trait::from_quat(r).x_axis.x, f(17));
+}
+
+/// Regression of `fuzz_axis_angle` (seed 403, run 120 of another fuzz order on CI): an angle of
+/// `-tau + 7.4e-5`, so `w` is near -1 and the vector part is short (`|xyz| = 3.7e-5`, 159 000
+/// raw). Normalizing it by its floored length made `|axis|` off by up to `1 / 159 000`, which
+/// `from_scaled_axis` read back as an angle `tau / 159 000 = 4e-5` rad too long: 87 000 raw off
+/// on the vector part, past the 0x10000 bound of the property.
+#[test]
+fn test_axis_angle_regression_seed403() {
+    let (a, b, c, d) = (
+        -9055073504971701001, 9030025993579653904, -6712623409841704000, -168884176166061036,
+    );
+    axis_angle_property(a, b, c, d);
 }
 
 /// The properties of `fuzz_axis_angle`.
