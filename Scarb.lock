@@ -3,7 +3,7 @@ version = 1
 
 [[package]]
 name = "benches"
-version = "0.4.1"
+version = "0.5.0"
 dependencies = [
  "fixed",
  "glam",
@@ -12,7 +12,7 @@ dependencies = [
 
 [[package]]
 name = "consumer"
-version = "0.4.1"
+version = "0.5.0"
 dependencies = [
  "fixed",
  "glam",
@@ -20,13 +20,13 @@ dependencies = [
 
 [[package]]
 name = "fixed"
-version = "0.4.0"
+version = "0.5.0"
 source = "registry+https://scarbs.xyz/"
-checksum = "sha256:a8f7ec541b8cc85894688ae9008cddb87cccc55a024b04b35f7fd3716d715064"
+checksum = "sha256:697d3e82f4eb156e56dfcc025d96fd77edca6d05878a0fc16d3ac8c664230fb9"
 
 [[package]]
 name = "glam"
-version = "0.4.1"
+version = "0.5.0"
 dependencies = [
  "fixed",
  "glam_core",
@@ -38,14 +38,14 @@ dependencies = [
 
 [[package]]
 name = "glam_core"
-version = "0.4.1"
+version = "0.5.0"
 dependencies = [
  "fixed",
 ]
 
 [[package]]
 name = "glam_int"
-version = "0.4.1"
+version = "0.5.0"
 dependencies = [
  "fixed",
  "glam_core",
@@ -53,7 +53,7 @@ dependencies = [
 
 [[package]]
 name = "glam_int_swizzles"
-version = "0.4.1"
+version = "0.5.0"
 dependencies = [
  "fixed",
  "glam_core",
@@ -61,7 +61,7 @@ dependencies = [
 
 [[package]]
 name = "glam_swizzles"
-version = "0.4.1"
+version = "0.5.0"
 dependencies = [
  "fixed",
  "glam_core",

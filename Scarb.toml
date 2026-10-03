@@ -2,19 +2,19 @@
 members = ["packages/*"]
 
 [workspace.package]
-version = "0.4.1"
+version = "0.5.0"
 edition = "2024_07"
 cairo-version = "2.20.0"
 license = "MIT"
 repository = "https://github.com/bal7hazar/glam-cairo"
 
 [workspace.dependencies]
-fixed = "0.4.0"
-glam = { path = "packages/glam", version = "0.4.1" }
-glam_core = { path = "packages/glam_core", version = "0.4.1" }
-glam_int = { path = "packages/glam_int", version = "0.4.1" }
-glam_int_swizzles = { path = "packages/glam_int_swizzles", version = "0.4.1" }
-glam_swizzles = { path = "packages/glam_swizzles", version = "0.4.1" }
+fixed = "0.5.0"
+glam = { path = "packages/glam", version = "0.5.0" }
+glam_core = { path = "packages/glam_core", version = "0.5.0" }
+glam_int = { path = "packages/glam_int", version = "0.5.0" }
+glam_int_swizzles = { path = "packages/glam_int_swizzles", version = "0.5.0" }
+glam_swizzles = { path = "packages/glam_swizzles", version = "0.5.0" }
 snforge_std = "0.64.0"
 assert_macros = "2.20.0"
 

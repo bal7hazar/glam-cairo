@@ -9,7 +9,7 @@ nalgebra and rapier.
 |---|---|---|
 | [`glam`](packages/glam) | this one | `Vec2/3/4`, `Mat2/3/4`, `Quat`, `Affine2/3`, `BVec*`, `IVec*`, `UVec*` |
 | [`glam_core`](packages/glam_core), [`glam_int`](packages/glam_int), [`glam_swizzles`](packages/glam_swizzles), [`glam_int_swizzles`](packages/glam_int_swizzles) | this one | the four crates `glam` is cut into: `glam` re-exports them under the same paths; depend on a smaller one to build less |
-| `fixed` | [`fixed-cairo`](https://github.com/bal7hazar/fixed-cairo) | `Fixed { raw: i64 }` Q32.32 scalar, fused kernels, loop-free trigonometry; `glam` depends on its published `0.3.0` |
+| `fixed` | [`fixed-cairo`](https://github.com/bal7hazar/fixed-cairo) | `Fixed { raw: i64 }` Q32.32 scalar, fused kernels, loop-free trigonometry; `glam` depends on its published `0.5.0` |
 | `glamx` | [`glamx-cairo`](https://github.com/bal7hazar/glamx-cairo) | Dimforge's `glamx` extensions (`Rot2`, `Pose2/3`, `SdpMatrix2/3`, `SymmetricEigen3`) on top of `glam` |
 
 Each repository mirrors one Rust reference repository ([`docs/SPLIT.md`](docs/SPLIT.md)).
