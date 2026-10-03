@@ -46,11 +46,13 @@ bench_uvec2::dot: 940 8 2 0 0
 bench_uvec2::dot_into_vec: 1040 9 2 0 0
 bench_uvec2::element_product: 570 5 1 0 0
 bench_uvec2::element_sum: 570 5 1 0 0
+bench_uvec2::from_span: 1740 16 2 0 0
 bench_uvec2::index_first: 510 5 0 0 0
 bench_uvec2::index_last: 500 5 0 0 0
 bench_uvec2::length_squared: 940 8 2 0 0
 bench_uvec2::manhattan_distance_ge: 3170 29 3 0 0
 bench_uvec2::manhattan_distance_lt: 3850 35 5 0 0
+bench_uvec2::map: 1140 10 2 0 0
 bench_uvec2::max_element_first: 870 8 1 0 0
 bench_uvec2::max_element_last: 770 7 1 0 0
 bench_uvec2::max_lhs: 1940 18 2 0 0
@@ -67,6 +69,7 @@ bench_uvec2::mul: 1140 10 2 0 0
 bench_uvec2::mul_assign: 1140 10 2 0 0
 bench_uvec2::mul_assign_scalar: 1140 10 2 0 0
 bench_uvec2::mul_scalar: 1140 10 2 0 0
+bench_uvec2::product3: 10700 100 10 0 0
 bench_uvec2::rem: 2220 18 6 0 0
 bench_uvec2::rem_assign: 2220 18 6 0 0
 bench_uvec2::rem_assign_scalar: 2120 17 6 0 0
@@ -88,6 +91,7 @@ bench_uvec2::sub: 940 8 2 0 0
 bench_uvec2::sub_assign: 940 8 2 0 0
 bench_uvec2::sub_assign_scalar: 940 8 2 0 0
 bench_uvec2::sub_scalar: 940 8 2 0 0
+bench_uvec2::sum3: 9360 88 8 0 0
 bench_uvec2::try_into_none: 970 9 1 0 0
 bench_uvec2::try_into_some: 1340 12 2 0 0
 bench_uvec2::wrapping_add_inrange: 1940 18 2 0 0
@@ -99,3 +103,4 @@ bench_uvec2::wrapping_mul_inrange: 3020 26 6 0 0
 bench_uvec2::wrapping_mul_wraps: 2820 24 6 0 0
 bench_uvec2::wrapping_sub_inrange: 1960 18 2 0 0
 bench_uvec2::wrapping_sub_wraps: 1940 18 2 0 0
+bench_uvec2::write_to: 500 5 0 0 0

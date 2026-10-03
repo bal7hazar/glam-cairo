@@ -1192,3 +1192,144 @@ const MINQ: Quat = Quat {
     z: Fixed { raw: -0x8000000000000000 },
     w: Fixed { raw: -0x8000000000000000 },
 };
+
+// ---- iterators and span entry points (lot AP)
+use glam::quat::{QuatProduct, QuatSum};
+
+#[test]
+fn test_sum_product_iter() {
+    let a = quat(
+        FixedTrait::from_int(1),
+        FixedTrait::from_int(2),
+        FixedTrait::from_int(3),
+        FixedTrait::from_int(4),
+    );
+    let b = quat(
+        FixedTrait::from_int(5),
+        FixedTrait::from_int(6),
+        FixedTrait::from_int(7),
+        FixedTrait::from_int(8),
+    );
+    let c = quat(
+        FixedTrait::from_int(9),
+        FixedTrait::from_int(1),
+        FixedTrait::from_int(2),
+        FixedTrait::from_int(3),
+    );
+    let s = QuatSum::sum(array![a, b, c].into_iter());
+    assert!(
+        s == quat(
+            FixedTrait::from_int(15),
+            FixedTrait::from_int(9),
+            FixedTrait::from_int(12),
+            FixedTrait::from_int(15),
+        ),
+        "sum",
+    );
+    assert!(QuatProduct::product(array![a, b, c].into_iter()) == a * b * c, "product");
+    let none: Array<Quat> = array![];
+    assert!(QuatSum::sum(none.into_iter()) == QuatTrait::ZERO, "empty sum");
+    let none: Array<Quat> = array![];
+    assert!(QuatProduct::product(none.into_iter()) == QuatTrait::IDENTITY, "empty product");
+}
+
+#[test]
+fn test_product_iter_order() {
+    let i = quat(
+        FixedTrait::from_int(1),
+        FixedTrait::from_int(0),
+        FixedTrait::from_int(0),
+        FixedTrait::from_int(0),
+    );
+    let j = quat(
+        FixedTrait::from_int(0),
+        FixedTrait::from_int(1),
+        FixedTrait::from_int(0),
+        FixedTrait::from_int(0),
+    );
+    let k = quat(
+        FixedTrait::from_int(0),
+        FixedTrait::from_int(0),
+        FixedTrait::from_int(1),
+        FixedTrait::from_int(0),
+    );
+    assert!(QuatProduct::product(array![i, j].into_iter()) == k, "i * j = k");
+    assert!(QuatProduct::product(array![j, i].into_iter()) == -k, "j * i = -k");
+}
+
+// panics: Quat::QuatSum
+#[test]
+#[should_panic(expected: 'i64_add Overflow')]
+fn test_sum_overflow() {
+    let big = quat(
+        FixedTrait::from_raw(0x7fffffffffffffff),
+        FixedTrait::from_raw(0x7fffffffffffffff),
+        FixedTrait::from_raw(0x7fffffffffffffff),
+        FixedTrait::from_raw(0x7fffffffffffffff),
+    );
+    let _ = QuatSum::sum(array![big, big].into_iter());
+}
+
+// panics: Quat::QuatProduct
+#[test]
+#[should_panic(expected: 'Fixed: overflow')]
+fn test_product_overflow() {
+    let big = quat(
+        FixedTrait::from_raw(0x7fffffffffffffff),
+        FixedTrait::from_raw(0x7fffffffffffffff),
+        FixedTrait::from_raw(0x7fffffffffffffff),
+        FixedTrait::from_raw(0x7fffffffffffffff),
+    );
+    let _ = QuatProduct::product(array![big, big].into_iter());
+}
+
+#[test]
+fn test_from_span_write_to() {
+    let longer: Array<Fixed> = array![
+        FixedTrait::from_int(1), FixedTrait::from_int(2), FixedTrait::from_int(3),
+        FixedTrait::from_int(4), FixedTrait::from_int(5),
+    ];
+    let q = QuatTrait::from_span(longer.span());
+    assert!(
+        q == quat(
+            FixedTrait::from_int(1),
+            FixedTrait::from_int(2),
+            FixedTrait::from_int(3),
+            FixedTrait::from_int(4),
+        ),
+        "first 4 read",
+    );
+    let mut out: Array<Fixed> = array![];
+    q.write_to(ref out);
+    assert!(out.len() == 4, "4 elements appended");
+    assert!(QuatTrait::from_span(out.span()) == q, "round trip");
+}
+
+#[test]
+#[should_panic(expected: 'Quat: span too short')]
+fn test_from_span_short() {
+    let short: Array<Fixed> = array![
+        FixedTrait::from_int(1), FixedTrait::from_int(2), FixedTrait::from_int(3),
+    ];
+    let _ = QuatTrait::from_span(short.span());
+}
+
+#[test]
+fn test_sum_product_method_form() {
+    let a = quat(
+        FixedTrait::from_int(1),
+        FixedTrait::from_int(2),
+        FixedTrait::from_int(3),
+        FixedTrait::from_int(4),
+    );
+    let b = quat(
+        FixedTrait::from_int(5),
+        FixedTrait::from_int(6),
+        FixedTrait::from_int(7),
+        FixedTrait::from_int(8),
+    );
+    let s: Quat = array![a, b].into_iter().sum();
+    assert!(s == a + b, "sum");
+    let p: Quat = array![a, b].into_iter().product();
+    assert!(p == a * b, "product");
+}

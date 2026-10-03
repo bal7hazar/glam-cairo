@@ -1219,3 +1219,72 @@ fn fuzz_div_euclid_rem_euclid_abs_signum(a: i32, b: i32, c: i32, d: i32) {
     assert_eq!(va.is_negative_mask(), va.cmplt(IVec3Trait::ZERO));
     assert_eq!(va.is_negative_bitmask(), va.is_negative_mask().bitmask());
 }
+
+// ---- iterators, span and array entry points, `map` (lot AP)
+use glam::ivec3::{IVec3Product, IVec3Sum};
+
+#[test]
+fn test_sum_product_iter() {
+    let s = IVec3Sum::sum(array![ivec3(2, 3, 4), ivec3(3, 4, 5), ivec3(4, 5, 6)].into_iter());
+    assert!(s == ivec3(9, 12, 15), "sum");
+    let p = IVec3Product::product(
+        array![ivec3(2, 3, 4), ivec3(3, 4, 5), ivec3(4, 5, 6)].into_iter(),
+    );
+    assert!(p == ivec3(24, 60, 120), "product");
+    let none: Array<IVec3> = array![];
+    assert!(IVec3Sum::sum(none.into_iter()) == IVec3Trait::ZERO, "empty sum");
+    let none: Array<IVec3> = array![];
+    assert!(IVec3Product::product(none.into_iter()) == IVec3Trait::ONE, "empty product");
+}
+
+#[test]
+fn test_sum_product_method_form() {
+    let s: IVec3 = array![ivec3(2, 3, 4), ivec3(3, 4, 5), ivec3(4, 5, 6)].into_iter().sum();
+    assert!(s == ivec3(9, 12, 15), "sum");
+    let p: IVec3 = array![ivec3(2, 3, 4), ivec3(3, 4, 5), ivec3(4, 5, 6)].into_iter().product();
+    assert!(p == ivec3(24, 60, 120), "product");
+}
+
+#[test]
+fn test_from_span_write_to() {
+    let longer: Array<i32> = array![1, 2, 3, 4];
+    let v = IVec3Trait::from_span(longer.span());
+    assert!(v == ivec3(1, 2, 3), "N + 1 reads the first N");
+    let exact: Array<i32> = array![1, 2, 3];
+    assert!(IVec3Trait::from_span(exact.span()) == v, "exactly N");
+    let mut out: Array<i32> = array![];
+    v.write_to(ref out);
+    assert!(out.len() == 3, "N elements appended");
+    assert!(IVec3Trait::from_span(out.span()) == v, "round trip");
+    v.write_to(ref out);
+    assert!(out.len() == 6, "write_to appends");
+}
+
+#[test]
+#[should_panic(expected: 'IVec3: span too short')]
+fn test_from_span_short() {
+    let short: Array<i32> = array![1, 2];
+    let _ = IVec3Trait::from_span(short.span());
+}
+
+// panics: Ivec3::IVec3Sum
+#[test]
+#[should_panic(expected: 'i32_add Overflow')]
+fn test_sum_overflow() {
+    let _ = IVec3Sum::sum(array![IVec3Trait::MAX, IVec3Trait::MAX].into_iter());
+}
+
+// panics: Ivec3::IVec3Product
+#[test]
+#[should_panic(expected: 'i32_mul Overflow')]
+fn test_product_overflow() {
+    let _ = IVec3Product::product(array![IVec3Trait::MAX, IVec3Trait::MAX].into_iter());
+}
+
+#[test]
+fn test_map() {
+    let v = IVec3Trait::from_span(array![1, 2, 3].span());
+    assert!(v.map(|x| x + x) == ivec3(2, 4, 6), "map doubles");
+    let offset = 5;
+    assert!(v.map(|x| x + offset) == ivec3(6, 7, 8), "map captures");
+}

@@ -13,7 +13,7 @@ use fixed::fixed::Fixed;
 use glam::bvec3::BVec3;
 use glam::ivec3::IVec3;
 use glam::uvec3::UVec3;
-use glam::vec3::{Vec3, Vec3Trait};
+use glam::vec3::{Vec3, Vec3Product, Vec3Sum, Vec3Trait};
 use glam::vec4::Vec4;
 
 const A: Vec3 = Vec3 {
@@ -82,6 +82,86 @@ const HOM: Vec4 = Vec4 {
 };
 const IV: IVec3 = IVec3 { x: 3, y: 3, z: 3 };
 const UV: UVec3 = UVec3 { x: 3, y: 3, z: 3 };
+
+#[test]
+fn sum3__base() {
+    let _a = bb(A);
+    let _b = bb(B);
+    let _c = bb(A);
+    let r = bb(A);
+    sink(r);
+}
+
+#[test]
+fn sum3__op() {
+    let a = bb(A);
+    let b = bb(B);
+    let c = bb(A);
+    let _r = bb(A);
+    sink(Vec3Sum::sum(array![a, b, c].into_iter()));
+}
+
+#[test]
+fn product3__base() {
+    let _a = bb(A);
+    let _b = bb(B);
+    let _c = bb(A);
+    let r = bb(A);
+    sink(r);
+}
+
+#[test]
+fn product3__op() {
+    let a = bb(A);
+    let b = bb(B);
+    let c = bb(A);
+    let _r = bb(A);
+    sink(Vec3Product::product(array![a, b, c].into_iter()));
+}
+
+#[test]
+fn map__base() {
+    let _a = bb(A);
+    let r = bb(A);
+    sink(r);
+}
+
+#[test]
+fn map__op() {
+    let a = bb(A);
+    let _r = bb(A);
+    sink(a.map(|x| x + x));
+}
+
+#[test]
+fn from_span__base() {
+    let _s = bb(array![A.x, A.y, A.z].span());
+    let r = bb(A);
+    sink(r);
+}
+
+#[test]
+fn from_span__op() {
+    let s = bb(array![A.x, A.y, A.z].span());
+    let _r = bb(A);
+    sink(Vec3Trait::from_span(s));
+}
+
+#[test]
+fn write_to__base() {
+    let _a = bb(A);
+    let r = bb(A);
+    sink(r);
+}
+
+#[test]
+fn write_to__op() {
+    let a = bb(A);
+    let _r = bb(A);
+    let mut out = array![];
+    a.write_to(ref out);
+    sink(out);
+}
 
 #[test]
 fn select_true__base() {

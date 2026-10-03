@@ -1163,4 +1163,7 @@ fn f(raw: i64) -> Fixed {{
 
 // Readers of the table rows (`[i64; W]`): the value of a column at an offset.
 {used}"""
-    return prelude + body
+    tests = g.iterio.tests_matrix(T, t.mod, n, lambda k: f"FixedTrait::from_int({k})",
+                                  f"{T}Trait::IDENTITY",
+                                  f"{T}Trait::from_cols_array([FixedTrait::from_raw(0x7fffffffffffffff); {n * n}])")
+    return prelude + body + tests

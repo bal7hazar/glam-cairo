@@ -6,6 +6,7 @@ edition.workspace = true
 cairo-version.workspace = true
 license.workspace = true
 repository.workspace = true
+experimental-features = ["associated_item_constraints"]
 readme = "README.md"
 
 [dependencies]

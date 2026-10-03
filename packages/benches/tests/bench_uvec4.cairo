@@ -10,7 +10,87 @@ use benches::alt::uvec4 as alt;
 use benches::harness::{bb, sink};
 use glam::bvec4::BVec4Trait;
 use glam::ivec4::{IVec4, IVec4Trait};
-use glam::uvec4::{UVec4, UVec4Trait};
+use glam::uvec4::{UVec4, UVec4Product, UVec4Sum, UVec4Trait};
+
+#[test]
+fn sum3__base() {
+    let _a = bb(UVec4Trait::new(30, 7, 110, 13));
+    let _b = bb(UVec4Trait::new(5, 2, 9, 4));
+    let _c = bb(UVec4Trait::new(30, 7, 110, 13));
+    let r = bb(UVec4Trait::new(1, 2, 3, 4));
+    sink(r);
+}
+
+#[test]
+fn sum3__op() {
+    let a = bb(UVec4Trait::new(30, 7, 110, 13));
+    let b = bb(UVec4Trait::new(5, 2, 9, 4));
+    let c = bb(UVec4Trait::new(30, 7, 110, 13));
+    let _r = bb(UVec4Trait::new(1, 2, 3, 4));
+    sink(UVec4Sum::sum(array![a, b, c].into_iter()));
+}
+
+#[test]
+fn product3__base() {
+    let _a = bb(UVec4Trait::new(2, 3, 2, 3));
+    let _b = bb(UVec4Trait::new(3, 2, 3, 2));
+    let _c = bb(UVec4Trait::new(2, 2, 2, 2));
+    let r = bb(UVec4Trait::new(1, 2, 3, 4));
+    sink(r);
+}
+
+#[test]
+fn product3__op() {
+    let a = bb(UVec4Trait::new(2, 3, 2, 3));
+    let b = bb(UVec4Trait::new(3, 2, 3, 2));
+    let c = bb(UVec4Trait::new(2, 2, 2, 2));
+    let _r = bb(UVec4Trait::new(1, 2, 3, 4));
+    sink(UVec4Product::product(array![a, b, c].into_iter()));
+}
+
+#[test]
+fn map__base() {
+    let _a = bb(UVec4Trait::new(30, 7, 110, 13));
+    let r = bb(UVec4Trait::new(1, 2, 3, 4));
+    sink(r);
+}
+
+#[test]
+fn map__op() {
+    let a = bb(UVec4Trait::new(30, 7, 110, 13));
+    let _r = bb(UVec4Trait::new(1, 2, 3, 4));
+    sink(a.map(|x| x + x));
+}
+
+#[test]
+fn from_span__base() {
+    let _s = bb(array![30, 7, 110, 13].span());
+    let r = bb(UVec4Trait::new(1, 2, 3, 4));
+    sink(r);
+}
+
+#[test]
+fn from_span__op() {
+    let s = bb(array![30, 7, 110, 13].span());
+    let _r = bb(UVec4Trait::new(1, 2, 3, 4));
+    sink(UVec4Trait::from_span(s));
+}
+
+#[test]
+fn write_to__base() {
+    let _a = bb(UVec4Trait::new(30, 7, 110, 13));
+    let r = bb(UVec4Trait::new(1, 2, 3, 4));
+    sink(r);
+}
+
+#[test]
+fn write_to__op() {
+    let a = bb(UVec4Trait::new(30, 7, 110, 13));
+    let _r = bb(UVec4Trait::new(1, 2, 3, 4));
+    let mut out = array![];
+    a.write_to(ref out);
+    sink(out);
+}
 
 #[test]
 fn select_true__base() {

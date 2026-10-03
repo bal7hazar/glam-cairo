@@ -1445,4 +1445,8 @@ fn mul_exact(a: {T}, b: {T}) -> {T} {{
 }}
 
 """
-    return prelude + body
+    sc = lambda k: f"FixedTrait::from_int({k})"
+    ctor = lambda vals: f"{t.mod}(" + ", ".join(sc(v) for v in vals) + ")"
+    tests = g.iterio.tests_vector(T, t.mod, n, "Fixed", sc, ctor, f"{T}Trait::ZERO",
+                                   f"{T}Trait::ONE", g.MAP, f"{T}Trait::MAX", 'i64_add Overflow', 'Fixed: overflow')
+    return prelude + body + tests

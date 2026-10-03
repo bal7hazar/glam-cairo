@@ -72,8 +72,8 @@ RUST_IMPL_TRAITS = {
 CAIRO_CORE_TRAITS = {
     "Add", "AddAssign", "BitAnd", "BitAndAssign", "BitNot", "BitOr", "BitOrAssign",
     "BitXor", "BitXorAssign", "Default", "Div", "DivAssign", "IndexView", "Into", "Mul",
-    "MulAssign", "Neg", "Not", "Rem", "RemAssign", "Shl", "ShlAssign", "Shr", "ShrAssign",
-    "Sub", "SubAssign", "TryInto",
+    "MulAssign", "Neg", "Not", "Product", "Rem", "RemAssign", "Shl", "ShlAssign", "Shr", "ShrAssign",
+    "Sub", "SubAssign", "Sum", "TryInto",
 }
 
 
@@ -114,8 +114,21 @@ RULES = (
          "dropped", "SIMD/backend capability constants are outside the pure Cairo scope."),
     rule(r".*", r"(?:is_nan|is_nan_mask|is_finite|is_finite_mask)$", "dropped",
          "Fixed values are always finite and never NaN."),
-    rule(r".*", r"(?:from_(?:cols_|rows_)?slice|write_(?:cols_)?to_slice)$", "dropped",
-         "Slice APIs are deliberately omitted from fixed-size Cairo math types."),
+    rule(r".*", r"from_slice$", "renamed",
+         "A Cairo slice is a Span: the constructor reads the first N elements of a Span.",
+         "from_span"),
+    rule(r".*", r"from_cols_slice$", "renamed",
+         "A Cairo slice is a Span: the constructor reads the first N elements of a Span.",
+         "from_cols_span"),
+    rule(r".*", r"from_rows_slice$", "renamed",
+         "A Cairo slice is a Span: the constructor reads the first N elements of a Span.",
+         "from_rows_span"),
+    rule(r".*", r"write_to_slice$", "renamed",
+         "Cairo cannot overwrite a slice in place: the elements are appended to an Array.",
+         "write_to"),
+    rule(r".*", r"write_cols_to_slice$", "renamed",
+         "Cairo cannot overwrite a slice in place: the elements are appended to an Array.",
+         "write_cols_to"),
     rule(r".*", r"map$", "dropped",
          "Generic callback mapping is omitted from the monomorphic Cairo API."),
     rule(r".*", r"as_(?:d(?:affine[23]|mat[234]|quat|vec[234])|i8vec[234]|u8vec[234]|i16vec[234]|u16vec[234]|i64vec[234]|u64vec[234]|isizevec[234]|usizevec[234])$",
@@ -132,8 +145,11 @@ RULES = (
          "Cairo has no borrowed mutable element or row references."),
     rule(r".*", r"impl:(?:AsRef|AsMut)<.*", "dropped",
          "Borrowed slice views are deliberately omitted."),
-    rule(r".*", r"impl:(?:Sum|Product)(?:<.*)?", "dropped",
-         "Iterator Sum/Product traits are deliberately omitted."),
+    *(rule(owner, r"impl:(Sum|Product)", "renamed",
+           "The owned and the reference forms of glam-rs are one Cairo impl of the core "
+           "iterator trait.", rf"\1<{owner}>")
+      for owner in ("Affine2", "Affine3", "IVec2", "IVec3", "IVec4", "Mat2", "Mat3", "Mat4",
+                    "Quat", "UVec2", "UVec3", "UVec4", "Vec2", "Vec3", "Vec4")),
     rule(r".*", r"impl:Display(?:<.*)?", "dropped", "Display is deliberately omitted."),
     rule(r".*", r"impl:Deref(?:Mut)?(?:<.*)?", "dropped",
          "Deref-based array views are deliberately omitted."),
@@ -524,7 +540,7 @@ def parse_cairo() -> list[Item]:
         for match, opening, end in trait_blocks:
             owner = trait_owner(match.group(1), fallback)
             body = text[opening + 1:end]
-            for fn in re.finditer(r"\bfn\s+([A-Za-z_][A-Za-z0-9_]*)\s*(?:<[^;{()]*>)?\s*\(", body):
+            for fn in re.finditer(r"\bfn\s+([A-Za-z_][A-Za-z0-9_]*)\s*(?:<[^;{]*>)?\s*\(", body):
                 items.add(Item(owner, "method", fn.group(1), source))
             for const in re.finditer(r"\bconst\s+([A-Z][A-Z0-9_]*)\s*:", body):
                 items.add(Item(owner, "const", const.group(1), source))

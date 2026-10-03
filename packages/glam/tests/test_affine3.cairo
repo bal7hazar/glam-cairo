@@ -444,3 +444,88 @@ fn fuzz_trs_roundtrip(a: i64, b: i64, c: i64, d: i64) {
     // `q` and `-q` are the same rotation.
     assert!(q2.abs_diff_eq(q, f(16)) || q2.abs_diff_eq(-q, f(16)));
 }
+
+// ---- iterators and span entry points (lot AP)
+use glam::affine3::Affine3Product;
+
+#[test]
+fn test_product_iter_order() {
+    let a = Affine3Trait::from_translation(
+        Vec3Trait::new(FixedTrait::from_int(1), FixedTrait::from_int(2), FixedTrait::from_int(3)),
+    );
+    let b = Affine3Trait::from_scale(
+        Vec3Trait::new(FixedTrait::from_int(2), FixedTrait::from_int(3), FixedTrait::from_int(4)),
+    );
+    let p = Affine3Product::product(array![a, b].into_iter());
+    assert!(p == a * b, "a * b");
+    assert!(p != b * a, "not b * a");
+    assert!(Affine3Product::product(array![a, b, a].into_iter()) == a * b * a, "three items");
+    let none: Array<Affine3> = array![];
+    assert!(Affine3Product::product(none.into_iter()) == Affine3Trait::IDENTITY, "empty product");
+}
+
+// panics: Affine3::Affine3Product
+#[test]
+#[should_panic(expected: 'Fixed: overflow')]
+fn test_product_overflow() {
+    let big = Affine3Trait::from_scale(
+        Vec3Trait::new(
+            FixedTrait::from_raw(0x7fffffffffffffff),
+            FixedTrait::from_raw(0x7fffffffffffffff),
+            FixedTrait::from_raw(0x7fffffffffffffff),
+        ),
+    );
+    let _ = Affine3Product::product(array![big, big].into_iter());
+}
+
+#[test]
+fn test_from_cols_span_write_cols_to() {
+    let longer: Array<Fixed> = array![
+        FixedTrait::from_int(1), FixedTrait::from_int(2), FixedTrait::from_int(3),
+        FixedTrait::from_int(4), FixedTrait::from_int(5), FixedTrait::from_int(6),
+        FixedTrait::from_int(7), FixedTrait::from_int(8), FixedTrait::from_int(9),
+        FixedTrait::from_int(10), FixedTrait::from_int(11), FixedTrait::from_int(12),
+        FixedTrait::from_int(13),
+    ];
+    let m = Affine3Trait::from_cols_span(longer.span());
+    assert!(
+        m
+            .to_cols_array() == [
+                FixedTrait::from_int(1), FixedTrait::from_int(2), FixedTrait::from_int(3),
+                FixedTrait::from_int(4), FixedTrait::from_int(5), FixedTrait::from_int(6),
+                FixedTrait::from_int(7), FixedTrait::from_int(8), FixedTrait::from_int(9),
+                FixedTrait::from_int(10), FixedTrait::from_int(11), FixedTrait::from_int(12),
+            ],
+        "first N read",
+    );
+    let mut out: Array<Fixed> = array![];
+    m.write_cols_to(ref out);
+    assert!(out.len() == 12, "N elements appended");
+    assert!(Affine3Trait::from_cols_span(out.span()) == m, "round trip");
+    m.write_cols_to(ref out);
+    assert!(out.len() == 24, "write_cols_to appends");
+}
+
+#[test]
+#[should_panic(expected: 'Affine3: span too short')]
+fn test_from_cols_span_short() {
+    let short: Array<Fixed> = array![
+        FixedTrait::from_int(1), FixedTrait::from_int(2), FixedTrait::from_int(3),
+        FixedTrait::from_int(4), FixedTrait::from_int(5), FixedTrait::from_int(6),
+        FixedTrait::from_int(7), FixedTrait::from_int(8), FixedTrait::from_int(9),
+        FixedTrait::from_int(10), FixedTrait::from_int(11),
+    ];
+    let _ = Affine3Trait::from_cols_span(short.span());
+}
+
+#[test]
+fn test_product_method_form() {
+    let a = Affine3Trait::from_translation(
+        Vec3Trait::new(FixedTrait::from_int(1), FixedTrait::from_int(2), FixedTrait::from_int(3)),
+    );
+    let b = Affine3Trait::from_scale(
+        Vec3Trait::new(FixedTrait::from_int(2), FixedTrait::from_int(3), FixedTrait::from_int(4)),
+    );
+    let p: Affine3 = array![a, b].into_iter().product();
+    assert!(p == a * b, "product");
+}

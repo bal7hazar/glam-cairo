@@ -32,6 +32,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
+import iterio  # noqa: E402  (Sum / Product, from_span / write_to: shared text)
 import fvec as g  # noqa: E402  (doc helpers, `Method`, `Bench`, `Alt`, literals)
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -549,6 +550,26 @@ def methods(t):
         "row major order `transpose` the matrix first.",
         "[" + ", ".join("[" + ", ".join(el(i, j) for j in range(n)) + "]"
                         for i in range(n)) + "]")
+    span_head = iterio.from_span_head(T, N) + "\n" + "\n".join(
+        f"let {nm} = *span.at({k});" for k, nm in enumerate(names)) + "\n"
+    add("from_cols_span", f"(span: Span<Fixed>) -> {T}",
+        f"Creates a {n}x{n} matrix from the first {N} elements of `span`, stored in column major "
+        "order.\n\nIf the data is in row major order use `from_rows_span` instead.",
+        span_head + t.by_col(lambda i, j: f"m{i}{j}"),
+        [iterio.span_panic(T, N)], [iterio.FROM_SPAN_DEV],
+        mirrors=f"glam::{T}::from_cols_slice")
+    add("from_rows_span", f"(span: Span<Fixed>) -> {T}",
+        f"Creates a {n}x{n} matrix from the first {N} elements of `span`, stored in row major "
+        "order.\n\nMatrices are stored in column major order, so the span is permuted into the "
+        "matrix layout.",
+        span_head + t.by_col(lambda i, j: f"m{j}{i}"),
+        [iterio.span_panic(T, N)], [iterio.FROM_SPAN_DEV],
+        mirrors=f"glam::{T}::from_rows_slice")
+    add("write_cols_to", f"(self: {T}, ref out: Array<Fixed>)",
+        f"Appends the {N} elements of `self` to `out`, in column major order.\n\nIf you require "
+        "the data in row major order `transpose` the matrix first.",
+        "\n".join(f"out.append({el(i, j)});" for i in range(n) for j in range(n)),
+        dev=[iterio.WRITE_TO_DEV], mirrors=f"glam::{T}::write_cols_to_slice")
     add("from_diagonal", f"(diagonal: {V}) -> {T}",
         f"Creates a {n}x{n} matrix with its diagonal set to `diagonal` and all other entries set "
         "to 0.", t.by_col(lambda i, j: f"diagonal.{t.c[i]}" if i == j else fixed_lit(0)))
@@ -969,6 +990,10 @@ def operators(t):
         out.append(f"/// {docline}\npub impl {header} {{\n{extra}    #[inline(always)]\n"
                    f"    fn {fn_sig} {{\n{indent(body, 8)}\n    }}\n}}\n")
 
+    out.append(iterio.accum_impl(T, "Sum", f"{T}Trait::ZERO", "ZERO", "+", [ADD_P], "element-wise"))
+    out.append(iterio.accum_impl(T, "Product", f"{T}Trait::IDENTITY", "IDENTITY", "*",
+                                 ["`'Fixed: overflow'` if an element of a product leaves the "
+                                  "scalar range."], "matrix product", commutes=False))
     impl(f"`Default` is `{T}::IDENTITY`, as in glam-rs (not the all-zero derived value)."
          f"\n///\n/// Mirrors `impl Default for glam::{T}`.",
          f"{T}Default of Default<{T}>", f"default() -> {T}", f"{T}Trait::IDENTITY")
@@ -1063,7 +1088,8 @@ def wide_imports(code):
 
 
 def module_uses(t, code):
-    uses = ["use core::ops::{AddAssign, DivAssign, MulAssign, SubAssign};",
+    uses = ["use core::iter::{Product, Sum};",
+            "use core::ops::{AddAssign, DivAssign, MulAssign, SubAssign};",
             "use fixed::fixed::{Fixed, FixedTrait};"]
     if ".sin_cos()" in code:
         uses.append("use fixed::trig::TrigTrait;")
@@ -1156,9 +1182,10 @@ fn inverse_checked(m: {T}) -> Option<{T}> {{
 /// * `Debug` is the derived Cairo formatting; `Display` is not implemented.
 /// * No `NAN` const and no `is_nan` / `is_finite`: those values do not exist
 ///   (docs/DESIGN.md section 3).
-/// * Not ported: `col_mut` / `set_row` (no `&mut`), `from_cols_slice` / `from_rows_slice` /
-///   `write_cols_to_slice` (no `Span` in fixed-size math), `Sum` / `Product` (no iterator trait
-///   to implement), the by-reference operator overloads, the scalar-on-the-left operators
+/// * `from_cols_slice` / `from_rows_slice` / `write_cols_to_slice` are `from_cols_span` /
+///   `from_rows_span` / `write_cols_to` (a `Span` in, an `Array` out); `Sum` / `Product` are
+///   impls of `core::iter::Sum` / `core::iter::Product`.
+/// * Not ported: `col_mut` / `set_row` (no `&mut`), the by-reference operator overloads, the scalar-on-the-left operators
 ///   (`2.0 * m`) and the casts to types that do not exist in glam-cairo (`as_dmat{n}`, `Mat3A`).
 {TODO_NOTE[n]}#[derive(Copy, Drop, Serde, PartialEq, Debug, Hash)]
 pub struct {T} {{
@@ -1322,6 +1349,15 @@ def lib_benches(t):
     def b(name, inputs, res, op, pre=""):
         out.append(Bench(name, inputs, res, op, pre))
 
+    b("sum3", [("a", "A"), ("b", "B"), ("c", "A")], "A",
+      f"{T}Sum::sum(array![a, b, c].into_iter())")
+    b("product3", [("a", "A"), ("b", "B"), ("c", "A")], "A",
+      f"{T}Product::product(array![a, b, c].into_iter())")
+    elems = ", ".join(t.el("A", i, j) for i in range(n) for j in range(n))
+    b("from_cols_span", [("s", f"array![{elems}].span()")], "A", f"{T}Trait::from_cols_span(s)")
+    b("from_rows_span", [("s", f"array![{elems}].span()")], "A", f"{T}Trait::from_rows_span(s)")
+    b("write_cols_to", [("a", "A")], "A", "out",
+      "let mut out = array![];\n    a.write_cols_to(ref out);")
     b("from_cols", [("a", "V"), ("c", "VB")], "A",
       f"{T}Trait::from_cols(" + ", ".join(["a", "c"] + ["a"] * (n - 2)) + ")")
     b("from_rows", [("a", "V"), ("c", "VB")], "A",
@@ -1567,6 +1603,9 @@ def gen_bench(t):
     for k in (2, 3):
         if re.search(rf"\bAffine{k}\b", body + decls):
             glam.append(f"use glam::affine{k}::Affine{k};")
+    glam = [l.replace(f"::{{{t.name}, {t.name}Trait}};",
+                      f"::{{{t.name}, {t.name}Product, {t.name}Sum, {t.name}Trait}};")
+            for l in glam]
     uses += sorted(glam)
     return (f"{HEADER}//! Gas benchmarks of `glam::{t.mod}` and of the alternatives kept in "
             f"`benches::alt::{t.mod}`\n//! (the `alt_*` benches).\n//!\n"

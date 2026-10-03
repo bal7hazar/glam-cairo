@@ -59,6 +59,15 @@ def lib_benches(t):
     D = [5, 2, 9, 4]
     ND = [-5, -2, -9, -4]
 
+    b("sum3", [("a", A), ("b", Bv), ("c", A)], "T",
+      f"{T}Sum::sum(array![a, b, c].into_iter())")
+    b("product3", [("a", [2, 3, 2, 3]), ("b", [3, 2, 3, 2]), ("c", [2, 2, 2, 2])], "T",
+      f"{T}Product::product(array![a, b, c].into_iter())")
+    if g.MAP:
+        b("map", [("a", A)], "T", "a.map(|x| x + x)")
+    b("from_span", [("s", "array![" + ", ".join(str(v) for v in A[:t.n]) + "].span()")], "T",
+      f"{T}Trait::from_span(s)")
+    b("write_to", [("a", A)], "T", "out", "let mut out = array![];\n    a.write_to(ref out);")
     b("select_true", [("m", blit(t, [1, 1, 1, 1])), ("a", A), ("b", Bv)], "T",
       f"{T}Trait::select(m, a, b)")
     b("select_false", [("m", blit(t, [0, 0, 0, 0])), ("a", A), ("b", Bv)], "T",
@@ -572,7 +581,7 @@ def gen_bench(t):
     uses = ["use benches::alt::" + t.mod + " as alt;"] if "alt::" in body else []
     uses.append("use benches::harness::{bb, sink};")
     uses.append(f"use glam::{t.bmod}::{t.B}Trait;")
-    uses.append(f"use glam::{t.mod}::{t.name}Trait;")
+    uses.append(f"use glam::{t.mod}::{{{t.name}Product, {t.name}Sum, {t.name}Trait}};")
     uses.append(f"use glam::{t.other.mod}::{t.other.name}Trait;")
     if f"TryInto::<{t.name}, {t.other.name}>" in body:
         uses.append(f"use glam::{t.mod}::{t.name};")

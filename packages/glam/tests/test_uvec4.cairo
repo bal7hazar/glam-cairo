@@ -1087,3 +1087,78 @@ fn fuzz_div_rem(a: u32, b: u32, c: u32, d: u32) {
     assert_eq!(va.saturating_div(vb), q);
     assert_eq!(va.checked_div(vb), Some(q));
 }
+
+// ---- iterators, span and array entry points, `map` (lot AP)
+use glam::uvec4::{UVec4Product, UVec4Sum};
+
+#[test]
+fn test_sum_product_iter() {
+    let s = UVec4Sum::sum(
+        array![uvec4(2, 3, 4, 5), uvec4(3, 4, 5, 6), uvec4(4, 5, 6, 7)].into_iter(),
+    );
+    assert!(s == uvec4(9, 12, 15, 18), "sum");
+    let p = UVec4Product::product(
+        array![uvec4(2, 3, 4, 5), uvec4(3, 4, 5, 6), uvec4(4, 5, 6, 7)].into_iter(),
+    );
+    assert!(p == uvec4(24, 60, 120, 210), "product");
+    let none: Array<UVec4> = array![];
+    assert!(UVec4Sum::sum(none.into_iter()) == UVec4Trait::ZERO, "empty sum");
+    let none: Array<UVec4> = array![];
+    assert!(UVec4Product::product(none.into_iter()) == UVec4Trait::ONE, "empty product");
+}
+
+#[test]
+fn test_sum_product_method_form() {
+    let s: UVec4 = array![uvec4(2, 3, 4, 5), uvec4(3, 4, 5, 6), uvec4(4, 5, 6, 7)]
+        .into_iter()
+        .sum();
+    assert!(s == uvec4(9, 12, 15, 18), "sum");
+    let p: UVec4 = array![uvec4(2, 3, 4, 5), uvec4(3, 4, 5, 6), uvec4(4, 5, 6, 7)]
+        .into_iter()
+        .product();
+    assert!(p == uvec4(24, 60, 120, 210), "product");
+}
+
+#[test]
+fn test_from_span_write_to() {
+    let longer: Array<u32> = array![1, 2, 3, 4, 5];
+    let v = UVec4Trait::from_span(longer.span());
+    assert!(v == uvec4(1, 2, 3, 4), "N + 1 reads the first N");
+    let exact: Array<u32> = array![1, 2, 3, 4];
+    assert!(UVec4Trait::from_span(exact.span()) == v, "exactly N");
+    let mut out: Array<u32> = array![];
+    v.write_to(ref out);
+    assert!(out.len() == 4, "N elements appended");
+    assert!(UVec4Trait::from_span(out.span()) == v, "round trip");
+    v.write_to(ref out);
+    assert!(out.len() == 8, "write_to appends");
+}
+
+#[test]
+#[should_panic(expected: 'UVec4: span too short')]
+fn test_from_span_short() {
+    let short: Array<u32> = array![1, 2, 3];
+    let _ = UVec4Trait::from_span(short.span());
+}
+
+// panics: Uvec4::UVec4Sum
+#[test]
+#[should_panic(expected: 'u32_add Overflow')]
+fn test_sum_overflow() {
+    let _ = UVec4Sum::sum(array![UVec4Trait::MAX, UVec4Trait::MAX].into_iter());
+}
+
+// panics: Uvec4::UVec4Product
+#[test]
+#[should_panic(expected: 'u32_mul Overflow')]
+fn test_product_overflow() {
+    let _ = UVec4Product::product(array![UVec4Trait::MAX, UVec4Trait::MAX].into_iter());
+}
+
+#[test]
+fn test_map() {
+    let v = UVec4Trait::from_span(array![1, 2, 3, 4].span());
+    assert!(v.map(|x| x + x) == uvec4(2, 4, 6, 8), "map doubles");
+    let offset = 5;
+    assert!(v.map(|x| x + offset) == uvec4(6, 7, 8, 9), "map captures");
+}

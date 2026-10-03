@@ -26,6 +26,7 @@ bench_mat3::from_axis_angle: 50560 409 100 0 0
 bench_mat3::from_cols: 900 9 0 0 0
 bench_mat3::from_cols_array: 900 9 0 0 0
 bench_mat3::from_cols_array_2d: 900 9 0 0 0
+bench_mat3::from_cols_span: 8630 80 9 0 0
 bench_mat3::from_diagonal: 900 9 0 0 0
 bench_mat3::from_mat2: 900 9 0 0 0
 bench_mat3::from_mat4: 900 9 0 0 0
@@ -37,6 +38,7 @@ bench_mat3::from_rotation_y: 32200 252 62 0 0
 bench_mat3::from_rotation_z: 32200 252 62 0 0
 bench_mat3::from_rows: 900 9 0 0 0
 bench_mat3::from_rows_array: 900 9 0 0 0
+bench_mat3::from_rows_span: 8630 80 9 0 0
 bench_mat3::from_scale: 900 9 0 0 0
 bench_mat3::from_scale_angle_translation: 39420 313 78 0 0
 bench_mat3::from_translation: 900 9 0 0 0
@@ -53,12 +55,14 @@ bench_mat3::mul_scalar: 15920 134 36 0 0
 bench_mat3::mul_transpose_vec3: 7040 62 12 0 0
 bench_mat3::mul_vec3: 7040 62 12 0 0
 bench_mat3::neg: 3500 35 0 0 0
+bench_mat3::product3: 70540 627 112 0 0
 bench_mat3::recip: 26090 221 45 0 0
 bench_mat3::row_first: 1020 10 0 0 0
 bench_mat3::row_last: 1200 12 0 0 0
 bench_mat3::sub: 8360 71 18 0 0
 bench_mat3::sub_assign: 8360 71 18 0 0
 bench_mat3::sub_mat3: 8360 71 18 0 0
+bench_mat3::sum3: 28600 258 40 0 0
 bench_mat3::to_cols_array: 900 9 0 0 0
 bench_mat3::to_cols_array_2d: 900 9 0 0 0
 bench_mat3::to_rows_array: 900 9 0 0 0
@@ -67,3 +71,4 @@ bench_mat3::transform_vector2: 4560 40 8 0 0
 bench_mat3::transpose: 900 9 0 0 0
 bench_mat3::try_inverse_none: 39730 63 4 0 0
 bench_mat3::try_inverse_some: 39730 330 80 0 0
+bench_mat3::write_cols_to: 1200 12 0 0 0

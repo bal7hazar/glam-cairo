@@ -9,8 +9,88 @@
 use benches::alt::ivec2 as alt;
 use benches::harness::{bb, sink};
 use glam::bvec2::BVec2Trait;
-use glam::ivec2::{IVec2, IVec2Trait};
+use glam::ivec2::{IVec2, IVec2Product, IVec2Sum, IVec2Trait};
 use glam::uvec2::{UVec2, UVec2Trait};
+
+#[test]
+fn sum3__base() {
+    let _a = bb(IVec2Trait::new(3, -7));
+    let _b = bb(IVec2Trait::new(-5, 2));
+    let _c = bb(IVec2Trait::new(3, -7));
+    let r = bb(IVec2Trait::new(1, 2));
+    sink(r);
+}
+
+#[test]
+fn sum3__op() {
+    let a = bb(IVec2Trait::new(3, -7));
+    let b = bb(IVec2Trait::new(-5, 2));
+    let c = bb(IVec2Trait::new(3, -7));
+    let _r = bb(IVec2Trait::new(1, 2));
+    sink(IVec2Sum::sum(array![a, b, c].into_iter()));
+}
+
+#[test]
+fn product3__base() {
+    let _a = bb(IVec2Trait::new(2, 3));
+    let _b = bb(IVec2Trait::new(3, 2));
+    let _c = bb(IVec2Trait::new(2, 2));
+    let r = bb(IVec2Trait::new(1, 2));
+    sink(r);
+}
+
+#[test]
+fn product3__op() {
+    let a = bb(IVec2Trait::new(2, 3));
+    let b = bb(IVec2Trait::new(3, 2));
+    let c = bb(IVec2Trait::new(2, 2));
+    let _r = bb(IVec2Trait::new(1, 2));
+    sink(IVec2Product::product(array![a, b, c].into_iter()));
+}
+
+#[test]
+fn map__base() {
+    let _a = bb(IVec2Trait::new(3, -7));
+    let r = bb(IVec2Trait::new(1, 2));
+    sink(r);
+}
+
+#[test]
+fn map__op() {
+    let a = bb(IVec2Trait::new(3, -7));
+    let _r = bb(IVec2Trait::new(1, 2));
+    sink(a.map(|x| x + x));
+}
+
+#[test]
+fn from_span__base() {
+    let _s = bb(array![3, -7].span());
+    let r = bb(IVec2Trait::new(1, 2));
+    sink(r);
+}
+
+#[test]
+fn from_span__op() {
+    let s = bb(array![3, -7].span());
+    let _r = bb(IVec2Trait::new(1, 2));
+    sink(IVec2Trait::from_span(s));
+}
+
+#[test]
+fn write_to__base() {
+    let _a = bb(IVec2Trait::new(3, -7));
+    let r = bb(IVec2Trait::new(1, 2));
+    sink(r);
+}
+
+#[test]
+fn write_to__op() {
+    let a = bb(IVec2Trait::new(3, -7));
+    let _r = bb(IVec2Trait::new(1, 2));
+    let mut out = array![];
+    a.write_to(ref out);
+    sink(out);
+}
 
 #[test]
 fn select_true__base() {

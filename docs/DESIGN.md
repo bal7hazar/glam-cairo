@@ -113,6 +113,8 @@ Hard rules (each one is backed by a measurement in report 05 section 6 / report 
 1. Value types are `#[derive(Copy, Drop, Serde, PartialEq, Debug, Default, Hash)]` structs of
    named scalar fields with `pub` fields, passed **by value**. No `Array`, `Span`, `Felt252Dict`
    or loop in any fixed-size math (a `Span`+loop `Mat3*Mat3` is 9.2x the unrolled one).
+   Exception (AP, 2026-10-03): `Sum`/`Product` over iterators and the `from_span`/`write_to` I/O
+   entry points; no math kernel takes a `Span` or loops.
 2. Products go through the fused kernels of `fixed::wide`: one rescale per output scalar.
 3. `#[inline(always)]` on every scalar operator, constructor, accessor and kernel helper. Public
    kernels are the only call boundaries. Large bodies (`Mat4::inverse`, `slerp`) are not inlined.

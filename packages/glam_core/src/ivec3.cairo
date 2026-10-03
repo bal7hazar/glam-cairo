@@ -12,6 +12,7 @@
 //! Overflow: the operators panic with the corelib messages.
 
 use core::integer::i32_diff;
+use core::iter::{Product, Sum};
 use core::ops::index::IndexView;
 use core::ops::{AddAssign, DivAssign, MulAssign, RemAssign, SubAssign};
 use core::traits::{BitAnd, BitNot, BitOr, BitXor, DivRem};
@@ -24,8 +25,9 @@ use crate::uvec3::UVec3;
 /// Mirrors `glam::IVec3`.
 /// #### Deviations
 /// * `Debug` is the derived Cairo formatting; `Display` is not implemented.
-/// * Not ported: `map` (a closure parameter cannot be force-inlined, E2143), `from_slice` /
-///   `write_to_slice` (no `Span` in fixed-size math), `Sum` / `Product`, `IndexMut`, the
+/// * `from_slice` / `write_to_slice` are `from_span` / `write_to` (a `Span` in, an `Array` out);
+///   `Sum` / `Product` are impls of `core::iter::Sum` / `core::iter::Product`.
+/// * Not ported: `IndexMut`, the
 ///   by-reference operator overloads, the scalar-on-the-left operators (`2 * v`), the scalar
 ///   bit operators (use `v & IVec3Trait::splat(s)`), shifts by a vector or by another integer
 ///   width, and the casts to types that do not exist in glam-cairo (`as_i64vec3`, ...).
@@ -254,6 +256,56 @@ pub impl IVec3IndexView of IndexView<IVec3, usize> {
             2 => *self.z,
             _ => core::panic_with_felt252('IVec3: index out of bounds'),
         }
+    }
+}
+
+/// The sum of an iterator of `IVec3` (component-wise).
+///
+/// Items are folded in iteration order, left to right, starting from `ZERO`, with the `+` of
+/// `IVec3`: `(((start + a) + b) + c)`. That order is the determinism contract. An empty
+/// iterator yields the start value.
+///
+/// Mirrors `impl Sum for glam::IVec3` and `impl<'a> Sum<&'a IVec3> for glam::IVec3`.
+/// #### Panics
+/// * `'i32_add Overflow'` / `'i32_add Underflow'` if a component sum leaves the `i32` range.
+/// #### Deviations
+/// * The Cairo trait is `core::iter::Sum<IVec3>` with one impl: the owned form and the
+///   reference form of glam-rs (`Sum<&IVec3>`) are one, as values are `Copy` and passed by
+///   value.
+/// * Iterator glue, not a math kernel: it loops over the iterator (docs/DESIGN.md section 4,
+///   exception AP).
+pub impl IVec3Sum of Sum<IVec3> {
+    fn sum<I, +Iterator<I>[Item: IVec3], +Destruct<I>, +Destruct<IVec3>>(mut iter: I) -> IVec3 {
+        let mut acc = IVec3 { x: 0, y: 0, z: 0 };
+        while let Some(item) = iter.next() {
+            acc = acc + item;
+        }
+        acc
+    }
+}
+
+/// The product of an iterator of `IVec3` (component-wise).
+///
+/// Items are folded in iteration order, left to right, starting from `ONE`, with the `*` of
+/// `IVec3`: `(((start * a) * b) * c)`. That order is the determinism contract. An empty
+/// iterator yields the start value.
+///
+/// Mirrors `impl Product for glam::IVec3` and `impl<'a> Product<&'a IVec3> for glam::IVec3`.
+/// #### Panics
+/// * `'i32_mul Overflow'` if a component product leaves the `i32` range.
+/// #### Deviations
+/// * The Cairo trait is `core::iter::Product<IVec3>` with one impl: the owned form and the
+///   reference form of glam-rs (`Product<&IVec3>`) are one, as values are `Copy` and passed
+///   by value.
+/// * Iterator glue, not a math kernel: it loops over the iterator (docs/DESIGN.md section 4,
+///   exception AP).
+pub impl IVec3Product of Product<IVec3> {
+    fn product<I, +Iterator<I>[Item: IVec3], +Destruct<I>, +Destruct<IVec3>>(mut iter: I) -> IVec3 {
+        let mut acc = IVec3 { x: 1, y: 1, z: 1 };
+        while let Some(item) = iter.next() {
+            acc = acc * item;
+        }
+        acc
     }
 }
 

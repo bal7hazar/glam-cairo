@@ -16,6 +16,7 @@ use core::integer::i32_diff;
 use core::num::traits::{
     CheckedAdd, CheckedSub, SaturatingAdd, SaturatingSub, WideMul, WrappingAdd, WrappingSub,
 };
+use core::ops::Fn;
 use core::traits::DivRem;
 use glam_core::bvec4::{BVec4, BVec4Trait};
 use glam_core::ivec3::IVec3;
@@ -135,6 +136,40 @@ pub trait IVec4Trait {
     /// #### Deviations
     /// * None.
     fn to_array(self: IVec4) -> [i32; 4];
+    /// Creates a vector from the first 4 elements of `span`.
+    ///
+    /// The elements are read in order (`x` first); a longer span is accepted, its extra
+    /// elements are ignored.
+    ///
+    /// Mirrors `glam::IVec4::from_slice`.
+    /// #### Panics
+    /// * `'IVec4: span too short'` if `span` has fewer than 4 elements.
+    /// #### Deviations
+    /// * Takes a `Span` (Cairo has no slice reference); a span longer than the type needs
+    ///   is accepted and its first elements are read, as the slice of glam-rs. A shorter
+    ///   span panics with the message above where glam-rs panics with an index out of
+    ///   bounds.
+    fn from_span(span: Span<i32>) -> IVec4;
+    /// Appends the 4 elements of `self` to `out`, `x` first.
+    ///
+    /// Mirrors `glam::IVec4::write_to_slice`.
+    /// #### Panics
+    /// * Never.
+    /// #### Deviations
+    /// * Appends the elements to `out` (an `Array` cannot be overwritten in place), where
+    ///   glam-rs overwrites the first elements of the slice: pass an empty array to get
+    ///   the same elements.
+    fn write_to(self: IVec4, ref out: Array<i32>);
+    /// Returns a vector containing each element of `self` modified by a mapping function
+    /// `f`.
+    ///
+    /// Mirrors `glam::IVec4::map`.
+    /// #### Panics
+    /// * Never.
+    /// #### Deviations
+    /// * The callback is a closure (`core::ops::Fn`) and each element is mapped in order
+    ///   (`x` first).
+    fn map<F, +Fn<F, (i32,)>[Output: i32], +Drop<F>>(self: IVec4, f: F) -> IVec4;
     /// Creates a 3D vector from the `x`, `y`, `z` elements of `self`, discarding `w`.
     ///
     /// Mirrors `glam::IVec4::truncate`.
@@ -822,6 +857,24 @@ pub impl IVec4Impl of IVec4Trait {
     #[inline(always)]
     fn to_array(self: IVec4) -> [i32; 4] {
         [self.x, self.y, self.z, self.w]
+    }
+
+    #[inline(always)]
+    fn from_span(span: Span<i32>) -> IVec4 {
+        assert(span.len() >= 4, 'IVec4: span too short');
+        IVec4 { x: *span.at(0), y: *span.at(1), z: *span.at(2), w: *span.at(3) }
+    }
+
+    #[inline(always)]
+    fn write_to(self: IVec4, ref out: Array<i32>) {
+        out.append(self.x);
+        out.append(self.y);
+        out.append(self.z);
+        out.append(self.w);
+    }
+
+    fn map<F, +Fn<F, (i32,)>[Output: i32], +Drop<F>>(self: IVec4, f: F) -> IVec4 {
+        IVec4 { x: f(self.x), y: f(self.y), z: f(self.z), w: f(self.w) }
     }
 
     #[inline(always)]

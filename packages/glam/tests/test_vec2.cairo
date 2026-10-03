@@ -1468,3 +1468,103 @@ fn fuzz_angle_to(a: i64, b: i64, c: i64, d: i64) {
         assert_eq!(va.perp().angle_to(va), -FRAC_PI_2);
     }
 }
+
+// ---- iterators, span and array entry points, `map` (lot AP)
+use glam::vec2::{Vec2Product, Vec2Sum};
+
+#[test]
+fn test_sum_product_iter() {
+    let s = Vec2Sum::sum(
+        array![
+            vec2(FixedTrait::from_int(2), FixedTrait::from_int(3)),
+            vec2(FixedTrait::from_int(3), FixedTrait::from_int(4)),
+            vec2(FixedTrait::from_int(4), FixedTrait::from_int(5)),
+        ]
+            .into_iter(),
+    );
+    assert!(s == vec2(FixedTrait::from_int(9), FixedTrait::from_int(12)), "sum");
+    let p = Vec2Product::product(
+        array![
+            vec2(FixedTrait::from_int(2), FixedTrait::from_int(3)),
+            vec2(FixedTrait::from_int(3), FixedTrait::from_int(4)),
+            vec2(FixedTrait::from_int(4), FixedTrait::from_int(5)),
+        ]
+            .into_iter(),
+    );
+    assert!(p == vec2(FixedTrait::from_int(24), FixedTrait::from_int(60)), "product");
+    let none: Array<Vec2> = array![];
+    assert!(Vec2Sum::sum(none.into_iter()) == Vec2Trait::ZERO, "empty sum");
+    let none: Array<Vec2> = array![];
+    assert!(Vec2Product::product(none.into_iter()) == Vec2Trait::ONE, "empty product");
+}
+
+#[test]
+fn test_sum_product_method_form() {
+    let s: Vec2 = array![
+        vec2(FixedTrait::from_int(2), FixedTrait::from_int(3)),
+        vec2(FixedTrait::from_int(3), FixedTrait::from_int(4)),
+        vec2(FixedTrait::from_int(4), FixedTrait::from_int(5)),
+    ]
+        .into_iter()
+        .sum();
+    assert!(s == vec2(FixedTrait::from_int(9), FixedTrait::from_int(12)), "sum");
+    let p: Vec2 = array![
+        vec2(FixedTrait::from_int(2), FixedTrait::from_int(3)),
+        vec2(FixedTrait::from_int(3), FixedTrait::from_int(4)),
+        vec2(FixedTrait::from_int(4), FixedTrait::from_int(5)),
+    ]
+        .into_iter()
+        .product();
+    assert!(p == vec2(FixedTrait::from_int(24), FixedTrait::from_int(60)), "product");
+}
+
+#[test]
+fn test_from_span_write_to() {
+    let longer: Array<Fixed> = array![
+        FixedTrait::from_int(1), FixedTrait::from_int(2), FixedTrait::from_int(3),
+    ];
+    let v = Vec2Trait::from_span(longer.span());
+    assert!(v == vec2(FixedTrait::from_int(1), FixedTrait::from_int(2)), "N + 1 reads the first N");
+    let exact: Array<Fixed> = array![FixedTrait::from_int(1), FixedTrait::from_int(2)];
+    assert!(Vec2Trait::from_span(exact.span()) == v, "exactly N");
+    let mut out: Array<Fixed> = array![];
+    v.write_to(ref out);
+    assert!(out.len() == 2, "N elements appended");
+    assert!(Vec2Trait::from_span(out.span()) == v, "round trip");
+    v.write_to(ref out);
+    assert!(out.len() == 4, "write_to appends");
+}
+
+#[test]
+#[should_panic(expected: 'Vec2: span too short')]
+fn test_from_span_short() {
+    let short: Array<Fixed> = array![FixedTrait::from_int(1)];
+    let _ = Vec2Trait::from_span(short.span());
+}
+
+// panics: Vec2::Vec2Sum
+#[test]
+#[should_panic(expected: 'i64_add Overflow')]
+fn test_sum_overflow() {
+    let _ = Vec2Sum::sum(array![Vec2Trait::MAX, Vec2Trait::MAX].into_iter());
+}
+
+// panics: Vec2::Vec2Product
+#[test]
+#[should_panic(expected: 'Fixed: overflow')]
+fn test_product_overflow() {
+    let _ = Vec2Product::product(array![Vec2Trait::MAX, Vec2Trait::MAX].into_iter());
+}
+
+#[test]
+fn test_map() {
+    let v = Vec2Trait::from_span(array![FixedTrait::from_int(1), FixedTrait::from_int(2)].span());
+    assert!(
+        v.map(|x| x + x) == vec2(FixedTrait::from_int(2), FixedTrait::from_int(4)), "map doubles",
+    );
+    let offset = FixedTrait::from_int(5);
+    assert!(
+        v.map(|x| x + offset) == vec2(FixedTrait::from_int(6), FixedTrait::from_int(7)),
+        "map captures",
+    );
+}

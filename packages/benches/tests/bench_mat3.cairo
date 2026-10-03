@@ -12,7 +12,7 @@ use benches::harness::{bb, sink};
 use fixed::fixed::Fixed;
 use glam::affine2::Affine2;
 use glam::mat2::Mat2;
-use glam::mat3::{Mat3, Mat3Trait};
+use glam::mat3::{Mat3, Mat3Product, Mat3Sum, Mat3Trait};
 use glam::mat4::Mat4;
 use glam::quat::Quat;
 use glam::vec2::Vec2;
@@ -114,6 +114,110 @@ const ROT: Quat = Quat {
     z: Fixed { raw: 0x66666666 },
     w: Fixed { raw: 0xcccccccc },
 };
+
+#[test]
+fn sum3__base() {
+    let _a = bb(A);
+    let _b = bb(B);
+    let _c = bb(A);
+    let r = bb(A);
+    sink(r);
+}
+
+#[test]
+fn sum3__op() {
+    let a = bb(A);
+    let b = bb(B);
+    let c = bb(A);
+    let _r = bb(A);
+    sink(Mat3Sum::sum(array![a, b, c].into_iter()));
+}
+
+#[test]
+fn product3__base() {
+    let _a = bb(A);
+    let _b = bb(B);
+    let _c = bb(A);
+    let r = bb(A);
+    sink(r);
+}
+
+#[test]
+fn product3__op() {
+    let a = bb(A);
+    let b = bb(B);
+    let c = bb(A);
+    let _r = bb(A);
+    sink(Mat3Product::product(array![a, b, c].into_iter()));
+}
+
+#[test]
+fn from_cols_span__base() {
+    let _s = bb(
+        array![
+            A.x_axis.x, A.x_axis.y, A.x_axis.z, A.y_axis.x, A.y_axis.y, A.y_axis.z, A.z_axis.x,
+            A.z_axis.y, A.z_axis.z,
+        ]
+            .span(),
+    );
+    let r = bb(A);
+    sink(r);
+}
+
+#[test]
+fn from_cols_span__op() {
+    let s = bb(
+        array![
+            A.x_axis.x, A.x_axis.y, A.x_axis.z, A.y_axis.x, A.y_axis.y, A.y_axis.z, A.z_axis.x,
+            A.z_axis.y, A.z_axis.z,
+        ]
+            .span(),
+    );
+    let _r = bb(A);
+    sink(Mat3Trait::from_cols_span(s));
+}
+
+#[test]
+fn from_rows_span__base() {
+    let _s = bb(
+        array![
+            A.x_axis.x, A.x_axis.y, A.x_axis.z, A.y_axis.x, A.y_axis.y, A.y_axis.z, A.z_axis.x,
+            A.z_axis.y, A.z_axis.z,
+        ]
+            .span(),
+    );
+    let r = bb(A);
+    sink(r);
+}
+
+#[test]
+fn from_rows_span__op() {
+    let s = bb(
+        array![
+            A.x_axis.x, A.x_axis.y, A.x_axis.z, A.y_axis.x, A.y_axis.y, A.y_axis.z, A.z_axis.x,
+            A.z_axis.y, A.z_axis.z,
+        ]
+            .span(),
+    );
+    let _r = bb(A);
+    sink(Mat3Trait::from_rows_span(s));
+}
+
+#[test]
+fn write_cols_to__base() {
+    let _a = bb(A);
+    let r = bb(A);
+    sink(r);
+}
+
+#[test]
+fn write_cols_to__op() {
+    let a = bb(A);
+    let _r = bb(A);
+    let mut out = array![];
+    a.write_cols_to(ref out);
+    sink(out);
+}
 
 #[test]
 fn from_cols__base() {

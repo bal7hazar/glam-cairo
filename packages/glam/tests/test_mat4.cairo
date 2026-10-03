@@ -1181,3 +1181,286 @@ fn fuzz_transform(a: i64, b: i64, c: i64, d: i64) {
     let affine = Mat4Trait::from_translation(p);
     assert_eq!(affine.project_point3(p), affine.transform_point3(p));
 }
+
+// ---- iterators and span entry points (lot AP)
+use glam::mat4::{Mat4Product, Mat4Sum};
+
+#[test]
+fn test_sum_iter() {
+    let s = Mat4Sum::sum(
+        array![
+            Mat4Trait::from_cols_array(
+                [
+                    FixedTrait::from_int(1), FixedTrait::from_int(2), FixedTrait::from_int(3),
+                    FixedTrait::from_int(4), FixedTrait::from_int(5), FixedTrait::from_int(6),
+                    FixedTrait::from_int(7), FixedTrait::from_int(8), FixedTrait::from_int(9),
+                    FixedTrait::from_int(10), FixedTrait::from_int(11), FixedTrait::from_int(12),
+                    FixedTrait::from_int(13), FixedTrait::from_int(14), FixedTrait::from_int(15),
+                    FixedTrait::from_int(16),
+                ],
+            ),
+            Mat4Trait::from_cols_array(
+                [
+                    FixedTrait::from_int(2), FixedTrait::from_int(0), FixedTrait::from_int(3),
+                    FixedTrait::from_int(1), FixedTrait::from_int(4), FixedTrait::from_int(2),
+                    FixedTrait::from_int(0), FixedTrait::from_int(3), FixedTrait::from_int(1),
+                    FixedTrait::from_int(4), FixedTrait::from_int(2), FixedTrait::from_int(0),
+                    FixedTrait::from_int(3), FixedTrait::from_int(1), FixedTrait::from_int(4),
+                    FixedTrait::from_int(2),
+                ],
+            ),
+            Mat4Trait::from_cols_array(
+                [
+                    FixedTrait::from_int(1), FixedTrait::from_int(3), FixedTrait::from_int(1),
+                    FixedTrait::from_int(3), FixedTrait::from_int(1), FixedTrait::from_int(3),
+                    FixedTrait::from_int(1), FixedTrait::from_int(3), FixedTrait::from_int(1),
+                    FixedTrait::from_int(3), FixedTrait::from_int(1), FixedTrait::from_int(3),
+                    FixedTrait::from_int(1), FixedTrait::from_int(3), FixedTrait::from_int(1),
+                    FixedTrait::from_int(3),
+                ],
+            ),
+        ]
+            .into_iter(),
+    );
+    assert!(
+        s == Mat4Trait::from_cols_array(
+            [
+                FixedTrait::from_int(4), FixedTrait::from_int(5), FixedTrait::from_int(7),
+                FixedTrait::from_int(8), FixedTrait::from_int(10), FixedTrait::from_int(11),
+                FixedTrait::from_int(8), FixedTrait::from_int(14), FixedTrait::from_int(11),
+                FixedTrait::from_int(17), FixedTrait::from_int(14), FixedTrait::from_int(15),
+                FixedTrait::from_int(17), FixedTrait::from_int(18), FixedTrait::from_int(20),
+                FixedTrait::from_int(21),
+            ],
+        ),
+        "sum",
+    );
+    let none: Array<Mat4> = array![];
+    assert!(Mat4Sum::sum(none.into_iter()) == Mat4Trait::ZERO, "empty sum");
+}
+
+#[test]
+fn test_sum_product_method_form() {
+    let (a, b, c) = (
+        Mat4Trait::from_cols_array(
+            [
+                FixedTrait::from_int(1), FixedTrait::from_int(2), FixedTrait::from_int(3),
+                FixedTrait::from_int(4), FixedTrait::from_int(5), FixedTrait::from_int(6),
+                FixedTrait::from_int(7), FixedTrait::from_int(8), FixedTrait::from_int(9),
+                FixedTrait::from_int(10), FixedTrait::from_int(11), FixedTrait::from_int(12),
+                FixedTrait::from_int(13), FixedTrait::from_int(14), FixedTrait::from_int(15),
+                FixedTrait::from_int(16),
+            ],
+        ),
+        Mat4Trait::from_cols_array(
+            [
+                FixedTrait::from_int(2), FixedTrait::from_int(0), FixedTrait::from_int(3),
+                FixedTrait::from_int(1), FixedTrait::from_int(4), FixedTrait::from_int(2),
+                FixedTrait::from_int(0), FixedTrait::from_int(3), FixedTrait::from_int(1),
+                FixedTrait::from_int(4), FixedTrait::from_int(2), FixedTrait::from_int(0),
+                FixedTrait::from_int(3), FixedTrait::from_int(1), FixedTrait::from_int(4),
+                FixedTrait::from_int(2),
+            ],
+        ),
+        Mat4Trait::from_cols_array(
+            [
+                FixedTrait::from_int(1), FixedTrait::from_int(3), FixedTrait::from_int(1),
+                FixedTrait::from_int(3), FixedTrait::from_int(1), FixedTrait::from_int(3),
+                FixedTrait::from_int(1), FixedTrait::from_int(3), FixedTrait::from_int(1),
+                FixedTrait::from_int(3), FixedTrait::from_int(1), FixedTrait::from_int(3),
+                FixedTrait::from_int(1), FixedTrait::from_int(3), FixedTrait::from_int(1),
+                FixedTrait::from_int(3),
+            ],
+        ),
+    );
+    let s: Mat4 = array![a, b, c].into_iter().sum();
+    assert!(
+        s == Mat4Trait::from_cols_array(
+            [
+                FixedTrait::from_int(4), FixedTrait::from_int(5), FixedTrait::from_int(7),
+                FixedTrait::from_int(8), FixedTrait::from_int(10), FixedTrait::from_int(11),
+                FixedTrait::from_int(8), FixedTrait::from_int(14), FixedTrait::from_int(11),
+                FixedTrait::from_int(17), FixedTrait::from_int(14), FixedTrait::from_int(15),
+                FixedTrait::from_int(17), FixedTrait::from_int(18), FixedTrait::from_int(20),
+                FixedTrait::from_int(21),
+            ],
+        ),
+        "sum",
+    );
+    let p: Mat4 = array![a, b, c].into_iter().product();
+    assert!(p == a * b * c, "product");
+}
+
+#[test]
+fn test_product_iter_order() {
+    let (a, b, c) = (
+        Mat4Trait::from_cols_array(
+            [
+                FixedTrait::from_int(1), FixedTrait::from_int(2), FixedTrait::from_int(3),
+                FixedTrait::from_int(4), FixedTrait::from_int(5), FixedTrait::from_int(6),
+                FixedTrait::from_int(7), FixedTrait::from_int(8), FixedTrait::from_int(9),
+                FixedTrait::from_int(10), FixedTrait::from_int(11), FixedTrait::from_int(12),
+                FixedTrait::from_int(13), FixedTrait::from_int(14), FixedTrait::from_int(15),
+                FixedTrait::from_int(16),
+            ],
+        ),
+        Mat4Trait::from_cols_array(
+            [
+                FixedTrait::from_int(2), FixedTrait::from_int(0), FixedTrait::from_int(3),
+                FixedTrait::from_int(1), FixedTrait::from_int(4), FixedTrait::from_int(2),
+                FixedTrait::from_int(0), FixedTrait::from_int(3), FixedTrait::from_int(1),
+                FixedTrait::from_int(4), FixedTrait::from_int(2), FixedTrait::from_int(0),
+                FixedTrait::from_int(3), FixedTrait::from_int(1), FixedTrait::from_int(4),
+                FixedTrait::from_int(2),
+            ],
+        ),
+        Mat4Trait::from_cols_array(
+            [
+                FixedTrait::from_int(1), FixedTrait::from_int(3), FixedTrait::from_int(1),
+                FixedTrait::from_int(3), FixedTrait::from_int(1), FixedTrait::from_int(3),
+                FixedTrait::from_int(1), FixedTrait::from_int(3), FixedTrait::from_int(1),
+                FixedTrait::from_int(3), FixedTrait::from_int(1), FixedTrait::from_int(3),
+                FixedTrait::from_int(1), FixedTrait::from_int(3), FixedTrait::from_int(1),
+                FixedTrait::from_int(3),
+            ],
+        ),
+    );
+    let p = Mat4Product::product(array![a, b].into_iter());
+    assert!(
+        p == Mat4Trait::from_cols_array(
+            [
+                FixedTrait::from_int(42), FixedTrait::from_int(48), FixedTrait::from_int(54),
+                FixedTrait::from_int(60), FixedTrait::from_int(53), FixedTrait::from_int(62),
+                FixedTrait::from_int(71), FixedTrait::from_int(80), FixedTrait::from_int(39),
+                FixedTrait::from_int(46), FixedTrait::from_int(53), FixedTrait::from_int(60),
+                FixedTrait::from_int(70), FixedTrait::from_int(80), FixedTrait::from_int(90),
+                FixedTrait::from_int(100),
+            ],
+        ),
+        "a * b",
+    );
+    assert!(
+        p != Mat4Trait::from_cols_array(
+            [
+                FixedTrait::from_int(25), FixedTrait::from_int(20), FixedTrait::from_int(25),
+                FixedTrait::from_int(15), FixedTrait::from_int(65), FixedTrait::from_int(48),
+                FixedTrait::from_int(61), FixedTrait::from_int(39), FixedTrait::from_int(105),
+                FixedTrait::from_int(76), FixedTrait::from_int(97), FixedTrait::from_int(63),
+                FixedTrait::from_int(145), FixedTrait::from_int(104), FixedTrait::from_int(133),
+                FixedTrait::from_int(87),
+            ],
+        ),
+        "not b * a",
+    );
+    let p3 = Mat4Product::product(array![a, b, c].into_iter());
+    assert!(
+        p3 == Mat4Trait::from_cols_array(
+            [
+                FixedTrait::from_int(450), FixedTrait::from_int(520), FixedTrait::from_int(590),
+                FixedTrait::from_int(660), FixedTrait::from_int(450), FixedTrait::from_int(520),
+                FixedTrait::from_int(590), FixedTrait::from_int(660), FixedTrait::from_int(450),
+                FixedTrait::from_int(520), FixedTrait::from_int(590), FixedTrait::from_int(660),
+                FixedTrait::from_int(450), FixedTrait::from_int(520), FixedTrait::from_int(590),
+                FixedTrait::from_int(660),
+            ],
+        ),
+        "(a * b) * c",
+    );
+    assert!(p3 == a * b * c, "the operator");
+    let none: Array<Mat4> = array![];
+    assert!(Mat4Product::product(none.into_iter()) == Mat4Trait::IDENTITY, "empty product");
+}
+
+#[test]
+fn test_from_span_write_to() {
+    let longer: Array<Fixed> = array![
+        FixedTrait::from_int(1), FixedTrait::from_int(2), FixedTrait::from_int(3),
+        FixedTrait::from_int(4), FixedTrait::from_int(5), FixedTrait::from_int(6),
+        FixedTrait::from_int(7), FixedTrait::from_int(8), FixedTrait::from_int(9),
+        FixedTrait::from_int(10), FixedTrait::from_int(11), FixedTrait::from_int(12),
+        FixedTrait::from_int(13), FixedTrait::from_int(14), FixedTrait::from_int(15),
+        FixedTrait::from_int(16), FixedTrait::from_int(17),
+    ];
+    let m = Mat4Trait::from_cols_span(longer.span());
+    assert!(
+        m == Mat4Trait::from_cols_array(
+            [
+                FixedTrait::from_int(1), FixedTrait::from_int(2), FixedTrait::from_int(3),
+                FixedTrait::from_int(4), FixedTrait::from_int(5), FixedTrait::from_int(6),
+                FixedTrait::from_int(7), FixedTrait::from_int(8), FixedTrait::from_int(9),
+                FixedTrait::from_int(10), FixedTrait::from_int(11), FixedTrait::from_int(12),
+                FixedTrait::from_int(13), FixedTrait::from_int(14), FixedTrait::from_int(15),
+                FixedTrait::from_int(16),
+            ],
+        ),
+        "N + 1 reads the first N",
+    );
+    let exact: Array<Fixed> = array![
+        FixedTrait::from_int(1), FixedTrait::from_int(2), FixedTrait::from_int(3),
+        FixedTrait::from_int(4), FixedTrait::from_int(5), FixedTrait::from_int(6),
+        FixedTrait::from_int(7), FixedTrait::from_int(8), FixedTrait::from_int(9),
+        FixedTrait::from_int(10), FixedTrait::from_int(11), FixedTrait::from_int(12),
+        FixedTrait::from_int(13), FixedTrait::from_int(14), FixedTrait::from_int(15),
+        FixedTrait::from_int(16),
+    ];
+    assert!(Mat4Trait::from_cols_span(exact.span()) == m, "exactly N");
+    assert!(Mat4Trait::from_rows_span(exact.span()) == m.transpose(), "rows are the transpose");
+    let mut out: Array<Fixed> = array![];
+    m.write_cols_to(ref out);
+    assert!(out.len() == 16, "N elements appended");
+    assert!(Mat4Trait::from_cols_span(out.span()) == m, "round trip");
+    m.write_cols_to(ref out);
+    assert!(out.len() == 32, "write_cols_to appends");
+}
+
+// panics: Mat4::Mat4Sum
+#[test]
+#[should_panic(expected: 'i64_add Overflow')]
+fn test_sum_overflow() {
+    let _ = Mat4Sum::sum(
+        array![
+            Mat4Trait::from_cols_array([FixedTrait::from_raw(0x7fffffffffffffff); 16]),
+            Mat4Trait::from_cols_array([FixedTrait::from_raw(0x7fffffffffffffff); 16]),
+        ]
+            .into_iter(),
+    );
+}
+
+// panics: Mat4::Mat4Product
+#[test]
+#[should_panic(expected: 'Fixed: overflow')]
+fn test_product_overflow() {
+    let _ = Mat4Product::product(
+        array![
+            Mat4Trait::from_cols_array([FixedTrait::from_raw(0x7fffffffffffffff); 16]),
+            Mat4Trait::from_cols_array([FixedTrait::from_raw(0x7fffffffffffffff); 16]),
+        ]
+            .into_iter(),
+    );
+}
+
+#[test]
+#[should_panic(expected: 'Mat4: span too short')]
+fn test_from_cols_span_short() {
+    let short: Array<Fixed> = array![
+        FixedTrait::from_int(1), FixedTrait::from_int(2), FixedTrait::from_int(3),
+        FixedTrait::from_int(4), FixedTrait::from_int(5), FixedTrait::from_int(6),
+        FixedTrait::from_int(7), FixedTrait::from_int(8), FixedTrait::from_int(9),
+        FixedTrait::from_int(10), FixedTrait::from_int(11), FixedTrait::from_int(12),
+        FixedTrait::from_int(13), FixedTrait::from_int(14), FixedTrait::from_int(15),
+    ];
+    let _ = Mat4Trait::from_cols_span(short.span());
+}
+
+#[test]
+#[should_panic(expected: 'Mat4: span too short')]
+fn test_from_rows_span_short() {
+    let short: Array<Fixed> = array![
+        FixedTrait::from_int(1), FixedTrait::from_int(2), FixedTrait::from_int(3),
+        FixedTrait::from_int(4), FixedTrait::from_int(5), FixedTrait::from_int(6),
+        FixedTrait::from_int(7), FixedTrait::from_int(8), FixedTrait::from_int(9),
+        FixedTrait::from_int(10), FixedTrait::from_int(11), FixedTrait::from_int(12),
+        FixedTrait::from_int(13), FixedTrait::from_int(14), FixedTrait::from_int(15),
+    ];
+    let _ = Mat4Trait::from_rows_span(short.span());
+}

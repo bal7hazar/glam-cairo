@@ -18,6 +18,17 @@ result as 0.4.1.
   `fuzz_axis_angle`, seed 403). `|axis|` is now within `2^-24` of one for every vector part.
   Gas: `to_axis_angle` 41 610 -> 46 080, `to_scaled_axis` 48 680 -> 53 150 (`gas/quat.snap`).
 
+### Added
+- `core::iter::Sum` / `core::iter::Product` impls (a left-to-right fold from `ZERO` / `ONE` /
+  `IDENTITY`) for the nine vectors, `Mat2/3/4` and `Quat` (both), and `Affine2` / `Affine3`
+  (`Product` only): 50 glam-rs items.
+- The slice entry points as `from_span` / `write_to` (vectors, `Quat`) and `from_cols_span` /
+  `from_rows_span` / `write_cols_to` (matrices, affines): 33 glam-rs items. `write_to` appends to
+  an `Array` where glam-rs overwrites the slice.
+- `map` of the vector types (see the pull request for the measured cost).
+- `glam_core` and `glam_int` enable the `associated_item_constraints` experimental feature, which
+  the signature of the core iterator traits needs.
+
 ## [0.4.1] - 2026-09-28
 
 Non-breaking: every public path of 0.4.0 resolves unchanged through the `glam` facade, no numeric

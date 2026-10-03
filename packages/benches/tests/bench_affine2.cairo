@@ -4,7 +4,7 @@
 use benches::alt::affine2 as alt;
 use benches::harness::{bb, sink};
 use fixed::fixed::Fixed;
-use glam::affine2::{Affine2, Affine2Trait};
+use glam::affine2::{Affine2, Affine2Product, Affine2Trait};
 use glam::mat2::Mat2;
 use glam::mat3::Mat3;
 use glam::vec2::Vec2;
@@ -385,4 +385,22 @@ fn mul_mat3__op() {
     let m = bb(M3);
     let _r = bb(M3);
     sink(a.mul_mat3(m));
+}
+
+#[test]
+fn product3__base() {
+    let _a = bb(A);
+    let _b = bb(B);
+    let _c = bb(A);
+    let r = bb(A);
+    sink(r);
+}
+
+#[test]
+fn product3__op() {
+    let a = bb(A);
+    let b = bb(B);
+    let c = bb(A);
+    let _r = bb(A);
+    sink(Affine2Product::product(array![a, b, c].into_iter()));
 }
