@@ -34,6 +34,7 @@ bench_affine3::look_to_rh: 42650 363 76 0 0
 bench_affine3::mul_affine3: 26360 230 48 0 0
 bench_affine3::mul_assign: 26360 230 48 0 0
 bench_affine3::mul_mat4: 27760 244 48 0 0
+bench_affine3::product3: 92960 826 148 0 0
 bench_affine3::quat_from_affine3_w: 19770 163 42 0 0
 bench_affine3::quat_from_affine3_x: 19770 162 42 0 0
 bench_affine3::to_cols_array: 1200 12 0 0 0

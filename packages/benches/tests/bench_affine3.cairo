@@ -4,7 +4,7 @@
 use benches::alt::affine3 as alt;
 use benches::harness::{bb, sink};
 use fixed::fixed::Fixed;
-use glam::affine3::{Affine3, Affine3RigidTrait, Affine3Trait, quat_from_affine3};
+use glam::affine3::{Affine3, Affine3Product, Affine3RigidTrait, Affine3Trait, quat_from_affine3};
 use glam::mat3::Mat3;
 use glam::mat4::Mat4;
 use glam::quat::Quat;
@@ -749,4 +749,22 @@ fn alt_inv_mul_sub_first__op() {
     let b = bb(S);
     let _r = bb(A);
     sink(alt::inv_mul_sub_first(a, b));
+}
+
+#[test]
+fn product3__base() {
+    let _a = bb(A);
+    let _b = bb(B);
+    let _c = bb(A);
+    let r = bb(A);
+    sink(r);
+}
+
+#[test]
+fn product3__op() {
+    let a = bb(A);
+    let b = bb(B);
+    let c = bb(A);
+    let _r = bb(A);
+    sink(Affine3Product::product(array![a, b, c].into_iter()));
 }

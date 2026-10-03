@@ -49,6 +49,20 @@ fn product3__op() {
 }
 
 #[test]
+fn map__base() {
+    let _a = bb(IVec2Trait::new(3, -7));
+    let r = bb(IVec2Trait::new(1, 2));
+    sink(r);
+}
+
+#[test]
+fn map__op() {
+    let a = bb(IVec2Trait::new(3, -7));
+    let _r = bb(IVec2Trait::new(1, 2));
+    sink(a.map(|x| x + x));
+}
+
+#[test]
 fn from_span__base() {
     let _s = bb(array![3, -7].span());
     let r = bb(IVec2Trait::new(1, 2));

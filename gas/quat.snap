@@ -65,6 +65,7 @@ bench_quat::mul_scalar: 7520 64 16 0 0
 bench_quat::mul_vec3: 9240 84 12 0 0
 bench_quat::neg: 1200 12 0 0 0
 bench_quat::normalize: 10380 87 24 0 0
+bench_quat::product3: 37240 336 52 0 0
 bench_quat::rotate_towards: 130610 1012 244 0 0
 bench_quat::rotate_towards__aligned: 130610 288 66 0 0
 bench_quat::slerp: 122180 923 225 0 0
@@ -74,6 +75,7 @@ bench_quat::slerp_long: 121650 978 237 0 0
 bench_quat::slerp_long__near: 121650 208 48 0 0
 bench_quat::sub: 4160 36 8 0 0
 bench_quat::sub_assign: 4160 36 8 0 0
+bench_quat::sum3: 15400 140 20 0 0
 bench_quat::to_axis_angle: 41610 302 69 0 0
 bench_quat::to_axis_angle__short: 41610 44 7 0 0
 bench_quat::to_scaled_axis: 48680 354 81 0 0

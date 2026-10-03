@@ -128,6 +128,7 @@ bench_vec3::length_squared: 2080 18 4 0 0
 bench_vec3::lerp: 6740 59 12 0 0
 bench_vec3::ln: 60690 495 111 0 0
 bench_vec3::log2: 60690 495 111 0 0
+bench_vec3::map: 4550 34 6 0 0
 bench_vec3::max_element_first: 1740 16 2 0 0
 bench_vec3::max_element_last: 1650 15 2 0 0
 bench_vec3::max_lhs: 3710 35 3 0 0

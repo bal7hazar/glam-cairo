@@ -20,6 +20,7 @@ bench_affine2::inverse: 20630 167 40 0 0
 bench_affine2::mul_affine2: 12480 108 24 0 0
 bench_affine2::mul_assign: 12480 108 24 0 0
 bench_affine2::mul_mat3: 19220 167 36 0 0
+bench_affine2::product3: 46720 414 76 0 0
 bench_affine2::to_cols_array: 600 6 0 0 0
 bench_affine2::to_cols_array_2d: 600 6 0 0 0
 bench_affine2::to_scale_angle_translation: 38920 287 61 0 0

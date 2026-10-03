@@ -104,6 +104,7 @@ bench_vec4::length_squared: 2280 20 4 0 0
 bench_vec4::lerp: 8720 76 16 0 0
 bench_vec4::ln: 80410 658 148 0 0
 bench_vec4::log2: 80410 658 148 0 0
+bench_vec4::map: 5590 43 8 0 0
 bench_vec4::max_element_first: 2610 24 3 0 0
 bench_vec4::max_element_last: 2530 23 3 0 0
 bench_vec4::max_lhs: 4680 44 4 0 0

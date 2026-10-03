@@ -1031,6 +1031,46 @@ fn test_sum_iter() {
 }
 
 #[test]
+fn test_sum_product_method_form() {
+    let (a, b, c) = (
+        Mat3Trait::from_cols_array(
+            [
+                FixedTrait::from_int(1), FixedTrait::from_int(2), FixedTrait::from_int(3),
+                FixedTrait::from_int(4), FixedTrait::from_int(5), FixedTrait::from_int(6),
+                FixedTrait::from_int(7), FixedTrait::from_int(8), FixedTrait::from_int(9),
+            ],
+        ),
+        Mat3Trait::from_cols_array(
+            [
+                FixedTrait::from_int(2), FixedTrait::from_int(0), FixedTrait::from_int(3),
+                FixedTrait::from_int(1), FixedTrait::from_int(4), FixedTrait::from_int(2),
+                FixedTrait::from_int(0), FixedTrait::from_int(3), FixedTrait::from_int(1),
+            ],
+        ),
+        Mat3Trait::from_cols_array(
+            [
+                FixedTrait::from_int(1), FixedTrait::from_int(3), FixedTrait::from_int(1),
+                FixedTrait::from_int(3), FixedTrait::from_int(1), FixedTrait::from_int(3),
+                FixedTrait::from_int(1), FixedTrait::from_int(3), FixedTrait::from_int(1),
+            ],
+        ),
+    );
+    let s: Mat3 = array![a, b, c].into_iter().sum();
+    assert!(
+        s == Mat3Trait::from_cols_array(
+            [
+                FixedTrait::from_int(4), FixedTrait::from_int(5), FixedTrait::from_int(7),
+                FixedTrait::from_int(8), FixedTrait::from_int(10), FixedTrait::from_int(11),
+                FixedTrait::from_int(8), FixedTrait::from_int(14), FixedTrait::from_int(11),
+            ],
+        ),
+        "sum",
+    );
+    let p: Mat3 = array![a, b, c].into_iter().product();
+    assert!(p == a * b * c, "product");
+}
+
+#[test]
 fn test_product_iter_order() {
     let (a, b, c) = (
         Mat3Trait::from_cols_array(

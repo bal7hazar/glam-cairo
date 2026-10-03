@@ -52,6 +52,7 @@ bench_uvec2::index_last: 500 5 0 0 0
 bench_uvec2::length_squared: 940 8 2 0 0
 bench_uvec2::manhattan_distance_ge: 3170 29 3 0 0
 bench_uvec2::manhattan_distance_lt: 3850 35 5 0 0
+bench_uvec2::map: 1140 10 2 0 0
 bench_uvec2::max_element_first: 870 8 1 0 0
 bench_uvec2::max_element_last: 770 7 1 0 0
 bench_uvec2::max_lhs: 1940 18 2 0 0

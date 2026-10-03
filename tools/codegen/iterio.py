@@ -131,6 +131,14 @@ fn test_sum_product_iter() {{
 }}
 
 #[test]
+fn test_sum_product_method_form() {{
+    let s: {T} = array![{items}].into_iter().sum();
+    assert!(s == {ctor(sums)}, "sum");
+    let p: {T} = array![{items}].into_iter().product();
+    assert!(p == {ctor(prods)}, "product");
+}}
+
+#[test]
 fn test_from_span_write_to() {{
     let longer: Array<{S}> = {arr(full + [n + 1])};
     let v = {T}Trait::from_span(longer.span());
@@ -208,6 +216,15 @@ fn test_sum_iter() {{
     assert!(s == {ctor(sums)}, "sum");
     let none: Array<{T}> = array![];
     assert!({T}Sum::sum(none.into_iter()) == {T}Trait::ZERO, "empty sum");
+}}
+
+#[test]
+fn test_sum_product_method_form() {{
+    let (a, b, c) = ({ctor(a)}, {ctor(b)}, {ctor(c)});
+    let s: {T} = array![a, b, c].into_iter().sum();
+    assert!(s == {ctor(sums)}, "sum");
+    let p: {T} = array![a, b, c].into_iter().product();
+    assert!(p == a * b * c, "product");
 }}
 
 #[test]

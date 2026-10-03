@@ -16,7 +16,7 @@ use fixed::fixed::Fixed;
 use glam::affine3::Affine3;
 use glam::mat3::Mat3;
 use glam::mat4::Mat4;
-use glam::quat::{Quat, QuatTrait};
+use glam::quat::{Quat, QuatProduct, QuatSum, QuatTrait};
 use glam::vec2::Vec2;
 use glam::vec3::Vec3;
 use glam::vec4::Vec4;
@@ -1432,4 +1432,40 @@ fn alt_is_near_identity_angle__op() {
     let a = bb(A);
     let _r = bb(true);
     sink(alt::is_near_identity_angle(a));
+}
+
+#[test]
+fn sum3__base() {
+    let _a = bb(A);
+    let _b = bb(B);
+    let _c = bb(A);
+    let r = bb(A);
+    sink(r);
+}
+
+#[test]
+fn sum3__op() {
+    let a = bb(A);
+    let b = bb(B);
+    let c = bb(A);
+    let _r = bb(A);
+    sink(QuatSum::sum(array![a, b, c].into_iter()));
+}
+
+#[test]
+fn product3__base() {
+    let _a = bb(A);
+    let _b = bb(B);
+    let _c = bb(A);
+    let r = bb(A);
+    sink(r);
+}
+
+#[test]
+fn product3__op() {
+    let a = bb(A);
+    let b = bb(B);
+    let c = bb(A);
+    let _r = bb(A);
+    sink(QuatProduct::product(array![a, b, c].into_iter()));
 }

@@ -1034,6 +1034,14 @@ fn test_sum_product_iter() {
 }
 
 #[test]
+fn test_sum_product_method_form() {
+    let s: UVec3 = array![uvec3(2, 3, 4), uvec3(3, 4, 5), uvec3(4, 5, 6)].into_iter().sum();
+    assert!(s == uvec3(9, 12, 15), "sum");
+    let p: UVec3 = array![uvec3(2, 3, 4), uvec3(3, 4, 5), uvec3(4, 5, 6)].into_iter().product();
+    assert!(p == uvec3(24, 60, 120), "product");
+}
+
+#[test]
 fn test_from_span_write_to() {
     let longer: Array<u32> = array![1, 2, 3, 4];
     let v = UVec3Trait::from_span(longer.span());

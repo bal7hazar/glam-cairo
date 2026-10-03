@@ -117,6 +117,7 @@ bench_ivec3::is_negative_mask: 4130 39 3 0 0
 bench_ivec3::length_squared: 1240 11 2 0 0
 bench_ivec3::manhattan_distance_ge: 4370 39 5 0 0
 bench_ivec3::manhattan_distance_lt: 5990 54 8 0 0
+bench_ivec3::map: 4550 34 6 0 0
 bench_ivec3::max_element_first: 1740 16 2 0 0
 bench_ivec3::max_element_last: 1650 15 2 0 0
 bench_ivec3::max_lhs: 3710 35 3 0 0

@@ -1879,6 +1879,8 @@ def lib_benches(t):
       f"{T}Sum::sum(array![a, b, c].into_iter())")
     b("product3", [("a", "A"), ("b", "B"), ("c", "A")], "T",
       f"{T}Product::product(array![a, b, c].into_iter())")
+    if MAP:
+        b("map", [("a", "A")], "T", "a.map(|x| x + x)")
     b("from_span", [("s", "array![" + ", ".join(f"A.{c}" for c in t.c) + "].span()")], "T",
       f"{T}Trait::from_span(s)")
     b("write_to", [("a", "A")], "T", "out", "let mut out = array![];\n    a.write_to(ref out);")

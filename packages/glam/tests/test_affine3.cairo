@@ -517,3 +517,15 @@ fn test_from_cols_span_short() {
     ];
     let _ = Affine3Trait::from_cols_span(short.span());
 }
+
+#[test]
+fn test_product_method_form() {
+    let a = Affine3Trait::from_translation(
+        Vec3Trait::new(FixedTrait::from_int(1), FixedTrait::from_int(2), FixedTrait::from_int(3)),
+    );
+    let b = Affine3Trait::from_scale(
+        Vec3Trait::new(FixedTrait::from_int(2), FixedTrait::from_int(3), FixedTrait::from_int(4)),
+    );
+    let p: Affine3 = array![a, b].into_iter().product();
+    assert!(p == a * b, "product");
+}

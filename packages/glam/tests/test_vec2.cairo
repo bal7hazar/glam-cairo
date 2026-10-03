@@ -1499,6 +1499,26 @@ fn test_sum_product_iter() {
 }
 
 #[test]
+fn test_sum_product_method_form() {
+    let s: Vec2 = array![
+        vec2(FixedTrait::from_int(2), FixedTrait::from_int(3)),
+        vec2(FixedTrait::from_int(3), FixedTrait::from_int(4)),
+        vec2(FixedTrait::from_int(4), FixedTrait::from_int(5)),
+    ]
+        .into_iter()
+        .sum();
+    assert!(s == vec2(FixedTrait::from_int(9), FixedTrait::from_int(12)), "sum");
+    let p: Vec2 = array![
+        vec2(FixedTrait::from_int(2), FixedTrait::from_int(3)),
+        vec2(FixedTrait::from_int(3), FixedTrait::from_int(4)),
+        vec2(FixedTrait::from_int(4), FixedTrait::from_int(5)),
+    ]
+        .into_iter()
+        .product();
+    assert!(p == vec2(FixedTrait::from_int(24), FixedTrait::from_int(60)), "product");
+}
+
+#[test]
 fn test_from_span_write_to() {
     let longer: Array<Fixed> = array![
         FixedTrait::from_int(1), FixedTrait::from_int(2), FixedTrait::from_int(3),

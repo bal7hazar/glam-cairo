@@ -1134,6 +1134,14 @@ fn test_sum_product_iter() {
 }
 
 #[test]
+fn test_sum_product_method_form() {
+    let s: IVec2 = array![ivec2(2, 3), ivec2(3, 4), ivec2(4, 5)].into_iter().sum();
+    assert!(s == ivec2(9, 12), "sum");
+    let p: IVec2 = array![ivec2(2, 3), ivec2(3, 4), ivec2(4, 5)].into_iter().product();
+    assert!(p == ivec2(24, 60), "product");
+}
+
+#[test]
 fn test_from_span_write_to() {
     let longer: Array<i32> = array![1, 2, 3];
     let v = IVec2Trait::from_span(longer.span());

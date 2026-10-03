@@ -908,6 +908,14 @@ fn test_sum_product_iter() {
 }
 
 #[test]
+fn test_sum_product_method_form() {
+    let s: UVec2 = array![uvec2(2, 3), uvec2(3, 4), uvec2(4, 5)].into_iter().sum();
+    assert!(s == uvec2(9, 12), "sum");
+    let p: UVec2 = array![uvec2(2, 3), uvec2(3, 4), uvec2(4, 5)].into_iter().product();
+    assert!(p == uvec2(24, 60), "product");
+}
+
+#[test]
 fn test_from_span_write_to() {
     let longer: Array<u32> = array![1, 2, 3];
     let v = UVec2Trait::from_span(longer.span());

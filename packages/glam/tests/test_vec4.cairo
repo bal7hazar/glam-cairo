@@ -1402,6 +1402,72 @@ fn test_sum_product_iter() {
 }
 
 #[test]
+fn test_sum_product_method_form() {
+    let s: Vec4 = array![
+        vec4(
+            FixedTrait::from_int(2),
+            FixedTrait::from_int(3),
+            FixedTrait::from_int(4),
+            FixedTrait::from_int(5),
+        ),
+        vec4(
+            FixedTrait::from_int(3),
+            FixedTrait::from_int(4),
+            FixedTrait::from_int(5),
+            FixedTrait::from_int(6),
+        ),
+        vec4(
+            FixedTrait::from_int(4),
+            FixedTrait::from_int(5),
+            FixedTrait::from_int(6),
+            FixedTrait::from_int(7),
+        ),
+    ]
+        .into_iter()
+        .sum();
+    assert!(
+        s == vec4(
+            FixedTrait::from_int(9),
+            FixedTrait::from_int(12),
+            FixedTrait::from_int(15),
+            FixedTrait::from_int(18),
+        ),
+        "sum",
+    );
+    let p: Vec4 = array![
+        vec4(
+            FixedTrait::from_int(2),
+            FixedTrait::from_int(3),
+            FixedTrait::from_int(4),
+            FixedTrait::from_int(5),
+        ),
+        vec4(
+            FixedTrait::from_int(3),
+            FixedTrait::from_int(4),
+            FixedTrait::from_int(5),
+            FixedTrait::from_int(6),
+        ),
+        vec4(
+            FixedTrait::from_int(4),
+            FixedTrait::from_int(5),
+            FixedTrait::from_int(6),
+            FixedTrait::from_int(7),
+        ),
+    ]
+        .into_iter()
+        .product();
+    assert!(
+        p == vec4(
+            FixedTrait::from_int(24),
+            FixedTrait::from_int(60),
+            FixedTrait::from_int(120),
+            FixedTrait::from_int(210),
+        ),
+        "product",
+    );
+}
+
+#[test]
 fn test_from_span_write_to() {
     let longer: Array<Fixed> = array![
         FixedTrait::from_int(1), FixedTrait::from_int(2), FixedTrait::from_int(3),

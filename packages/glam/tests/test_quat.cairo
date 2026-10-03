@@ -1300,3 +1300,23 @@ fn test_from_span_short() {
     ];
     let _ = QuatTrait::from_span(short.span());
 }
+
+#[test]
+fn test_sum_product_method_form() {
+    let a = quat(
+        FixedTrait::from_int(1),
+        FixedTrait::from_int(2),
+        FixedTrait::from_int(3),
+        FixedTrait::from_int(4),
+    );
+    let b = quat(
+        FixedTrait::from_int(5),
+        FixedTrait::from_int(6),
+        FixedTrait::from_int(7),
+        FixedTrait::from_int(8),
+    );
+    let s: Quat = array![a, b].into_iter().sum();
+    assert!(s == a + b, "sum");
+    let p: Quat = array![a, b].into_iter().product();
+    assert!(p == a * b, "product");
+}

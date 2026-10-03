@@ -71,6 +71,7 @@ bench_ivec2::is_negative_mask: 2350 22 2 0 0
 bench_ivec2::length_squared: 1040 9 2 0 0
 bench_ivec2::manhattan_distance_ge: 3190 29 3 0 0
 bench_ivec2::manhattan_distance_lt: 4270 39 5 0 0
+bench_ivec2::map: 2480 22 4 0 0
 bench_ivec2::max_element_first: 870 8 1 0 0
 bench_ivec2::max_element_last: 770 7 1 0 0
 bench_ivec2::max_lhs: 1940 18 2 0 0

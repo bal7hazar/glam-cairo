@@ -83,6 +83,20 @@ fn product3__op() {
 }
 
 #[test]
+fn map__base() {
+    let _a = bb(A);
+    let r = bb(A);
+    sink(r);
+}
+
+#[test]
+fn map__op() {
+    let a = bb(A);
+    let _r = bb(A);
+    sink(a.map(|x| x + x));
+}
+
+#[test]
 fn from_span__base() {
     let _s = bb(array![A.x, A.y].span());
     let r = bb(A);
