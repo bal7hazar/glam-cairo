@@ -15,7 +15,7 @@ passed by value. Percent is `(ported + renamed) / all glam-rs items`.
 | [BVec3](#bvec3) | 19 | 4 | 0 | 0 | 0 | 82.6% |
 | [BVec4](#bvec4) | 19 | 4 | 0 | 0 | 0 | 82.6% |
 | [EulerRot](#eulerrot) | 1 | 0 | 0 | 0 | 1 | 100.0% |
-| [Fixed](#fixed) | 10 | 0 | 0 | 0 | 106 | 100.0% |
+| [Fixed](#fixed) | 10 | 0 | 0 | 0 | 110 | 100.0% |
 | [IVec2](#ivec2) | 126 | 64 | 14 | 0 | 9 | 68.6% |
 | [IVec3](#ivec3) | 224 | 66 | 14 | 0 | 9 | 78.3% |
 | [IVec4](#ivec4) | 477 | 65 | 14 | 0 | 9 | 88.3% |
@@ -38,7 +38,7 @@ passed by value. Percent is `(ported + renamed) / all glam-rs items`.
 | [camera::rh::proj::vulkan](#camera-rh-proj-vulkan) | 5 | 0 | 0 | 0 | 0 | 100.0% |
 | [camera::rh::view](#camera-rh-view) | 8 | 0 | 4 | 0 | 0 | 100.0% |
 | [fixed::wide](#fixed-wide) | 0 | 0 | 0 | 0 | 38 | 100.0% |
-| **Total** | **2906** | **563** | **179** | **0** | **251** | **84.6%** |
+| **Total** | **2906** | **563** | **179** | **0** | **255** | **84.6%** |
 
 ## Affine2
 
@@ -334,10 +334,13 @@ passed by value. Percent is `(ported + renamed) / all glam-rs items`.
 - method `abs_diff_eq`
 - method `acos`
 - method `acos_clamped`
+- method `acosh`
 - method `asin`
 - method `asin_clamped`
+- method `asinh`
 - method `atan`
 - method `atan2`
+- method `atanh`
 - method `ceil`
 - method `clamp`
 - method `copysign`
@@ -374,6 +377,7 @@ passed by value. Percent is `(ported + renamed) / all glam-rs items`.
 - method `sin`
 - method `sin_cos`
 - method `sinh`
+- method `sinh_cosh`
 - method `sinhc`
 - method `sqrt`
 - method `tan`
