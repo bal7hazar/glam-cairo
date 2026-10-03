@@ -112,7 +112,7 @@ Sierra gas (`l2 gas`, what a transaction pays) and prover cost (steps, range che
 | `from_axis_angle` | 40 350 | 312 | 78 |
 | `from_rotation_arc` | 53 610 | 178 | 44 |
 | `from_mat3` | 19 770 | 163 | 42 |
-| `to_axis_angle` | 41 610 | 302 | 69 |
+| `to_axis_angle` | 46 080 | 304 | 69 |
 
 ### `Affine2`
 
