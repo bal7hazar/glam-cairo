@@ -703,3 +703,174 @@ fn fuzz_transform(a: i64, b: i64, c: i64, d: i64) {
     // ULP on the determinant) and det(r) is 1 within 4 ULP (|det(x)| <= 128)
     assert!((x * r).determinant().abs_diff_eq(x.determinant(), f(1024)));
 }
+
+// ---- iterators and span entry points (lot AP)
+use glam::mat2::{Mat2Product, Mat2Sum};
+
+#[test]
+fn test_sum_iter() {
+    let s = Mat2Sum::sum(
+        array![
+            Mat2Trait::from_cols_array(
+                [
+                    FixedTrait::from_int(1), FixedTrait::from_int(2), FixedTrait::from_int(3),
+                    FixedTrait::from_int(4),
+                ],
+            ),
+            Mat2Trait::from_cols_array(
+                [
+                    FixedTrait::from_int(2), FixedTrait::from_int(0), FixedTrait::from_int(3),
+                    FixedTrait::from_int(1),
+                ],
+            ),
+            Mat2Trait::from_cols_array(
+                [
+                    FixedTrait::from_int(1), FixedTrait::from_int(3), FixedTrait::from_int(1),
+                    FixedTrait::from_int(3),
+                ],
+            ),
+        ]
+            .into_iter(),
+    );
+    assert!(
+        s == Mat2Trait::from_cols_array(
+            [
+                FixedTrait::from_int(4), FixedTrait::from_int(5), FixedTrait::from_int(7),
+                FixedTrait::from_int(8),
+            ],
+        ),
+        "sum",
+    );
+    let none: Array<Mat2> = array![];
+    assert!(Mat2Sum::sum(none.into_iter()) == Mat2Trait::ZERO, "empty sum");
+}
+
+#[test]
+fn test_product_iter_order() {
+    let (a, b, c) = (
+        Mat2Trait::from_cols_array(
+            [
+                FixedTrait::from_int(1), FixedTrait::from_int(2), FixedTrait::from_int(3),
+                FixedTrait::from_int(4),
+            ],
+        ),
+        Mat2Trait::from_cols_array(
+            [
+                FixedTrait::from_int(2), FixedTrait::from_int(0), FixedTrait::from_int(3),
+                FixedTrait::from_int(1),
+            ],
+        ),
+        Mat2Trait::from_cols_array(
+            [
+                FixedTrait::from_int(1), FixedTrait::from_int(3), FixedTrait::from_int(1),
+                FixedTrait::from_int(3),
+            ],
+        ),
+    );
+    let p = Mat2Product::product(array![a, b].into_iter());
+    assert!(
+        p == Mat2Trait::from_cols_array(
+            [
+                FixedTrait::from_int(2), FixedTrait::from_int(4), FixedTrait::from_int(6),
+                FixedTrait::from_int(10),
+            ],
+        ),
+        "a * b",
+    );
+    assert!(
+        p != Mat2Trait::from_cols_array(
+            [
+                FixedTrait::from_int(8), FixedTrait::from_int(2), FixedTrait::from_int(18),
+                FixedTrait::from_int(4),
+            ],
+        ),
+        "not b * a",
+    );
+    let p3 = Mat2Product::product(array![a, b, c].into_iter());
+    assert!(
+        p3 == Mat2Trait::from_cols_array(
+            [
+                FixedTrait::from_int(20), FixedTrait::from_int(34), FixedTrait::from_int(20),
+                FixedTrait::from_int(34),
+            ],
+        ),
+        "(a * b) * c",
+    );
+    assert!(p3 == a * b * c, "the operator");
+    let none: Array<Mat2> = array![];
+    assert!(Mat2Product::product(none.into_iter()) == Mat2Trait::IDENTITY, "empty product");
+}
+
+#[test]
+fn test_from_span_write_to() {
+    let longer: Array<Fixed> = array![
+        FixedTrait::from_int(1), FixedTrait::from_int(2), FixedTrait::from_int(3),
+        FixedTrait::from_int(4), FixedTrait::from_int(5),
+    ];
+    let m = Mat2Trait::from_cols_span(longer.span());
+    assert!(
+        m == Mat2Trait::from_cols_array(
+            [
+                FixedTrait::from_int(1), FixedTrait::from_int(2), FixedTrait::from_int(3),
+                FixedTrait::from_int(4),
+            ],
+        ),
+        "N + 1 reads the first N",
+    );
+    let exact: Array<Fixed> = array![
+        FixedTrait::from_int(1), FixedTrait::from_int(2), FixedTrait::from_int(3),
+        FixedTrait::from_int(4),
+    ];
+    assert!(Mat2Trait::from_cols_span(exact.span()) == m, "exactly N");
+    assert!(Mat2Trait::from_rows_span(exact.span()) == m.transpose(), "rows are the transpose");
+    let mut out: Array<Fixed> = array![];
+    m.write_cols_to(ref out);
+    assert!(out.len() == 4, "N elements appended");
+    assert!(Mat2Trait::from_cols_span(out.span()) == m, "round trip");
+    m.write_cols_to(ref out);
+    assert!(out.len() == 8, "write_cols_to appends");
+}
+
+// panics: Mat2::Mat2Sum
+#[test]
+#[should_panic(expected: 'i64_add Overflow')]
+fn test_sum_overflow() {
+    let _ = Mat2Sum::sum(
+        array![
+            Mat2Trait::from_cols_array([FixedTrait::from_raw(0x7fffffffffffffff); 4]),
+            Mat2Trait::from_cols_array([FixedTrait::from_raw(0x7fffffffffffffff); 4]),
+        ]
+            .into_iter(),
+    );
+}
+
+// panics: Mat2::Mat2Product
+#[test]
+#[should_panic(expected: 'Fixed: overflow')]
+fn test_product_overflow() {
+    let _ = Mat2Product::product(
+        array![
+            Mat2Trait::from_cols_array([FixedTrait::from_raw(0x7fffffffffffffff); 4]),
+            Mat2Trait::from_cols_array([FixedTrait::from_raw(0x7fffffffffffffff); 4]),
+        ]
+            .into_iter(),
+    );
+}
+
+#[test]
+#[should_panic(expected: 'Mat2: span too short')]
+fn test_from_cols_span_short() {
+    let short: Array<Fixed> = array![
+        FixedTrait::from_int(1), FixedTrait::from_int(2), FixedTrait::from_int(3),
+    ];
+    let _ = Mat2Trait::from_cols_span(short.span());
+}
+
+#[test]
+#[should_panic(expected: 'Mat2: span too short')]
+fn test_from_rows_span_short() {
+    let short: Array<Fixed> = array![
+        FixedTrait::from_int(1), FixedTrait::from_int(2), FixedTrait::from_int(3),
+    ];
+    let _ = Mat2Trait::from_rows_span(short.span());
+}

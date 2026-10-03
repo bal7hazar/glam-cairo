@@ -15,6 +15,7 @@
 //! There is no NaN and no infinity: overflow, division by zero and the normalization of the zero
 //! quaternion panic.
 
+use core::iter::{Product, Sum};
 use core::ops::{AddAssign, DivAssign, MulAssign, SubAssign};
 use fixed::fixed::{Fixed, FixedTrait};
 use fixed::trig::TrigTrait;
@@ -44,10 +45,10 @@ use crate::vec4::{Vec4, Vec4Trait};
 /// * `Debug` is the derived Cairo formatting; `Display` is not implemented.
 /// * No `NAN` const and no `is_nan` / `is_finite`: those values do not exist
 ///   (docs/DESIGN.md section 3).
-/// * Not ported: `from_slice` / `write_to_slice` (no `Span` in fixed-size math), `Sum` /
-///   `Product` (no iterator trait to implement), the by-reference operator overloads and
-///   `as_dquat`. `from_euler` / `to_euler` are the extension trait
-///   `glam::euler::QuatEulerTrait`.
+/// * `from_slice` / `write_to_slice` are `from_span` / `write_to` (a `Span` in, an `Array` out);
+///   `Sum` / `Product` are impls of `core::iter::Sum` / `core::iter::Product`.
+/// * Not ported: the by-reference operator overloads and `as_dquat`. `from_euler` / `to_euler`
+///   are the extension trait `glam::euler::QuatEulerTrait`.
 #[derive(Copy, Drop, Serde, PartialEq, Debug, Hash)]
 pub struct Quat {
     pub x: Fixed,
@@ -124,6 +125,28 @@ pub trait QuatTrait {
     /// #### Deviations
     /// * None.
     fn to_array(self: Quat) -> [Fixed; 4];
+    /// Creates a quaternion from the first 4 elements of `span`.
+    ///
+    /// A longer span is accepted, its extra elements are ignored.
+    ///
+    /// Mirrors `glam::Quat::from_slice`.
+    /// #### Panics
+    /// * `'Quat: span too short'` if `span` has fewer than 4 elements.
+    /// #### Deviations
+    /// * Takes a `Span` (Cairo has no slice reference); a span longer than the type needs is
+    ///   accepted and its first elements are read, as the slice of glam-rs. A shorter span
+    ///   panics with the message above where glam-rs panics with an index out of bounds.
+    fn from_span(span: Span<Fixed>) -> Quat;
+    /// Appends the 4 elements of `self` to `out`.
+    ///
+    /// Mirrors `glam::Quat::write_to_slice`.
+    /// #### Panics
+    /// * Never.
+    /// #### Deviations
+    /// * Appends the elements to `out` (an `Array` cannot be overwritten in place), where
+    ///   glam-rs overwrites the first elements of the slice: pass an empty array to get the
+    ///   same elements.
+    fn write_to(self: Quat, ref out: Array<Fixed>);
     /// Returns the vector part of the quaternion.
     ///
     /// Mirrors `glam::Quat::xyz`.
@@ -718,6 +741,20 @@ pub impl QuatImpl of QuatTrait {
     }
 
     #[inline(always)]
+    fn from_span(span: Span<Fixed>) -> Quat {
+        assert(span.len() >= 4, 'Quat: span too short');
+        Quat { x: *span.at(0), y: *span.at(1), z: *span.at(2), w: *span.at(3) }
+    }
+
+    #[inline(always)]
+    fn write_to(self: Quat, ref out: Array<Fixed>) {
+        out.append(self.x);
+        out.append(self.y);
+        out.append(self.z);
+        out.append(self.w);
+    }
+
+    #[inline(always)]
     fn xyz(self: Quat) -> Vec3 {
         Vec3 { x: self.x, y: self.y, z: self.z }
     }
@@ -1139,6 +1176,57 @@ pub impl QuatMul of Mul<Quat> {
     #[inline(always)]
     fn mul(lhs: Quat, rhs: Quat) -> Quat {
         QuatImpl::mul_quat(lhs, rhs)
+    }
+}
+
+/// The sum of an iterator of `Quat` (component-wise).
+///
+/// Items are folded in iteration order, left to right, starting from `ZERO`, with the `+` of
+/// `Quat`: `(((start + a) + b) + c)`. That order is the determinism contract. An empty iterator
+/// yields the start value.
+///
+/// Mirrors `impl Sum for glam::Quat` and `impl<'a> Sum<&'a Quat> for glam::Quat`.
+/// #### Panics
+/// * `'i64_add Overflow'` / `'i64_add Underflow'` if a component sum leaves the scalar range.
+/// #### Deviations
+/// * The Cairo trait is `core::iter::Sum<Quat>` with one impl: the owned form and the
+///   reference form of glam-rs (`Sum<&Quat>`) are one, as values are `Copy` and passed by
+///   value.
+/// * Iterator glue, not a math kernel: it loops over the iterator (docs/DESIGN.md section 4,
+///   exception AP).
+pub impl QuatSum of Sum<Quat> {
+    fn sum<I, +Iterator<I>[Item: Quat], +Destruct<I>, +Destruct<Quat>>(mut iter: I) -> Quat {
+        let mut acc = QuatTrait::ZERO;
+        while let Some(item) = iter.next() {
+            acc = acc + item;
+        }
+        acc
+    }
+}
+
+/// The product of an iterator of `Quat` (Hamilton product).
+///
+/// Items are folded in iteration order, left to right, starting from `IDENTITY`, with the `*`
+/// of `Quat`: `(((start * a) * b) * c)`. That order is the determinism contract: the product is
+/// not commutative, so the order of the items changes the result. An empty iterator yields the
+/// start value.
+///
+/// Mirrors `impl Product for glam::Quat` and `impl<'a> Product<&'a Quat> for glam::Quat`.
+/// #### Panics
+/// * `'Fixed: overflow'` if a component of a product leaves the scalar range.
+/// #### Deviations
+/// * The Cairo trait is `core::iter::Product<Quat>` with one impl: the owned form and the
+///   reference form of glam-rs (`Product<&Quat>`) are one, as values are `Copy` and passed by
+///   value.
+/// * Iterator glue, not a math kernel: it loops over the iterator (docs/DESIGN.md section 4,
+///   exception AP).
+pub impl QuatProduct of Product<Quat> {
+    fn product<I, +Iterator<I>[Item: Quat], +Destruct<I>, +Destruct<Quat>>(mut iter: I) -> Quat {
+        let mut acc = QuatTrait::IDENTITY;
+        while let Some(item) = iter.next() {
+            acc = acc * item;
+        }
+        acc
     }
 }
 

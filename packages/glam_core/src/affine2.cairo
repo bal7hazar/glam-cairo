@@ -7,6 +7,7 @@
 //! There is no NaN and no infinity: overflow and inversion of a singular transform panic
 //! (docs/DESIGN.md section 3).
 
+use core::iter::Product;
 use core::ops::MulAssign;
 use fixed::fixed::{Fixed, FixedTrait};
 use fixed::trig::TrigTrait;
@@ -23,9 +24,10 @@ use crate::vec3::Vec3;
 /// * `Debug` is the derived Cairo formatting; `Display` and `Deref` are not implemented.
 /// * No `NAN` const and no `is_nan` / `is_finite`: those values do not exist
 ///   (docs/DESIGN.md section 3).
-/// * Not ported: `from_cols_slice` / `write_cols_to_slice` (no `Span` in fixed-size math),
-///   `Product` (no iterator trait to implement), by-reference operator overloads, casts to the
-///   collapsed f32/f64 variants, and `from_mat3a` (there is no distinct `Mat3A`).
+/// * `from_cols_slice` / `write_cols_to_slice` are `from_cols_span` / `write_cols_to` (a `Span`
+///   in, an `Array` out); `Product` is an impl of `core::iter::Product`.
+/// * Not ported: by-reference operator overloads, casts to the collapsed f32/f64 variants, and
+///   `from_mat3a` (there is no distinct `Mat3A`).
 /// * Heterogeneous `Mul` is not a core Cairo operator. `Affine2 * Mat3` is `mul_mat3`; spell
 ///   `Mat3 * Affine2` as `mat3 * Into::<Affine2, Mat3>::into(affine)`.
 #[derive(Copy, Drop, Serde, PartialEq, Debug, Hash)]
@@ -95,6 +97,28 @@ pub trait Affine2Trait {
     /// #### Deviations
     /// * None.
     fn to_cols_array_2d(self: Affine2) -> [[Fixed; 2]; 3];
+    /// Creates an affine transform from the first 6 elements of `span`.
+    ///
+    /// A longer span is accepted, its extra elements are ignored.
+    ///
+    /// Mirrors `glam::Affine2::from_cols_slice`.
+    /// #### Panics
+    /// * `'Affine2: span too short'` if `span` has fewer than 6 elements.
+    /// #### Deviations
+    /// * Takes a `Span` (Cairo has no slice reference); a span longer than the type needs is
+    ///   accepted and its first elements are read, as the slice of glam-rs. A shorter span
+    ///   panics with the message above where glam-rs panics with an index out of bounds.
+    fn from_cols_span(span: Span<Fixed>) -> Affine2;
+    /// Appends the 6 elements of `self` to `out`.
+    ///
+    /// Mirrors `glam::Affine2::write_cols_to_slice`.
+    /// #### Panics
+    /// * Never.
+    /// #### Deviations
+    /// * Appends the elements to `out` (an `Array` cannot be overwritten in place), where
+    ///   glam-rs overwrites the first elements of the slice: pass an empty array to get the
+    ///   same elements.
+    fn write_cols_to(self: Affine2, ref out: Array<Fixed>);
     /// Creates an affine transform that changes scale.
     ///
     /// Implementation notes:
@@ -296,6 +320,31 @@ pub impl Affine2Impl of Affine2Trait {
     }
 
     #[inline(always)]
+    fn from_cols_span(span: Span<Fixed>) -> Affine2 {
+        assert(span.len() >= 6, 'Affine2: span too short');
+        let m00 = *span.at(0);
+        let m01 = *span.at(1);
+        let m10 = *span.at(2);
+        let m11 = *span.at(3);
+        let tx = *span.at(4);
+        let ty = *span.at(5);
+        Affine2 {
+            matrix2: Mat2 { x_axis: Vec2 { x: m00, y: m01 }, y_axis: Vec2 { x: m10, y: m11 } },
+            translation: Vec2 { x: tx, y: ty },
+        }
+    }
+
+    #[inline(always)]
+    fn write_cols_to(self: Affine2, ref out: Array<Fixed>) {
+        out.append(self.matrix2.x_axis.x);
+        out.append(self.matrix2.x_axis.y);
+        out.append(self.matrix2.y_axis.x);
+        out.append(self.matrix2.y_axis.y);
+        out.append(self.translation.x);
+        out.append(self.translation.y);
+    }
+
+    #[inline(always)]
     fn from_scale(scale: Vec2) -> Affine2 {
         Affine2 {
             matrix2: Mat2 {
@@ -431,6 +480,34 @@ pub impl Affine2Mul of Mul<Affine2> {
                 ),
             },
         }
+    }
+}
+
+/// The product of an iterator of `Affine2` (composition).
+///
+/// Items are folded in iteration order, left to right, starting from `IDENTITY`, with the `*`
+/// of `Affine2`: `(((start * a) * b) * c)`. That order is the determinism contract: the product
+/// is not commutative, so the order of the items changes the result. An empty iterator yields
+/// the start value.
+///
+/// Mirrors `impl Product for glam::Affine2` and `impl<'a> Product<&'a Affine2> for glam::Affine2`.
+/// #### Panics
+/// * `'Fixed: overflow'` if a component of a product leaves the scalar range.
+/// #### Deviations
+/// * The Cairo trait is `core::iter::Product<Affine2>` with one impl: the owned form and the
+///   reference form of glam-rs (`Product<&Affine2>`) are one, as values are `Copy` and passed
+///   by value.
+/// * Iterator glue, not a math kernel: it loops over the iterator (docs/DESIGN.md section 4,
+///   exception AP).
+pub impl Affine2Product of Product<Affine2> {
+    fn product<I, +Iterator<I>[Item: Affine2], +Destruct<I>, +Destruct<Affine2>>(
+        mut iter: I,
+    ) -> Affine2 {
+        let mut acc = Affine2Trait::IDENTITY;
+        while let Some(item) = iter.next() {
+            acc = acc * item;
+        }
+        acc
     }
 }
 

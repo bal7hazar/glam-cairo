@@ -984,3 +984,192 @@ fn fuzz_transform(a: i64, b: i64, c: i64, d: i64) {
     assert_eq!(Mat3Trait::from_translation(p).transform_point2(p), p + p);
     assert_eq!(Mat3Trait::IDENTITY.transform_vector2(p), p);
 }
+
+// ---- iterators and span entry points (lot AP)
+use glam::mat3::{Mat3Product, Mat3Sum};
+
+#[test]
+fn test_sum_iter() {
+    let s = Mat3Sum::sum(
+        array![
+            Mat3Trait::from_cols_array(
+                [
+                    FixedTrait::from_int(1), FixedTrait::from_int(2), FixedTrait::from_int(3),
+                    FixedTrait::from_int(4), FixedTrait::from_int(5), FixedTrait::from_int(6),
+                    FixedTrait::from_int(7), FixedTrait::from_int(8), FixedTrait::from_int(9),
+                ],
+            ),
+            Mat3Trait::from_cols_array(
+                [
+                    FixedTrait::from_int(2), FixedTrait::from_int(0), FixedTrait::from_int(3),
+                    FixedTrait::from_int(1), FixedTrait::from_int(4), FixedTrait::from_int(2),
+                    FixedTrait::from_int(0), FixedTrait::from_int(3), FixedTrait::from_int(1),
+                ],
+            ),
+            Mat3Trait::from_cols_array(
+                [
+                    FixedTrait::from_int(1), FixedTrait::from_int(3), FixedTrait::from_int(1),
+                    FixedTrait::from_int(3), FixedTrait::from_int(1), FixedTrait::from_int(3),
+                    FixedTrait::from_int(1), FixedTrait::from_int(3), FixedTrait::from_int(1),
+                ],
+            ),
+        ]
+            .into_iter(),
+    );
+    assert!(
+        s == Mat3Trait::from_cols_array(
+            [
+                FixedTrait::from_int(4), FixedTrait::from_int(5), FixedTrait::from_int(7),
+                FixedTrait::from_int(8), FixedTrait::from_int(10), FixedTrait::from_int(11),
+                FixedTrait::from_int(8), FixedTrait::from_int(14), FixedTrait::from_int(11),
+            ],
+        ),
+        "sum",
+    );
+    let none: Array<Mat3> = array![];
+    assert!(Mat3Sum::sum(none.into_iter()) == Mat3Trait::ZERO, "empty sum");
+}
+
+#[test]
+fn test_product_iter_order() {
+    let (a, b, c) = (
+        Mat3Trait::from_cols_array(
+            [
+                FixedTrait::from_int(1), FixedTrait::from_int(2), FixedTrait::from_int(3),
+                FixedTrait::from_int(4), FixedTrait::from_int(5), FixedTrait::from_int(6),
+                FixedTrait::from_int(7), FixedTrait::from_int(8), FixedTrait::from_int(9),
+            ],
+        ),
+        Mat3Trait::from_cols_array(
+            [
+                FixedTrait::from_int(2), FixedTrait::from_int(0), FixedTrait::from_int(3),
+                FixedTrait::from_int(1), FixedTrait::from_int(4), FixedTrait::from_int(2),
+                FixedTrait::from_int(0), FixedTrait::from_int(3), FixedTrait::from_int(1),
+            ],
+        ),
+        Mat3Trait::from_cols_array(
+            [
+                FixedTrait::from_int(1), FixedTrait::from_int(3), FixedTrait::from_int(1),
+                FixedTrait::from_int(3), FixedTrait::from_int(1), FixedTrait::from_int(3),
+                FixedTrait::from_int(1), FixedTrait::from_int(3), FixedTrait::from_int(1),
+            ],
+        ),
+    );
+    let p = Mat3Product::product(array![a, b].into_iter());
+    assert!(
+        p == Mat3Trait::from_cols_array(
+            [
+                FixedTrait::from_int(23), FixedTrait::from_int(28), FixedTrait::from_int(33),
+                FixedTrait::from_int(31), FixedTrait::from_int(38), FixedTrait::from_int(45),
+                FixedTrait::from_int(19), FixedTrait::from_int(23), FixedTrait::from_int(27),
+            ],
+        ),
+        "a * b",
+    );
+    assert!(
+        p != Mat3Trait::from_cols_array(
+            [
+                FixedTrait::from_int(4), FixedTrait::from_int(17), FixedTrait::from_int(10),
+                FixedTrait::from_int(13), FixedTrait::from_int(38), FixedTrait::from_int(28),
+                FixedTrait::from_int(22), FixedTrait::from_int(59), FixedTrait::from_int(46),
+            ],
+        ),
+        "not b * a",
+    );
+    let p3 = Mat3Product::product(array![a, b, c].into_iter());
+    assert!(
+        p3 == Mat3Trait::from_cols_array(
+            [
+                FixedTrait::from_int(135), FixedTrait::from_int(165), FixedTrait::from_int(195),
+                FixedTrait::from_int(157), FixedTrait::from_int(191), FixedTrait::from_int(225),
+                FixedTrait::from_int(135), FixedTrait::from_int(165), FixedTrait::from_int(195),
+            ],
+        ),
+        "(a * b) * c",
+    );
+    assert!(p3 == a * b * c, "the operator");
+    let none: Array<Mat3> = array![];
+    assert!(Mat3Product::product(none.into_iter()) == Mat3Trait::IDENTITY, "empty product");
+}
+
+#[test]
+fn test_from_span_write_to() {
+    let longer: Array<Fixed> = array![
+        FixedTrait::from_int(1), FixedTrait::from_int(2), FixedTrait::from_int(3),
+        FixedTrait::from_int(4), FixedTrait::from_int(5), FixedTrait::from_int(6),
+        FixedTrait::from_int(7), FixedTrait::from_int(8), FixedTrait::from_int(9),
+        FixedTrait::from_int(10),
+    ];
+    let m = Mat3Trait::from_cols_span(longer.span());
+    assert!(
+        m == Mat3Trait::from_cols_array(
+            [
+                FixedTrait::from_int(1), FixedTrait::from_int(2), FixedTrait::from_int(3),
+                FixedTrait::from_int(4), FixedTrait::from_int(5), FixedTrait::from_int(6),
+                FixedTrait::from_int(7), FixedTrait::from_int(8), FixedTrait::from_int(9),
+            ],
+        ),
+        "N + 1 reads the first N",
+    );
+    let exact: Array<Fixed> = array![
+        FixedTrait::from_int(1), FixedTrait::from_int(2), FixedTrait::from_int(3),
+        FixedTrait::from_int(4), FixedTrait::from_int(5), FixedTrait::from_int(6),
+        FixedTrait::from_int(7), FixedTrait::from_int(8), FixedTrait::from_int(9),
+    ];
+    assert!(Mat3Trait::from_cols_span(exact.span()) == m, "exactly N");
+    assert!(Mat3Trait::from_rows_span(exact.span()) == m.transpose(), "rows are the transpose");
+    let mut out: Array<Fixed> = array![];
+    m.write_cols_to(ref out);
+    assert!(out.len() == 9, "N elements appended");
+    assert!(Mat3Trait::from_cols_span(out.span()) == m, "round trip");
+    m.write_cols_to(ref out);
+    assert!(out.len() == 18, "write_cols_to appends");
+}
+
+// panics: Mat3::Mat3Sum
+#[test]
+#[should_panic(expected: 'i64_add Overflow')]
+fn test_sum_overflow() {
+    let _ = Mat3Sum::sum(
+        array![
+            Mat3Trait::from_cols_array([FixedTrait::from_raw(0x7fffffffffffffff); 9]),
+            Mat3Trait::from_cols_array([FixedTrait::from_raw(0x7fffffffffffffff); 9]),
+        ]
+            .into_iter(),
+    );
+}
+
+// panics: Mat3::Mat3Product
+#[test]
+#[should_panic(expected: 'Fixed: overflow')]
+fn test_product_overflow() {
+    let _ = Mat3Product::product(
+        array![
+            Mat3Trait::from_cols_array([FixedTrait::from_raw(0x7fffffffffffffff); 9]),
+            Mat3Trait::from_cols_array([FixedTrait::from_raw(0x7fffffffffffffff); 9]),
+        ]
+            .into_iter(),
+    );
+}
+
+#[test]
+#[should_panic(expected: 'Mat3: span too short')]
+fn test_from_cols_span_short() {
+    let short: Array<Fixed> = array![
+        FixedTrait::from_int(1), FixedTrait::from_int(2), FixedTrait::from_int(3),
+        FixedTrait::from_int(4), FixedTrait::from_int(5), FixedTrait::from_int(6),
+        FixedTrait::from_int(7), FixedTrait::from_int(8),
+    ];
+    let _ = Mat3Trait::from_cols_span(short.span());
+}
+
+#[test]
+#[should_panic(expected: 'Mat3: span too short')]
+fn test_from_rows_span_short() {
+    let short: Array<Fixed> = array![
+        FixedTrait::from_int(1), FixedTrait::from_int(2), FixedTrait::from_int(3),
+        FixedTrait::from_int(4), FixedTrait::from_int(5), FixedTrait::from_int(6),
+        FixedTrait::from_int(7), FixedTrait::from_int(8),
+    ];
+    let _ = Mat3Trait::from_rows_span(short.span());
+}

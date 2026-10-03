@@ -8,8 +8,8 @@ pub use glam_core::ivec4::{
     IVec2IVec2IntoIVec4, IVec3I32IntoIVec4, IVec4, IVec4Add, IVec4AddAssign, IVec4AddAssignScalar,
     IVec4BitAnd, IVec4BitNot, IVec4BitOr, IVec4BitXor, IVec4Div, IVec4DivAssign,
     IVec4DivAssignScalar, IVec4IndexView, IVec4IntoI32Array, IVec4IntoI32Tuple, IVec4Mul,
-    IVec4MulAssign, IVec4MulAssignScalar, IVec4Neg, IVec4Rem, IVec4RemAssign, IVec4RemAssignScalar,
-    IVec4Sub, IVec4SubAssign, IVec4SubAssignScalar, UVec4TryIntoIVec4, bitand_i32, bitor_i32,
-    bitxor_i32,
+    IVec4MulAssign, IVec4MulAssignScalar, IVec4Neg, IVec4Product, IVec4Rem, IVec4RemAssign,
+    IVec4RemAssignScalar, IVec4Sub, IVec4SubAssign, IVec4SubAssignScalar, IVec4Sum,
+    UVec4TryIntoIVec4, bitand_i32, bitor_i32, bitxor_i32,
 };
 pub use glam_int::ivec4::{IVec4Impl, IVec4Trait, ivec4};

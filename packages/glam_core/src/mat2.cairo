@@ -11,6 +11,7 @@
 //! There is no NaN and no infinity: overflow, division by zero and the inversion of a singular
 //! matrix panic (docs/DESIGN.md section 3).
 
+use core::iter::{Product, Sum};
 use core::ops::{AddAssign, DivAssign, MulAssign, SubAssign};
 use fixed::fixed::{Fixed, FixedTrait};
 use fixed::trig::TrigTrait;
@@ -26,9 +27,11 @@ use crate::vec3::Vec3Trait;
 /// * `Debug` is the derived Cairo formatting; `Display` is not implemented.
 /// * No `NAN` const and no `is_nan` / `is_finite`: those values do not exist
 ///   (docs/DESIGN.md section 3).
-/// * Not ported: `col_mut` / `set_row` (no `&mut`), `from_cols_slice` / `from_rows_slice` /
-///   `write_cols_to_slice` (no `Span` in fixed-size math), `Sum` / `Product` (no iterator trait
-///   to implement), the by-reference operator overloads, the scalar-on-the-left operators
+/// * `from_cols_slice` / `from_rows_slice` / `write_cols_to_slice` are `from_cols_span` /
+///   `from_rows_span` / `write_cols_to` (a `Span` in, an `Array` out); `Sum` / `Product` are
+///   impls of `core::iter::Sum` / `core::iter::Product`.
+/// * Not ported: `col_mut` / `set_row` (no `&mut`), the by-reference operator overloads, the
+/// scalar-on-the-left operators
 ///   (`2.0 * m`) and the casts to types that do not exist in glam-cairo (`as_dmat2`, `Mat3A`).
 #[derive(Copy, Drop, Serde, PartialEq, Debug, Hash)]
 pub struct Mat2 {
@@ -137,6 +140,47 @@ pub trait Mat2Trait {
     /// #### Deviations
     /// * None.
     fn to_cols_array_2d(self: Mat2) -> [[Fixed; 2]; 2];
+    /// Creates a 2x2 matrix from the first 4 elements of `span`, stored in column major
+    /// order.
+    ///
+    /// If the data is in row major order use `from_rows_span` instead.
+    ///
+    /// Mirrors `glam::Mat2::from_cols_slice`.
+    /// #### Panics
+    /// * `'Mat2: span too short'` if `span` has fewer than 4 elements.
+    /// #### Deviations
+    /// * Takes a `Span` (Cairo has no slice reference); a span longer than the type needs
+    ///   is accepted and its first elements are read, as the slice of glam-rs. A shorter
+    ///   span panics with the message above where glam-rs panics with an index out of
+    ///   bounds.
+    fn from_cols_span(span: Span<Fixed>) -> Mat2;
+    /// Creates a 2x2 matrix from the first 4 elements of `span`, stored in row major
+    /// order.
+    ///
+    /// Matrices are stored in column major order, so the span is permuted into the matrix
+    /// layout.
+    ///
+    /// Mirrors `glam::Mat2::from_rows_slice`.
+    /// #### Panics
+    /// * `'Mat2: span too short'` if `span` has fewer than 4 elements.
+    /// #### Deviations
+    /// * Takes a `Span` (Cairo has no slice reference); a span longer than the type needs
+    ///   is accepted and its first elements are read, as the slice of glam-rs. A shorter
+    ///   span panics with the message above where glam-rs panics with an index out of
+    ///   bounds.
+    fn from_rows_span(span: Span<Fixed>) -> Mat2;
+    /// Appends the 4 elements of `self` to `out`, in column major order.
+    ///
+    /// If you require the data in row major order `transpose` the matrix first.
+    ///
+    /// Mirrors `glam::Mat2::write_cols_to_slice`.
+    /// #### Panics
+    /// * Never.
+    /// #### Deviations
+    /// * Appends the elements to `out` (an `Array` cannot be overwritten in place), where
+    ///   glam-rs overwrites the first elements of the slice: pass an empty array to get
+    ///   the same elements.
+    fn write_cols_to(self: Mat2, ref out: Array<Fixed>);
     /// Creates a 2x2 matrix with its diagonal set to `diagonal` and all other entries set
     /// to 0.
     ///
@@ -453,6 +497,34 @@ pub impl Mat2Impl of Mat2Trait {
     }
 
     #[inline(always)]
+    fn from_cols_span(span: Span<Fixed>) -> Mat2 {
+        assert(span.len() >= 4, 'Mat2: span too short');
+        let m00 = *span.at(0);
+        let m01 = *span.at(1);
+        let m10 = *span.at(2);
+        let m11 = *span.at(3);
+        Mat2 { x_axis: Vec2 { x: m00, y: m01 }, y_axis: Vec2 { x: m10, y: m11 } }
+    }
+
+    #[inline(always)]
+    fn from_rows_span(span: Span<Fixed>) -> Mat2 {
+        assert(span.len() >= 4, 'Mat2: span too short');
+        let m00 = *span.at(0);
+        let m01 = *span.at(1);
+        let m10 = *span.at(2);
+        let m11 = *span.at(3);
+        Mat2 { x_axis: Vec2 { x: m00, y: m10 }, y_axis: Vec2 { x: m01, y: m11 } }
+    }
+
+    #[inline(always)]
+    fn write_cols_to(self: Mat2, ref out: Array<Fixed>) {
+        out.append(self.x_axis.x);
+        out.append(self.x_axis.y);
+        out.append(self.y_axis.x);
+        out.append(self.y_axis.y);
+    }
+
+    #[inline(always)]
     fn from_diagonal(diagonal: Vec2) -> Mat2 {
         Mat2 {
             x_axis: Vec2 { x: diagonal.x, y: Fixed { raw: 0 } },
@@ -666,6 +738,57 @@ pub impl Mat2Impl of Mat2Trait {
             },
             _ => core::panic_with_felt252('Mat2: index out of bounds'),
         }
+    }
+}
+
+/// The sum of an iterator of `Mat2` (element-wise).
+///
+/// Items are folded in iteration order, left to right, starting from `ZERO`, with the `+` of
+/// `Mat2`: `(((start + a) + b) + c)`. That order is the determinism contract. An empty iterator
+/// yields the start value.
+///
+/// Mirrors `impl Sum for glam::Mat2` and `impl<'a> Sum<&'a Mat2> for glam::Mat2`.
+/// #### Panics
+/// * `'i64_add Overflow'` / `'i64_add Underflow'` if an element sum leaves the scalar range.
+/// #### Deviations
+/// * The Cairo trait is `core::iter::Sum<Mat2>` with one impl: the owned form and the
+///   reference form of glam-rs (`Sum<&Mat2>`) are one, as values are `Copy` and passed by
+///   value.
+/// * Iterator glue, not a math kernel: it loops over the iterator (docs/DESIGN.md section 4,
+///   exception AP).
+pub impl Mat2Sum of Sum<Mat2> {
+    fn sum<I, +Iterator<I>[Item: Mat2], +Destruct<I>, +Destruct<Mat2>>(mut iter: I) -> Mat2 {
+        let mut acc = Mat2Trait::ZERO;
+        while let Some(item) = iter.next() {
+            acc = acc + item;
+        }
+        acc
+    }
+}
+
+/// The product of an iterator of `Mat2` (matrix product).
+///
+/// Items are folded in iteration order, left to right, starting from `IDENTITY`, with the `*`
+/// of `Mat2`: `(((start * a) * b) * c)`. That order is the determinism contract: the product is
+/// not commutative, so the order of the items changes the result. An empty iterator yields the
+/// start value.
+///
+/// Mirrors `impl Product for glam::Mat2` and `impl<'a> Product<&'a Mat2> for glam::Mat2`.
+/// #### Panics
+/// * `'Fixed: overflow'` if an element of a product leaves the scalar range.
+/// #### Deviations
+/// * The Cairo trait is `core::iter::Product<Mat2>` with one impl: the owned form and the
+///   reference form of glam-rs (`Product<&Mat2>`) are one, as values are `Copy` and passed by
+///   value.
+/// * Iterator glue, not a math kernel: it loops over the iterator (docs/DESIGN.md section 4,
+///   exception AP).
+pub impl Mat2Product of Product<Mat2> {
+    fn product<I, +Iterator<I>[Item: Mat2], +Destruct<I>, +Destruct<Mat2>>(mut iter: I) -> Mat2 {
+        let mut acc = Mat2Trait::IDENTITY;
+        while let Some(item) = iter.next() {
+            acc = acc * item;
+        }
+        acc
     }
 }
 

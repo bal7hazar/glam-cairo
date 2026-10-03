@@ -7,8 +7,8 @@ pub use glam_core::ivec2::{
     BVec2IntoIVec2, I32ArrayIntoIVec2, I32TupleIntoIVec2, IVec2, IVec2Add, IVec2AddAssign,
     IVec2AddAssignScalar, IVec2BitAnd, IVec2BitNot, IVec2BitOr, IVec2BitXor, IVec2Div,
     IVec2DivAssign, IVec2DivAssignScalar, IVec2IndexView, IVec2IntoI32Array, IVec2IntoI32Tuple,
-    IVec2Mul, IVec2MulAssign, IVec2MulAssignScalar, IVec2Neg, IVec2Rem, IVec2RemAssign,
-    IVec2RemAssignScalar, IVec2Sub, IVec2SubAssign, IVec2SubAssignScalar, UVec2TryIntoIVec2,
-    bitand_i32, bitor_i32, bitxor_i32,
+    IVec2Mul, IVec2MulAssign, IVec2MulAssignScalar, IVec2Neg, IVec2Product, IVec2Rem,
+    IVec2RemAssign, IVec2RemAssignScalar, IVec2Sub, IVec2SubAssign, IVec2SubAssignScalar, IVec2Sum,
+    UVec2TryIntoIVec2, bitand_i32, bitor_i32, bitxor_i32,
 };
 pub use glam_int::ivec2::{IVec2Impl, IVec2Trait, ivec2};

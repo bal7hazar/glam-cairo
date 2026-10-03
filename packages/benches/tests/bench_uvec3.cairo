@@ -10,7 +10,73 @@ use benches::alt::uvec3 as alt;
 use benches::harness::{bb, sink};
 use glam::bvec3::BVec3Trait;
 use glam::ivec3::{IVec3, IVec3Trait};
-use glam::uvec3::{UVec3, UVec3Trait};
+use glam::uvec3::{UVec3, UVec3Product, UVec3Sum, UVec3Trait};
+
+#[test]
+fn sum3__base() {
+    let _a = bb(UVec3Trait::new(30, 7, 110));
+    let _b = bb(UVec3Trait::new(5, 2, 9));
+    let _c = bb(UVec3Trait::new(30, 7, 110));
+    let r = bb(UVec3Trait::new(1, 2, 3));
+    sink(r);
+}
+
+#[test]
+fn sum3__op() {
+    let a = bb(UVec3Trait::new(30, 7, 110));
+    let b = bb(UVec3Trait::new(5, 2, 9));
+    let c = bb(UVec3Trait::new(30, 7, 110));
+    let _r = bb(UVec3Trait::new(1, 2, 3));
+    sink(UVec3Sum::sum(array![a, b, c].into_iter()));
+}
+
+#[test]
+fn product3__base() {
+    let _a = bb(UVec3Trait::new(2, 3, 2));
+    let _b = bb(UVec3Trait::new(3, 2, 3));
+    let _c = bb(UVec3Trait::new(2, 2, 2));
+    let r = bb(UVec3Trait::new(1, 2, 3));
+    sink(r);
+}
+
+#[test]
+fn product3__op() {
+    let a = bb(UVec3Trait::new(2, 3, 2));
+    let b = bb(UVec3Trait::new(3, 2, 3));
+    let c = bb(UVec3Trait::new(2, 2, 2));
+    let _r = bb(UVec3Trait::new(1, 2, 3));
+    sink(UVec3Product::product(array![a, b, c].into_iter()));
+}
+
+#[test]
+fn from_span__base() {
+    let _s = bb(array![30, 7, 110].span());
+    let r = bb(UVec3Trait::new(1, 2, 3));
+    sink(r);
+}
+
+#[test]
+fn from_span__op() {
+    let s = bb(array![30, 7, 110].span());
+    let _r = bb(UVec3Trait::new(1, 2, 3));
+    sink(UVec3Trait::from_span(s));
+}
+
+#[test]
+fn write_to__base() {
+    let _a = bb(UVec3Trait::new(30, 7, 110));
+    let r = bb(UVec3Trait::new(1, 2, 3));
+    sink(r);
+}
+
+#[test]
+fn write_to__op() {
+    let a = bb(UVec3Trait::new(30, 7, 110));
+    let _r = bb(UVec3Trait::new(1, 2, 3));
+    let mut out = array![];
+    a.write_to(ref out);
+    sink(out);
+}
 
 #[test]
 fn select_true__base() {

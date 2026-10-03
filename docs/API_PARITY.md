@@ -9,26 +9,26 @@ passed by value. Percent is `(ported + renamed) / all glam-rs items`.
 
 | Type/module | Ported | Dropped | Renamed | Missing | Extra | Parity |
 |---|---:|---:|---:|---:|---:|---:|
-| [Affine2](#affine2) | 23 | 15 | 1 | 0 | 1 | 61.5% |
-| [Affine3](#affine3) | 31 | 11 | 1 | 0 | 3 | 74.4% |
+| [Affine2](#affine2) | 24 | 12 | 3 | 0 | 1 | 69.2% |
+| [Affine3](#affine3) | 32 | 8 | 3 | 0 | 3 | 81.4% |
 | [BVec2](#bvec2) | 19 | 4 | 0 | 0 | 0 | 82.6% |
 | [BVec3](#bvec3) | 19 | 4 | 0 | 0 | 0 | 82.6% |
 | [BVec4](#bvec4) | 19 | 4 | 0 | 0 | 0 | 82.6% |
 | [EulerRot](#eulerrot) | 1 | 0 | 0 | 0 | 1 | 100.0% |
 | [Fixed](#fixed) | 10 | 0 | 0 | 0 | 106 | 100.0% |
-| [IVec2](#ivec2) | 123 | 71 | 10 | 0 | 9 | 65.2% |
-| [IVec3](#ivec3) | 221 | 73 | 10 | 0 | 9 | 76.0% |
-| [IVec4](#ivec4) | 474 | 72 | 10 | 0 | 9 | 87.1% |
-| [Mat2](#mat2) | 45 | 19 | 3 | 0 | 4 | 71.6% |
-| [Mat3](#mat3) | 58 | 20 | 9 | 0 | 4 | 77.0% |
-| [Mat4](#mat4) | 63 | 21 | 18 | 0 | 4 | 79.4% |
-| [Quat](#quat) | 56 | 15 | 3 | 0 | 11 | 79.7% |
-| [UVec2](#uvec2) | 106 | 69 | 10 | 0 | 9 | 62.7% |
-| [UVec3](#uvec3) | 206 | 71 | 10 | 0 | 9 | 75.3% |
-| [UVec4](#uvec4) | 458 | 70 | 10 | 0 | 9 | 87.0% |
-| [Vec2](#vec2) | 147 | 37 | 7 | 0 | 8 | 80.6% |
-| [Vec3](#vec3) | 253 | 39 | 7 | 0 | 9 | 87.0% |
-| [Vec4](#vec4) | 495 | 40 | 7 | 0 | 8 | 92.6% |
+| [IVec2](#ivec2) | 126 | 64 | 14 | 0 | 9 | 68.6% |
+| [IVec3](#ivec3) | 224 | 66 | 14 | 0 | 9 | 78.3% |
+| [IVec4](#ivec4) | 477 | 65 | 14 | 0 | 9 | 88.3% |
+| [Mat2](#mat2) | 47 | 13 | 7 | 0 | 4 | 80.6% |
+| [Mat3](#mat3) | 60 | 14 | 13 | 0 | 4 | 83.9% |
+| [Mat4](#mat4) | 65 | 15 | 22 | 0 | 4 | 85.3% |
+| [Quat](#quat) | 58 | 10 | 6 | 0 | 11 | 86.5% |
+| [UVec2](#uvec2) | 109 | 62 | 14 | 0 | 9 | 66.5% |
+| [UVec3](#uvec3) | 209 | 64 | 14 | 0 | 9 | 77.7% |
+| [UVec4](#uvec4) | 461 | 63 | 14 | 0 | 9 | 88.3% |
+| [Vec2](#vec2) | 150 | 30 | 11 | 0 | 8 | 84.3% |
+| [Vec3](#vec3) | 256 | 32 | 11 | 0 | 9 | 89.3% |
+| [Vec4](#vec4) | 498 | 33 | 11 | 0 | 8 | 93.9% |
 | [camera::lh::proj::directx](#camera-lh-proj-directx) | 5 | 0 | 0 | 0 | 0 | 100.0% |
 | [camera::lh::proj::opengl](#camera-lh-proj-opengl) | 3 | 0 | 0 | 0 | 0 | 100.0% |
 | [camera::lh::proj::vulkan](#camera-lh-proj-vulkan) | 5 | 0 | 0 | 0 | 0 | 100.0% |
@@ -38,7 +38,7 @@ passed by value. Percent is `(ported + renamed) / all glam-rs items`.
 | [camera::rh::proj::vulkan](#camera-rh-proj-vulkan) | 5 | 0 | 0 | 0 | 0 | 100.0% |
 | [camera::rh::view](#camera-rh-view) | 8 | 0 | 4 | 0 | 0 | 100.0% |
 | [fixed::wide](#fixed-wide) | 0 | 0 | 0 | 0 | 38 | 100.0% |
-| **Total** | **2869** | **655** | **124** | **0** | **251** | **82.0%** |
+| **Total** | **2906** | **563** | **179** | **0** | **251** | **84.6%** |
 
 ## Affine2
 
@@ -60,7 +60,7 @@ passed by value. Percent is `(ported + renamed) / all glam-rs items`.
 | impl `Mul<Mat3A>` | dropped | Aligned SIMD types collapse into their unaligned Cairo type. |
 | impl `MulAssign<Affine2>` | ported | Same public name. |
 | impl `MulAssign<Affine2> for Mat3A` | dropped | Aligned SIMD types collapse into their unaligned Cairo type. |
-| impl `Product<Affine2>` | dropped | Iterator Sum/Product traits are deliberately omitted. |
+| impl `Product<Affine2>` | ported | Same public name. |
 | method `abs_diff_eq` | ported | Same public name. |
 | method `as_daffine2` | dropped | Only Fixed, i32 and u32 vector families are in scope. |
 | method `from_angle` | ported | Same public name. |
@@ -68,7 +68,7 @@ passed by value. Percent is `(ported + renamed) / all glam-rs items`.
 | method `from_cols` | ported | Same public name. |
 | method `from_cols_array` | ported | Same public name. |
 | method `from_cols_array_2d` | ported | Same public name. |
-| method `from_cols_slice` | dropped | Slice APIs are deliberately omitted from fixed-size Cairo math types. |
+| method `from_cols_slice` | renamed | from_cols_span — A Cairo slice is a Span: the constructor reads the first N elements of a Span. |
 | method `from_mat2` | ported | Same public name. |
 | method `from_mat2_translation` | ported | Same public name. |
 | method `from_mat3` | ported | Same public name. |
@@ -84,7 +84,7 @@ passed by value. Percent is `(ported + renamed) / all glam-rs items`.
 | method `to_scale_angle_translation` | ported | Same public name. |
 | method `transform_point2` | ported | Same public name. |
 | method `transform_vector2` | ported | Same public name. |
-| method `write_cols_to_slice` | dropped | Slice APIs are deliberately omitted from fixed-size Cairo math types. |
+| method `write_cols_to_slice` | renamed | write_cols_to — Cairo cannot overwrite a slice in place: the elements are appended to an Array. |
 
 ### Cairo-only items
 
@@ -107,14 +107,14 @@ passed by value. Percent is `(ported + renamed) / all glam-rs items`.
 | impl `Mul<Affine3>` | ported | Same public name. |
 | impl `Mul<Mat4>` | renamed | mul_mat4 — Heterogeneous multiplication is the named mul_mat4 method. |
 | impl `MulAssign<Affine3>` | ported | Same public name. |
-| impl `Product<Affine3>` | dropped | Iterator Sum/Product traits are deliberately omitted. |
+| impl `Product<Affine3>` | ported | Same public name. |
 | method `abs_diff_eq` | ported | Same public name. |
 | method `as_daffine3` | dropped | Only Fixed, i32 and u32 vector families are in scope. |
 | method `from_axis_angle` | ported | Same public name. |
 | method `from_cols` | ported | Same public name. |
 | method `from_cols_array` | ported | Same public name. |
 | method `from_cols_array_2d` | ported | Same public name. |
-| method `from_cols_slice` | dropped | Slice APIs are deliberately omitted from fixed-size Cairo math types. |
+| method `from_cols_slice` | renamed | from_cols_span — A Cairo slice is a Span: the constructor reads the first N elements of a Span. |
 | method `from_mat3` | ported | Same public name. |
 | method `from_mat3_translation` | ported | Same public name. |
 | method `from_mat4` | ported | Same public name. |
@@ -138,7 +138,7 @@ passed by value. Percent is `(ported + renamed) / all glam-rs items`.
 | method `to_scale_rotation_translation` | ported | Same public name. |
 | method `transform_point3` | ported | Same public name. |
 | method `transform_vector3` | ported | Same public name. |
-| method `write_cols_to_slice` | dropped | Slice APIs are deliberately omitted from fixed-size Cairo math types. |
+| method `write_cols_to_slice` | renamed | write_cols_to — Cairo cannot overwrite a slice in place: the elements are appended to an Array. |
 
 ### Cairo-only items
 
@@ -446,8 +446,8 @@ passed by value. Percent is `(ported + renamed) / all glam-rs items`.
 | impl `MulAssign<IVec2>` | ported | Same public name. |
 | impl `MulAssign<i32>` | ported | Same public name. |
 | impl `Neg` | ported | Same public name. |
-| impl `Product` | dropped | Iterator Sum/Product traits are deliberately omitted. |
-| impl `Product<IVec2>` | dropped | Iterator Sum/Product traits are deliberately omitted. |
+| impl `Product` | renamed | Product<IVec2> — The owned and the reference forms of glam-rs are one Cairo impl of the core iterator trait. |
+| impl `Product<IVec2>` | ported | Same public name. |
 | impl `Rem<IVec2>` | ported | Same public name. |
 | impl `Rem<IVec2> for i32` | dropped | Scalar-on-the-left vector operators are deliberately omitted. |
 | impl `Rem<i32>` | renamed | Rem_scalar — Heterogeneous scalar operators are named *_scalar methods. |
@@ -494,8 +494,8 @@ passed by value. Percent is `(ported + renamed) / all glam-rs items`.
 | impl `Sub<i32>` | renamed | Sub_scalar — Heterogeneous scalar operators are named *_scalar methods. |
 | impl `SubAssign<IVec2>` | ported | Same public name. |
 | impl `SubAssign<i32>` | ported | Same public name. |
-| impl `Sum` | dropped | Iterator Sum/Product traits are deliberately omitted. |
-| impl `Sum<IVec2>` | dropped | Iterator Sum/Product traits are deliberately omitted. |
+| impl `Sum` | renamed | Sum<IVec2> — The owned and the reference forms of glam-rs are one Cairo impl of the core iterator trait. |
+| impl `Sum<IVec2>` | ported | Same public name. |
 | method `abs` | ported | Same public name. |
 | method `as_dvec2` | dropped | Only Fixed, i32 and u32 vector families are in scope. |
 | method `as_i16vec2` | dropped | Only Fixed, i32 and u32 vector families are in scope. |
@@ -531,13 +531,13 @@ passed by value. Percent is `(ported + renamed) / all glam-rs items`.
 | method `element_sum` | ported | Same public name. |
 | method `extend` | ported | Same public name. |
 | method `from_array` | ported | Same public name. |
-| method `from_slice` | dropped | Slice APIs are deliberately omitted from fixed-size Cairo math types. |
+| method `from_slice` | renamed | from_span — A Cairo slice is a Span: the constructor reads the first N elements of a Span. |
 | method `is_negative_bitmask` | ported | Same public name. |
 | method `is_negative_mask` | ported | Same public name. |
 | method `ivec2` | ported | Same public name. |
 | method `length_squared` | ported | Same public name. |
 | method `manhattan_distance` | ported | Same public name. |
-| method `map` | dropped | Generic callback mapping is omitted from the monomorphic Cairo API. |
+| method `map` | ported | Same public name. |
 | method `max` | ported | Same public name. |
 | method `max_element` | ported | Same public name. |
 | method `max_position` | ported | Same public name. |
@@ -567,7 +567,7 @@ passed by value. Percent is `(ported + renamed) / all glam-rs items`.
 | method `wrapping_mul` | ported | Same public name. |
 | method `wrapping_sub` | ported | Same public name. |
 | method `wrapping_sub_unsigned` | ported | Same public name. |
-| method `write_to_slice` | dropped | Slice APIs are deliberately omitted from fixed-size Cairo math types. |
+| method `write_to_slice` | renamed | write_to — Cairo cannot overwrite a slice in place: the elements are appended to an Array. |
 | method `xx` | ported | Same public name. |
 | method `xxx` | ported | Same public name. |
 | method `xxxx` | ported | Same public name. |
@@ -673,8 +673,8 @@ passed by value. Percent is `(ported + renamed) / all glam-rs items`.
 | impl `MulAssign<IVec3>` | ported | Same public name. |
 | impl `MulAssign<i32>` | ported | Same public name. |
 | impl `Neg` | ported | Same public name. |
-| impl `Product` | dropped | Iterator Sum/Product traits are deliberately omitted. |
-| impl `Product<IVec3>` | dropped | Iterator Sum/Product traits are deliberately omitted. |
+| impl `Product` | renamed | Product<IVec3> — The owned and the reference forms of glam-rs are one Cairo impl of the core iterator trait. |
+| impl `Product<IVec3>` | ported | Same public name. |
 | impl `Rem<IVec3>` | ported | Same public name. |
 | impl `Rem<IVec3> for i32` | dropped | Scalar-on-the-left vector operators are deliberately omitted. |
 | impl `Rem<i32>` | renamed | Rem_scalar — Heterogeneous scalar operators are named *_scalar methods. |
@@ -721,8 +721,8 @@ passed by value. Percent is `(ported + renamed) / all glam-rs items`.
 | impl `Sub<i32>` | renamed | Sub_scalar — Heterogeneous scalar operators are named *_scalar methods. |
 | impl `SubAssign<IVec3>` | ported | Same public name. |
 | impl `SubAssign<i32>` | ported | Same public name. |
-| impl `Sum` | dropped | Iterator Sum/Product traits are deliberately omitted. |
-| impl `Sum<IVec3>` | dropped | Iterator Sum/Product traits are deliberately omitted. |
+| impl `Sum` | renamed | Sum<IVec3> — The owned and the reference forms of glam-rs are one Cairo impl of the core iterator trait. |
+| impl `Sum<IVec3>` | ported | Same public name. |
 | method `abs` | ported | Same public name. |
 | method `as_dvec3` | dropped | Only Fixed, i32 and u32 vector families are in scope. |
 | method `as_i16vec3` | dropped | Only Fixed, i32 and u32 vector families are in scope. |
@@ -760,13 +760,13 @@ passed by value. Percent is `(ported + renamed) / all glam-rs items`.
 | method `element_sum` | ported | Same public name. |
 | method `extend` | ported | Same public name. |
 | method `from_array` | ported | Same public name. |
-| method `from_slice` | dropped | Slice APIs are deliberately omitted from fixed-size Cairo math types. |
+| method `from_slice` | renamed | from_span — A Cairo slice is a Span: the constructor reads the first N elements of a Span. |
 | method `is_negative_bitmask` | ported | Same public name. |
 | method `is_negative_mask` | ported | Same public name. |
 | method `ivec3` | ported | Same public name. |
 | method `length_squared` | ported | Same public name. |
 | method `manhattan_distance` | ported | Same public name. |
-| method `map` | dropped | Generic callback mapping is omitted from the monomorphic Cairo API. |
+| method `map` | ported | Same public name. |
 | method `max` | ported | Same public name. |
 | method `max_element` | ported | Same public name. |
 | method `max_position` | ported | Same public name. |
@@ -801,7 +801,7 @@ passed by value. Percent is `(ported + renamed) / all glam-rs items`.
 | method `wrapping_mul` | ported | Same public name. |
 | method `wrapping_sub` | ported | Same public name. |
 | method `wrapping_sub_unsigned` | ported | Same public name. |
-| method `write_to_slice` | dropped | Slice APIs are deliberately omitted from fixed-size Cairo math types. |
+| method `write_to_slice` | renamed | write_to — Cairo cannot overwrite a slice in place: the elements are appended to an Array. |
 | method `xx` | ported | Same public name. |
 | method `xxx` | ported | Same public name. |
 | method `xxxx` | ported | Same public name. |
@@ -1001,8 +1001,8 @@ passed by value. Percent is `(ported + renamed) / all glam-rs items`.
 | impl `MulAssign<IVec4>` | ported | Same public name. |
 | impl `MulAssign<i32>` | ported | Same public name. |
 | impl `Neg` | ported | Same public name. |
-| impl `Product` | dropped | Iterator Sum/Product traits are deliberately omitted. |
-| impl `Product<IVec4>` | dropped | Iterator Sum/Product traits are deliberately omitted. |
+| impl `Product` | renamed | Product<IVec4> — The owned and the reference forms of glam-rs are one Cairo impl of the core iterator trait. |
+| impl `Product<IVec4>` | ported | Same public name. |
 | impl `Rem<IVec4>` | ported | Same public name. |
 | impl `Rem<IVec4> for i32` | dropped | Scalar-on-the-left vector operators are deliberately omitted. |
 | impl `Rem<i32>` | renamed | Rem_scalar — Heterogeneous scalar operators are named *_scalar methods. |
@@ -1049,8 +1049,8 @@ passed by value. Percent is `(ported + renamed) / all glam-rs items`.
 | impl `Sub<i32>` | renamed | Sub_scalar — Heterogeneous scalar operators are named *_scalar methods. |
 | impl `SubAssign<IVec4>` | ported | Same public name. |
 | impl `SubAssign<i32>` | ported | Same public name. |
-| impl `Sum` | dropped | Iterator Sum/Product traits are deliberately omitted. |
-| impl `Sum<IVec4>` | dropped | Iterator Sum/Product traits are deliberately omitted. |
+| impl `Sum` | renamed | Sum<IVec4> — The owned and the reference forms of glam-rs are one Cairo impl of the core iterator trait. |
+| impl `Sum<IVec4>` | ported | Same public name. |
 | method `abs` | ported | Same public name. |
 | method `as_dvec4` | dropped | Only Fixed, i32 and u32 vector families are in scope. |
 | method `as_i16vec4` | dropped | Only Fixed, i32 and u32 vector families are in scope. |
@@ -1085,13 +1085,13 @@ passed by value. Percent is `(ported + renamed) / all glam-rs items`.
 | method `element_product` | ported | Same public name. |
 | method `element_sum` | ported | Same public name. |
 | method `from_array` | ported | Same public name. |
-| method `from_slice` | dropped | Slice APIs are deliberately omitted from fixed-size Cairo math types. |
+| method `from_slice` | renamed | from_span — A Cairo slice is a Span: the constructor reads the first N elements of a Span. |
 | method `is_negative_bitmask` | ported | Same public name. |
 | method `is_negative_mask` | ported | Same public name. |
 | method `ivec4` | ported | Same public name. |
 | method `length_squared` | ported | Same public name. |
 | method `manhattan_distance` | ported | Same public name. |
-| method `map` | dropped | Generic callback mapping is omitted from the monomorphic Cairo API. |
+| method `map` | ported | Same public name. |
 | method `max` | ported | Same public name. |
 | method `max_element` | ported | Same public name. |
 | method `max_position` | ported | Same public name. |
@@ -1157,7 +1157,7 @@ passed by value. Percent is `(ported + renamed) / all glam-rs items`.
 | method `wrapping_mul` | ported | Same public name. |
 | method `wrapping_sub` | ported | Same public name. |
 | method `wrapping_sub_unsigned` | ported | Same public name. |
-| method `write_to_slice` | dropped | Slice APIs are deliberately omitted from fixed-size Cairo math types. |
+| method `write_to_slice` | renamed | write_to — Cairo cannot overwrite a slice in place: the elements are appended to an Array. |
 | method `ww` | ported | Same public name. |
 | method `www` | ported | Same public name. |
 | method `wwww` | ported | Same public name. |
@@ -1532,11 +1532,11 @@ passed by value. Percent is `(ported + renamed) / all glam-rs items`.
 | impl `MulAssign<Fixed>` | ported | Same public name. |
 | impl `MulAssign<Mat2>` | ported | Same public name. |
 | impl `Neg` | ported | Same public name. |
-| impl `Product` | dropped | Iterator Sum/Product traits are deliberately omitted. |
-| impl `Product<Mat2>` | dropped | Iterator Sum/Product traits are deliberately omitted. |
+| impl `Product` | renamed | Product<Mat2> — The owned and the reference forms of glam-rs are one Cairo impl of the core iterator trait. |
+| impl `Product<Mat2>` | ported | Same public name. |
 | impl `Sub<Mat2>` | ported | Same public name. |
 | impl `SubAssign<Mat2>` | ported | Same public name. |
-| impl `Sum<Mat2>` | dropped | Iterator Sum/Product traits are deliberately omitted. |
+| impl `Sum<Mat2>` | ported | Same public name. |
 | method `abs` | ported | Same public name. |
 | method `abs_diff_eq` | ported | Same public name. |
 | method `add_mat2` | ported | Same public name. |
@@ -1550,7 +1550,7 @@ passed by value. Percent is `(ported + renamed) / all glam-rs items`.
 | method `from_cols` | ported | Same public name. |
 | method `from_cols_array` | ported | Same public name. |
 | method `from_cols_array_2d` | ported | Same public name. |
-| method `from_cols_slice` | dropped | Slice APIs are deliberately omitted from fixed-size Cairo math types. |
+| method `from_cols_slice` | renamed | from_cols_span — A Cairo slice is a Span: the constructor reads the first N elements of a Span. |
 | method `from_diagonal` | ported | Same public name. |
 | method `from_mat3` | ported | Same public name. |
 | method `from_mat3_minor` | ported | Same public name. |
@@ -1558,7 +1558,7 @@ passed by value. Percent is `(ported + renamed) / all glam-rs items`.
 | method `from_mat3a_minor` | dropped | Aligned Mat3A/Vec3A APIs collapse into Mat3/Vec3. |
 | method `from_rows` | ported | Same public name. |
 | method `from_rows_array` | ported | Same public name. |
-| method `from_rows_slice` | dropped | Slice APIs are deliberately omitted from fixed-size Cairo math types. |
+| method `from_rows_slice` | renamed | from_rows_span — A Cairo slice is a Span: the constructor reads the first N elements of a Span. |
 | method `from_scale_angle` | ported | Same public name. |
 | method `inverse` | ported | Same public name. |
 | method `inverse_or_zero` | ported | Same public name. |
@@ -1579,7 +1579,7 @@ passed by value. Percent is `(ported + renamed) / all glam-rs items`.
 | method `to_rows_array` | ported | Same public name. |
 | method `transpose` | ported | Same public name. |
 | method `try_inverse` | ported | Same public name. |
-| method `write_cols_to_slice` | dropped | Slice APIs are deliberately omitted from fixed-size Cairo math types. |
+| method `write_cols_to_slice` | renamed | write_cols_to — Cairo cannot overwrite a slice in place: the elements are appended to an Array. |
 
 ### Cairo-only items
 
@@ -1618,11 +1618,11 @@ passed by value. Percent is `(ported + renamed) / all glam-rs items`.
 | impl `MulAssign<Fixed>` | ported | Same public name. |
 | impl `MulAssign<Mat3>` | ported | Same public name. |
 | impl `Neg` | ported | Same public name. |
-| impl `Product` | dropped | Iterator Sum/Product traits are deliberately omitted. |
-| impl `Product<Mat3>` | dropped | Iterator Sum/Product traits are deliberately omitted. |
+| impl `Product` | renamed | Product<Mat3> — The owned and the reference forms of glam-rs are one Cairo impl of the core iterator trait. |
+| impl `Product<Mat3>` | ported | Same public name. |
 | impl `Sub<Mat3>` | ported | Same public name. |
 | impl `SubAssign<Mat3>` | ported | Same public name. |
-| impl `Sum<Mat3>` | dropped | Iterator Sum/Product traits are deliberately omitted. |
+| impl `Sum<Mat3>` | ported | Same public name. |
 | method `abs` | ported | Same public name. |
 | method `abs_diff_eq` | ported | Same public name. |
 | method `add_mat3` | ported | Same public name. |
@@ -1637,7 +1637,7 @@ passed by value. Percent is `(ported + renamed) / all glam-rs items`.
 | method `from_cols` | ported | Same public name. |
 | method `from_cols_array` | ported | Same public name. |
 | method `from_cols_array_2d` | ported | Same public name. |
-| method `from_cols_slice` | dropped | Slice APIs are deliberately omitted from fixed-size Cairo math types. |
+| method `from_cols_slice` | renamed | from_cols_span — A Cairo slice is a Span: the constructor reads the first N elements of a Span. |
 | method `from_diagonal` | ported | Same public name. |
 | method `from_euler` | ported | Same public name. |
 | method `from_mat2` | ported | Same public name. |
@@ -1649,7 +1649,7 @@ passed by value. Percent is `(ported + renamed) / all glam-rs items`.
 | method `from_rotation_z` | ported | Same public name. |
 | method `from_rows` | ported | Same public name. |
 | method `from_rows_array` | ported | Same public name. |
-| method `from_rows_slice` | dropped | Slice APIs are deliberately omitted from fixed-size Cairo math types. |
+| method `from_rows_slice` | renamed | from_rows_span — A Cairo slice is a Span: the constructor reads the first N elements of a Span. |
 | method `from_scale` | ported | Same public name. |
 | method `from_scale_angle_translation` | ported | Same public name. |
 | method `from_translation` | ported | Same public name. |
@@ -1680,7 +1680,7 @@ passed by value. Percent is `(ported + renamed) / all glam-rs items`.
 | method `transform_vector2` | ported | Same public name. |
 | method `transpose` | ported | Same public name. |
 | method `try_inverse` | ported | Same public name. |
-| method `write_cols_to_slice` | dropped | Slice APIs are deliberately omitted from fixed-size Cairo math types. |
+| method `write_cols_to_slice` | renamed | write_cols_to — Cairo cannot overwrite a slice in place: the elements are appended to an Array. |
 
 ### Cairo-only items
 
@@ -1717,11 +1717,11 @@ passed by value. Percent is `(ported + renamed) / all glam-rs items`.
 | impl `MulAssign<Fixed>` | ported | Same public name. |
 | impl `MulAssign<Mat4>` | ported | Same public name. |
 | impl `Neg` | ported | Same public name. |
-| impl `Product` | dropped | Iterator Sum/Product traits are deliberately omitted. |
-| impl `Product<Mat4>` | dropped | Iterator Sum/Product traits are deliberately omitted. |
+| impl `Product` | renamed | Product<Mat4> — The owned and the reference forms of glam-rs are one Cairo impl of the core iterator trait. |
+| impl `Product<Mat4>` | ported | Same public name. |
 | impl `Sub<Mat4>` | ported | Same public name. |
 | impl `SubAssign<Mat4>` | ported | Same public name. |
-| impl `Sum<Mat4>` | dropped | Iterator Sum/Product traits are deliberately omitted. |
+| impl `Sum<Mat4>` | ported | Same public name. |
 | method `abs` | ported | Same public name. |
 | method `abs_diff_eq` | ported | Same public name. |
 | method `add_mat4` | ported | Same public name. |
@@ -1735,7 +1735,7 @@ passed by value. Percent is `(ported + renamed) / all glam-rs items`.
 | method `from_cols` | ported | Same public name. |
 | method `from_cols_array` | ported | Same public name. |
 | method `from_cols_array_2d` | ported | Same public name. |
-| method `from_cols_slice` | dropped | Slice APIs are deliberately omitted from fixed-size Cairo math types. |
+| method `from_cols_slice` | renamed | from_cols_span — A Cairo slice is a Span: the constructor reads the first N elements of a Span. |
 | method `from_diagonal` | ported | Same public name. |
 | method `from_euler` | ported | Same public name. |
 | method `from_mat3` | ported | Same public name. |
@@ -1748,7 +1748,7 @@ passed by value. Percent is `(ported + renamed) / all glam-rs items`.
 | method `from_rotation_z` | ported | Same public name. |
 | method `from_rows` | ported | Same public name. |
 | method `from_rows_array` | ported | Same public name. |
-| method `from_rows_slice` | dropped | Slice APIs are deliberately omitted from fixed-size Cairo math types. |
+| method `from_rows_slice` | renamed | from_rows_span — A Cairo slice is a Span: the constructor reads the first N elements of a Span. |
 | method `from_scale` | ported | Same public name. |
 | method `from_scale_rotation_translation` | ported | Same public name. |
 | method `from_translation` | ported | Same public name. |
@@ -1796,7 +1796,7 @@ passed by value. Percent is `(ported + renamed) / all glam-rs items`.
 | method `transform_vector3a` | dropped | Aligned Mat3A/Vec3A APIs collapse into Mat3/Vec3. |
 | method `transpose` | ported | Same public name. |
 | method `try_inverse` | ported | Same public name. |
-| method `write_cols_to_slice` | dropped | Slice APIs are deliberately omitted from fixed-size Cairo math types. |
+| method `write_cols_to_slice` | renamed | write_cols_to — Cairo cannot overwrite a slice in place: the elements are appended to an Array. |
 
 ### Cairo-only items
 
@@ -1829,11 +1829,11 @@ passed by value. Percent is `(ported + renamed) / all glam-rs items`.
 | impl `MulAssign<Fixed>` | ported | Same public name. |
 | impl `MulAssign<Quat>` | ported | Same public name. |
 | impl `Neg` | ported | Same public name. |
-| impl `Product` | dropped | Iterator Sum/Product traits are deliberately omitted. |
-| impl `Product<Quat>` | dropped | Iterator Sum/Product traits are deliberately omitted. |
+| impl `Product` | renamed | Product<Quat> — The owned and the reference forms of glam-rs are one Cairo impl of the core iterator trait. |
+| impl `Product<Quat>` | ported | Same public name. |
 | impl `Sub<Quat>` | ported | Same public name. |
 | impl `SubAssign<Quat>` | ported | Same public name. |
-| impl `Sum<Quat>` | dropped | Iterator Sum/Product traits are deliberately omitted. |
+| impl `Sum<Quat>` | ported | Same public name. |
 | method `abs_diff_eq` | ported | Same public name. |
 | method `angle_between` | ported | Same public name. |
 | method `as_dquat` | dropped | Only Fixed, i32 and u32 vector families are in scope. |
@@ -1855,7 +1855,7 @@ passed by value. Percent is `(ported + renamed) / all glam-rs items`.
 | method `from_rotation_y` | ported | Same public name. |
 | method `from_rotation_z` | ported | Same public name. |
 | method `from_scaled_axis` | ported | Same public name. |
-| method `from_slice` | dropped | Slice APIs are deliberately omitted from fixed-size Cairo math types. |
+| method `from_slice` | renamed | from_span — A Cairo slice is a Span: the constructor reads the first N elements of a Span. |
 | method `from_vec4` | ported | Same public name. |
 | method `from_xyzw` | ported | Same public name. |
 | method `inverse` | ported | Same public name. |
@@ -1883,7 +1883,7 @@ passed by value. Percent is `(ported + renamed) / all glam-rs items`.
 | method `to_axis_angle` | ported | Same public name. |
 | method `to_euler` | ported | Same public name. |
 | method `to_scaled_axis` | ported | Same public name. |
-| method `write_to_slice` | dropped | Slice APIs are deliberately omitted from fixed-size Cairo math types. |
+| method `write_to_slice` | renamed | write_to — Cairo cannot overwrite a slice in place: the elements are appended to an Array. |
 | method `xyz` | ported | Same public name. |
 
 ### Cairo-only items
@@ -1954,8 +1954,8 @@ passed by value. Percent is `(ported + renamed) / all glam-rs items`.
 | impl `Mul<u32>` | renamed | Mul_scalar — Heterogeneous scalar operators are named *_scalar methods. |
 | impl `MulAssign<UVec2>` | ported | Same public name. |
 | impl `MulAssign<u32>` | ported | Same public name. |
-| impl `Product` | dropped | Iterator Sum/Product traits are deliberately omitted. |
-| impl `Product<UVec2>` | dropped | Iterator Sum/Product traits are deliberately omitted. |
+| impl `Product` | renamed | Product<UVec2> — The owned and the reference forms of glam-rs are one Cairo impl of the core iterator trait. |
+| impl `Product<UVec2>` | ported | Same public name. |
 | impl `Rem<UVec2>` | ported | Same public name. |
 | impl `Rem<UVec2> for u32` | dropped | Scalar-on-the-left vector operators are deliberately omitted. |
 | impl `Rem<u32>` | renamed | Rem_scalar — Heterogeneous scalar operators are named *_scalar methods. |
@@ -2002,8 +2002,8 @@ passed by value. Percent is `(ported + renamed) / all glam-rs items`.
 | impl `Sub<u32>` | renamed | Sub_scalar — Heterogeneous scalar operators are named *_scalar methods. |
 | impl `SubAssign<UVec2>` | ported | Same public name. |
 | impl `SubAssign<u32>` | ported | Same public name. |
-| impl `Sum` | dropped | Iterator Sum/Product traits are deliberately omitted. |
-| impl `Sum<UVec2>` | dropped | Iterator Sum/Product traits are deliberately omitted. |
+| impl `Sum` | renamed | Sum<UVec2> — The owned and the reference forms of glam-rs are one Cairo impl of the core iterator trait. |
+| impl `Sum<UVec2>` | ported | Same public name. |
 | method `as_dvec2` | dropped | Only Fixed, i32 and u32 vector families are in scope. |
 | method `as_i16vec2` | dropped | Only Fixed, i32 and u32 vector families are in scope. |
 | method `as_i64vec2` | dropped | Only Fixed, i32 and u32 vector families are in scope. |
@@ -2035,10 +2035,10 @@ passed by value. Percent is `(ported + renamed) / all glam-rs items`.
 | method `element_sum` | ported | Same public name. |
 | method `extend` | ported | Same public name. |
 | method `from_array` | ported | Same public name. |
-| method `from_slice` | dropped | Slice APIs are deliberately omitted from fixed-size Cairo math types. |
+| method `from_slice` | renamed | from_span — A Cairo slice is a Span: the constructor reads the first N elements of a Span. |
 | method `length_squared` | ported | Same public name. |
 | method `manhattan_distance` | ported | Same public name. |
-| method `map` | dropped | Generic callback mapping is omitted from the monomorphic Cairo API. |
+| method `map` | ported | Same public name. |
 | method `max` | ported | Same public name. |
 | method `max_element` | ported | Same public name. |
 | method `max_position` | ported | Same public name. |
@@ -2062,7 +2062,7 @@ passed by value. Percent is `(ported + renamed) / all glam-rs items`.
 | method `wrapping_div` | ported | Same public name. |
 | method `wrapping_mul` | ported | Same public name. |
 | method `wrapping_sub` | ported | Same public name. |
-| method `write_to_slice` | dropped | Slice APIs are deliberately omitted from fixed-size Cairo math types. |
+| method `write_to_slice` | renamed | write_to — Cairo cannot overwrite a slice in place: the elements are appended to an Array. |
 | method `xx` | ported | Same public name. |
 | method `xxx` | ported | Same public name. |
 | method `xxxx` | ported | Same public name. |
@@ -2161,8 +2161,8 @@ passed by value. Percent is `(ported + renamed) / all glam-rs items`.
 | impl `Mul<u32>` | renamed | Mul_scalar — Heterogeneous scalar operators are named *_scalar methods. |
 | impl `MulAssign<UVec3>` | ported | Same public name. |
 | impl `MulAssign<u32>` | ported | Same public name. |
-| impl `Product` | dropped | Iterator Sum/Product traits are deliberately omitted. |
-| impl `Product<UVec3>` | dropped | Iterator Sum/Product traits are deliberately omitted. |
+| impl `Product` | renamed | Product<UVec3> — The owned and the reference forms of glam-rs are one Cairo impl of the core iterator trait. |
+| impl `Product<UVec3>` | ported | Same public name. |
 | impl `Rem<UVec3>` | ported | Same public name. |
 | impl `Rem<UVec3> for u32` | dropped | Scalar-on-the-left vector operators are deliberately omitted. |
 | impl `Rem<u32>` | renamed | Rem_scalar — Heterogeneous scalar operators are named *_scalar methods. |
@@ -2209,8 +2209,8 @@ passed by value. Percent is `(ported + renamed) / all glam-rs items`.
 | impl `Sub<u32>` | renamed | Sub_scalar — Heterogeneous scalar operators are named *_scalar methods. |
 | impl `SubAssign<UVec3>` | ported | Same public name. |
 | impl `SubAssign<u32>` | ported | Same public name. |
-| impl `Sum` | dropped | Iterator Sum/Product traits are deliberately omitted. |
-| impl `Sum<UVec3>` | dropped | Iterator Sum/Product traits are deliberately omitted. |
+| impl `Sum` | renamed | Sum<UVec3> — The owned and the reference forms of glam-rs are one Cairo impl of the core iterator trait. |
+| impl `Sum<UVec3>` | ported | Same public name. |
 | method `as_dvec3` | dropped | Only Fixed, i32 and u32 vector families are in scope. |
 | method `as_i16vec3` | dropped | Only Fixed, i32 and u32 vector families are in scope. |
 | method `as_i64vec3` | dropped | Only Fixed, i32 and u32 vector families are in scope. |
@@ -2244,10 +2244,10 @@ passed by value. Percent is `(ported + renamed) / all glam-rs items`.
 | method `element_sum` | ported | Same public name. |
 | method `extend` | ported | Same public name. |
 | method `from_array` | ported | Same public name. |
-| method `from_slice` | dropped | Slice APIs are deliberately omitted from fixed-size Cairo math types. |
+| method `from_slice` | renamed | from_span — A Cairo slice is a Span: the constructor reads the first N elements of a Span. |
 | method `length_squared` | ported | Same public name. |
 | method `manhattan_distance` | ported | Same public name. |
-| method `map` | dropped | Generic callback mapping is omitted from the monomorphic Cairo API. |
+| method `map` | ported | Same public name. |
 | method `max` | ported | Same public name. |
 | method `max_element` | ported | Same public name. |
 | method `max_position` | ported | Same public name. |
@@ -2279,7 +2279,7 @@ passed by value. Percent is `(ported + renamed) / all glam-rs items`.
 | method `wrapping_div` | ported | Same public name. |
 | method `wrapping_mul` | ported | Same public name. |
 | method `wrapping_sub` | ported | Same public name. |
-| method `write_to_slice` | dropped | Slice APIs are deliberately omitted from fixed-size Cairo math types. |
+| method `write_to_slice` | renamed | write_to — Cairo cannot overwrite a slice in place: the elements are appended to an Array. |
 | method `xx` | ported | Same public name. |
 | method `xxx` | ported | Same public name. |
 | method `xxxx` | ported | Same public name. |
@@ -2471,8 +2471,8 @@ passed by value. Percent is `(ported + renamed) / all glam-rs items`.
 | impl `Mul<u32>` | renamed | Mul_scalar — Heterogeneous scalar operators are named *_scalar methods. |
 | impl `MulAssign<UVec4>` | ported | Same public name. |
 | impl `MulAssign<u32>` | ported | Same public name. |
-| impl `Product` | dropped | Iterator Sum/Product traits are deliberately omitted. |
-| impl `Product<UVec4>` | dropped | Iterator Sum/Product traits are deliberately omitted. |
+| impl `Product` | renamed | Product<UVec4> — The owned and the reference forms of glam-rs are one Cairo impl of the core iterator trait. |
+| impl `Product<UVec4>` | ported | Same public name. |
 | impl `Rem<UVec4>` | ported | Same public name. |
 | impl `Rem<UVec4> for u32` | dropped | Scalar-on-the-left vector operators are deliberately omitted. |
 | impl `Rem<u32>` | renamed | Rem_scalar — Heterogeneous scalar operators are named *_scalar methods. |
@@ -2519,8 +2519,8 @@ passed by value. Percent is `(ported + renamed) / all glam-rs items`.
 | impl `Sub<u32>` | renamed | Sub_scalar — Heterogeneous scalar operators are named *_scalar methods. |
 | impl `SubAssign<UVec4>` | ported | Same public name. |
 | impl `SubAssign<u32>` | ported | Same public name. |
-| impl `Sum` | dropped | Iterator Sum/Product traits are deliberately omitted. |
-| impl `Sum<UVec4>` | dropped | Iterator Sum/Product traits are deliberately omitted. |
+| impl `Sum` | renamed | Sum<UVec4> — The owned and the reference forms of glam-rs are one Cairo impl of the core iterator trait. |
+| impl `Sum<UVec4>` | ported | Same public name. |
 | method `as_dvec4` | dropped | Only Fixed, i32 and u32 vector families are in scope. |
 | method `as_i16vec4` | dropped | Only Fixed, i32 and u32 vector families are in scope. |
 | method `as_i64vec4` | dropped | Only Fixed, i32 and u32 vector families are in scope. |
@@ -2551,10 +2551,10 @@ passed by value. Percent is `(ported + renamed) / all glam-rs items`.
 | method `element_product` | ported | Same public name. |
 | method `element_sum` | ported | Same public name. |
 | method `from_array` | ported | Same public name. |
-| method `from_slice` | dropped | Slice APIs are deliberately omitted from fixed-size Cairo math types. |
+| method `from_slice` | renamed | from_span — A Cairo slice is a Span: the constructor reads the first N elements of a Span. |
 | method `length_squared` | ported | Same public name. |
 | method `manhattan_distance` | ported | Same public name. |
-| method `map` | dropped | Generic callback mapping is omitted from the monomorphic Cairo API. |
+| method `map` | ported | Same public name. |
 | method `max` | ported | Same public name. |
 | method `max_element` | ported | Same public name. |
 | method `max_position` | ported | Same public name. |
@@ -2617,7 +2617,7 @@ passed by value. Percent is `(ported + renamed) / all glam-rs items`.
 | method `wrapping_div` | ported | Same public name. |
 | method `wrapping_mul` | ported | Same public name. |
 | method `wrapping_sub` | ported | Same public name. |
-| method `write_to_slice` | dropped | Slice APIs are deliberately omitted from fixed-size Cairo math types. |
+| method `write_to_slice` | renamed | write_to — Cairo cannot overwrite a slice in place: the elements are appended to an Array. |
 | method `ww` | ported | Same public name. |
 | method `www` | ported | Same public name. |
 | method `wwww` | ported | Same public name. |
@@ -3019,8 +3019,8 @@ passed by value. Percent is `(ported + renamed) / all glam-rs items`.
 | impl `MulAssign<Fixed>` | ported | Same public name. |
 | impl `MulAssign<Vec2>` | ported | Same public name. |
 | impl `Neg` | ported | Same public name. |
-| impl `Product` | dropped | Iterator Sum/Product traits are deliberately omitted. |
-| impl `Product<Vec2>` | dropped | Iterator Sum/Product traits are deliberately omitted. |
+| impl `Product` | renamed | Product<Vec2> — The owned and the reference forms of glam-rs are one Cairo impl of the core iterator trait. |
+| impl `Product<Vec2>` | ported | Same public name. |
 | impl `Rem<Fixed>` | renamed | Rem_scalar — Heterogeneous scalar operators are named *_scalar methods. |
 | impl `Rem<Vec2>` | ported | Same public name. |
 | impl `Rem<Vec2> for Fixed` | dropped | Scalar-on-the-left vector operators are deliberately omitted. |
@@ -3031,8 +3031,8 @@ passed by value. Percent is `(ported + renamed) / all glam-rs items`.
 | impl `Sub<Vec2> for Fixed` | dropped | Scalar-on-the-left vector operators are deliberately omitted. |
 | impl `SubAssign<Fixed>` | ported | Same public name. |
 | impl `SubAssign<Vec2>` | ported | Same public name. |
-| impl `Sum` | dropped | Iterator Sum/Product traits are deliberately omitted. |
-| impl `Sum<Vec2>` | dropped | Iterator Sum/Product traits are deliberately omitted. |
+| impl `Sum` | renamed | Sum<Vec2> — The owned and the reference forms of glam-rs are one Cairo impl of the core iterator trait. |
+| impl `Sum<Vec2>` | ported | Same public name. |
 | method `abs` | ported | Same public name. |
 | method `abs_diff_eq` | ported | Same public name. |
 | method `angle_to` | ported | Same public name. |
@@ -3075,7 +3075,7 @@ passed by value. Percent is `(ported + renamed) / all glam-rs items`.
 | method `fract_gl` | ported | Same public name. |
 | method `from_angle` | ported | Same public name. |
 | method `from_array` | ported | Same public name. |
-| method `from_slice` | dropped | Slice APIs are deliberately omitted from fixed-size Cairo math types. |
+| method `from_slice` | renamed | from_span — A Cairo slice is a Span: the constructor reads the first N elements of a Span. |
 | method `is_finite` | dropped | Fixed values are always finite and never NaN. |
 | method `is_finite_mask` | dropped | Fixed values are always finite and never NaN. |
 | method `is_nan` | dropped | Fixed values are always finite and never NaN. |
@@ -3089,7 +3089,7 @@ passed by value. Percent is `(ported + renamed) / all glam-rs items`.
 | method `lerp` | ported | Same public name. |
 | method `ln` | ported | Same public name. |
 | method `log2` | ported | Same public name. |
-| method `map` | dropped | Generic callback mapping is omitted from the monomorphic Cairo API. |
+| method `map` | ported | Same public name. |
 | method `max` | ported | Same public name. |
 | method `max_element` | ported | Same public name. |
 | method `max_position` | ported | Same public name. |
@@ -3135,7 +3135,7 @@ passed by value. Percent is `(ported + renamed) / all glam-rs items`.
 | method `vec2` | ported | Same public name. |
 | method `with_x` | ported | Same public name. |
 | method `with_y` | ported | Same public name. |
-| method `write_to_slice` | dropped | Slice APIs are deliberately omitted from fixed-size Cairo math types. |
+| method `write_to_slice` | renamed | write_to — Cairo cannot overwrite a slice in place: the elements are appended to an Array. |
 | method `xx` | ported | Same public name. |
 | method `xxx` | ported | Same public name. |
 | method `xxxx` | ported | Same public name. |
@@ -3232,8 +3232,8 @@ passed by value. Percent is `(ported + renamed) / all glam-rs items`.
 | impl `MulAssign<Fixed>` | ported | Same public name. |
 | impl `MulAssign<Vec3>` | ported | Same public name. |
 | impl `Neg` | ported | Same public name. |
-| impl `Product` | dropped | Iterator Sum/Product traits are deliberately omitted. |
-| impl `Product<Vec3>` | dropped | Iterator Sum/Product traits are deliberately omitted. |
+| impl `Product` | renamed | Product<Vec3> — The owned and the reference forms of glam-rs are one Cairo impl of the core iterator trait. |
+| impl `Product<Vec3>` | ported | Same public name. |
 | impl `Rem<Fixed>` | renamed | Rem_scalar — Heterogeneous scalar operators are named *_scalar methods. |
 | impl `Rem<Vec3>` | ported | Same public name. |
 | impl `Rem<Vec3> for Fixed` | dropped | Scalar-on-the-left vector operators are deliberately omitted. |
@@ -3244,8 +3244,8 @@ passed by value. Percent is `(ported + renamed) / all glam-rs items`.
 | impl `Sub<Vec3> for Fixed` | dropped | Scalar-on-the-left vector operators are deliberately omitted. |
 | impl `SubAssign<Fixed>` | ported | Same public name. |
 | impl `SubAssign<Vec3>` | ported | Same public name. |
-| impl `Sum` | dropped | Iterator Sum/Product traits are deliberately omitted. |
-| impl `Sum<Vec3>` | dropped | Iterator Sum/Product traits are deliberately omitted. |
+| impl `Sum` | renamed | Sum<Vec3> — The owned and the reference forms of glam-rs are one Cairo impl of the core iterator trait. |
+| impl `Sum<Vec3>` | ported | Same public name. |
 | method `abs` | ported | Same public name. |
 | method `abs_diff_eq` | ported | Same public name. |
 | method `angle_between` | ported | Same public name. |
@@ -3293,7 +3293,7 @@ passed by value. Percent is `(ported + renamed) / all glam-rs items`.
 | method `fract_gl` | ported | Same public name. |
 | method `from_array` | ported | Same public name. |
 | method `from_homogeneous` | ported | Same public name. |
-| method `from_slice` | dropped | Slice APIs are deliberately omitted from fixed-size Cairo math types. |
+| method `from_slice` | renamed | from_span — A Cairo slice is a Span: the constructor reads the first N elements of a Span. |
 | method `is_finite` | dropped | Fixed values are always finite and never NaN. |
 | method `is_finite_mask` | dropped | Fixed values are always finite and never NaN. |
 | method `is_nan` | dropped | Fixed values are always finite and never NaN. |
@@ -3307,7 +3307,7 @@ passed by value. Percent is `(ported + renamed) / all glam-rs items`.
 | method `lerp` | ported | Same public name. |
 | method `ln` | ported | Same public name. |
 | method `log2` | ported | Same public name. |
-| method `map` | dropped | Generic callback mapping is omitted from the monomorphic Cairo API. |
+| method `map` | ported | Same public name. |
 | method `max` | ported | Same public name. |
 | method `max_element` | ported | Same public name. |
 | method `max_position` | ported | Same public name. |
@@ -3363,7 +3363,7 @@ passed by value. Percent is `(ported + renamed) / all glam-rs items`.
 | method `with_z` | ported | Same public name. |
 | method `with_zx` | ported | Same public name. |
 | method `with_zy` | ported | Same public name. |
-| method `write_to_slice` | dropped | Slice APIs are deliberately omitted from fixed-size Cairo math types. |
+| method `write_to_slice` | renamed | write_to — Cairo cannot overwrite a slice in place: the elements are appended to an Array. |
 | method `xx` | ported | Same public name. |
 | method `xxx` | ported | Same public name. |
 | method `xxxx` | ported | Same public name. |
@@ -3558,8 +3558,8 @@ passed by value. Percent is `(ported + renamed) / all glam-rs items`.
 | impl `MulAssign<Fixed>` | ported | Same public name. |
 | impl `MulAssign<Vec4>` | ported | Same public name. |
 | impl `Neg` | ported | Same public name. |
-| impl `Product` | dropped | Iterator Sum/Product traits are deliberately omitted. |
-| impl `Product<Vec4>` | dropped | Iterator Sum/Product traits are deliberately omitted. |
+| impl `Product` | renamed | Product<Vec4> — The owned and the reference forms of glam-rs are one Cairo impl of the core iterator trait. |
+| impl `Product<Vec4>` | ported | Same public name. |
 | impl `Rem<Fixed>` | renamed | Rem_scalar — Heterogeneous scalar operators are named *_scalar methods. |
 | impl `Rem<Vec4>` | ported | Same public name. |
 | impl `Rem<Vec4> for Fixed` | dropped | Scalar-on-the-left vector operators are deliberately omitted. |
@@ -3570,8 +3570,8 @@ passed by value. Percent is `(ported + renamed) / all glam-rs items`.
 | impl `Sub<Vec4> for Fixed` | dropped | Scalar-on-the-left vector operators are deliberately omitted. |
 | impl `SubAssign<Fixed>` | ported | Same public name. |
 | impl `SubAssign<Vec4>` | ported | Same public name. |
-| impl `Sum` | dropped | Iterator Sum/Product traits are deliberately omitted. |
-| impl `Sum<Vec4>` | dropped | Iterator Sum/Product traits are deliberately omitted. |
+| impl `Sum` | renamed | Sum<Vec4> — The owned and the reference forms of glam-rs are one Cairo impl of the core iterator trait. |
+| impl `Sum<Vec4>` | ported | Same public name. |
 | method `abs` | ported | Same public name. |
 | method `abs_diff_eq` | ported | Same public name. |
 | method `as_dvec4` | dropped | Only Fixed, i32 and u32 vector families are in scope. |
@@ -3611,7 +3611,7 @@ passed by value. Percent is `(ported + renamed) / all glam-rs items`.
 | method `fract` | ported | Same public name. |
 | method `fract_gl` | ported | Same public name. |
 | method `from_array` | ported | Same public name. |
-| method `from_slice` | dropped | Slice APIs are deliberately omitted from fixed-size Cairo math types. |
+| method `from_slice` | renamed | from_span — A Cairo slice is a Span: the constructor reads the first N elements of a Span. |
 | method `is_finite` | dropped | Fixed values are always finite and never NaN. |
 | method `is_finite_mask` | dropped | Fixed values are always finite and never NaN. |
 | method `is_nan` | dropped | Fixed values are always finite and never NaN. |
@@ -3625,7 +3625,7 @@ passed by value. Percent is `(ported + renamed) / all glam-rs items`.
 | method `lerp` | ported | Same public name. |
 | method `ln` | ported | Same public name. |
 | method `log2` | ported | Same public name. |
-| method `map` | dropped | Generic callback mapping is omitted from the monomorphic Cairo API. |
+| method `map` | ported | Same public name. |
 | method `max` | ported | Same public name. |
 | method `max_element` | ported | Same public name. |
 | method `max_position` | ported | Same public name. |
@@ -3705,7 +3705,7 @@ passed by value. Percent is `(ported + renamed) / all glam-rs items`.
 | method `with_zy` | ported | Same public name. |
 | method `with_zyw` | ported | Same public name. |
 | method `with_zyx` | ported | Same public name. |
-| method `write_to_slice` | dropped | Slice APIs are deliberately omitted from fixed-size Cairo math types. |
+| method `write_to_slice` | renamed | write_to — Cairo cannot overwrite a slice in place: the elements are appended to an Array. |
 | method `ww` | ported | Same public name. |
 | method `www` | ported | Same public name. |
 | method `wwww` | ported | Same public name. |

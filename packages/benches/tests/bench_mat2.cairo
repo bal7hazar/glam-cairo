@@ -10,7 +10,7 @@
 use benches::alt::mat2 as alt;
 use benches::harness::{bb, sink};
 use fixed::fixed::Fixed;
-use glam::mat2::{Mat2, Mat2Trait};
+use glam::mat2::{Mat2, Mat2Product, Mat2Sum, Mat2Trait};
 use glam::mat3::Mat3;
 use glam::vec2::Vec2;
 use glam::vec3::Vec3;
@@ -46,6 +46,86 @@ const M3: Mat3 = Mat3 {
         x: Fixed { raw: 0xc0000000 }, y: Fixed { raw: -0x80000000 }, z: Fixed { raw: 0x480000000 },
     },
 };
+
+#[test]
+fn sum3__base() {
+    let _a = bb(A);
+    let _b = bb(B);
+    let _c = bb(A);
+    let r = bb(A);
+    sink(r);
+}
+
+#[test]
+fn sum3__op() {
+    let a = bb(A);
+    let b = bb(B);
+    let c = bb(A);
+    let _r = bb(A);
+    sink(Mat2Sum::sum(array![a, b, c].into_iter()));
+}
+
+#[test]
+fn product3__base() {
+    let _a = bb(A);
+    let _b = bb(B);
+    let _c = bb(A);
+    let r = bb(A);
+    sink(r);
+}
+
+#[test]
+fn product3__op() {
+    let a = bb(A);
+    let b = bb(B);
+    let c = bb(A);
+    let _r = bb(A);
+    sink(Mat2Product::product(array![a, b, c].into_iter()));
+}
+
+#[test]
+fn from_cols_span__base() {
+    let _s = bb(array![A.x_axis.x, A.x_axis.y, A.y_axis.x, A.y_axis.y].span());
+    let r = bb(A);
+    sink(r);
+}
+
+#[test]
+fn from_cols_span__op() {
+    let s = bb(array![A.x_axis.x, A.x_axis.y, A.y_axis.x, A.y_axis.y].span());
+    let _r = bb(A);
+    sink(Mat2Trait::from_cols_span(s));
+}
+
+#[test]
+fn from_rows_span__base() {
+    let _s = bb(array![A.x_axis.x, A.x_axis.y, A.y_axis.x, A.y_axis.y].span());
+    let r = bb(A);
+    sink(r);
+}
+
+#[test]
+fn from_rows_span__op() {
+    let s = bb(array![A.x_axis.x, A.x_axis.y, A.y_axis.x, A.y_axis.y].span());
+    let _r = bb(A);
+    sink(Mat2Trait::from_rows_span(s));
+}
+
+#[test]
+fn write_cols_to__base() {
+    let _a = bb(A);
+    let r = bb(A);
+    sink(r);
+}
+
+#[test]
+fn write_cols_to__op() {
+    let a = bb(A);
+    let _r = bb(A);
+    let mut out = array![];
+    a.write_cols_to(ref out);
+    sink(out);
+}
 
 #[test]
 fn from_cols__base() {

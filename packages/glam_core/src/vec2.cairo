@@ -11,8 +11,9 @@
 //! There is no NaN and no infinity: overflow, division by zero and the normalization of the zero
 //! vector panic (docs/DESIGN.md section 3).
 
+use core::iter::{Product, Sum};
 use core::ops::index::IndexView;
-use core::ops::{AddAssign, DivAssign, MulAssign, RemAssign, SubAssign};
+use core::ops::{AddAssign, DivAssign, Fn, MulAssign, RemAssign, SubAssign};
 use fixed::exp::ExpTrait;
 use fixed::fixed::{Fixed, FixedTrait, PI};
 use fixed::trig::TrigTrait;
@@ -33,9 +34,9 @@ use crate::vec3::Vec3;
 /// * `Debug` is the derived Cairo formatting; `Display` is not implemented.
 /// * No `NAN` / `INFINITY` / `NEG_INFINITY` consts and no `is_nan` / `is_finite` /
 ///   `is_nan_mask` / `is_finite_mask`: those values do not exist (docs/DESIGN.md section 3).
-/// * Not ported: `map` (a closure parameter cannot be force-inlined, E2143), `from_slice` /
-///   `write_to_slice` (no `Span` in fixed-size math), `Sum` / `Product` (no iterator trait to
-///   implement), `IndexMut`, the by-reference operator overloads, the scalar-on-the-left
+/// * `from_slice` / `write_to_slice` are `from_span` / `write_to` (a `Span` in, an `Array` out);
+///   `Sum` / `Product` are impls of `core::iter::Sum` / `core::iter::Product`.
+/// * Not ported: `IndexMut`, the by-reference operator overloads, the scalar-on-the-left
 ///   operators (`2.0 * v`) and the casts to types that do not exist in glam-cairo
 ///   (`as_dvec2`, `as_i8vec2`, ...).
 #[derive(Copy, Drop, Serde, PartialEq, Debug, Default, Hash)]
@@ -141,6 +142,40 @@ pub trait Vec2Trait {
     /// #### Deviations
     /// * None.
     fn to_array(self: Vec2) -> [Fixed; 2];
+    /// Creates a vector from the first 2 elements of `span`.
+    ///
+    /// The elements are read in order (`x` first); a longer span is accepted, its extra
+    /// elements are ignored.
+    ///
+    /// Mirrors `glam::Vec2::from_slice`.
+    /// #### Panics
+    /// * `'Vec2: span too short'` if `span` has fewer than 2 elements.
+    /// #### Deviations
+    /// * Takes a `Span` (Cairo has no slice reference); a span longer than the type needs
+    ///   is accepted and its first elements are read, as the slice of glam-rs. A shorter
+    ///   span panics with the message above where glam-rs panics with an index out of
+    ///   bounds.
+    fn from_span(span: Span<Fixed>) -> Vec2;
+    /// Appends the 2 elements of `self` to `out`, `x` first.
+    ///
+    /// Mirrors `glam::Vec2::write_to_slice`.
+    /// #### Panics
+    /// * Never.
+    /// #### Deviations
+    /// * Appends the elements to `out` (an `Array` cannot be overwritten in place), where
+    ///   glam-rs overwrites the first elements of the slice: pass an empty array to get
+    ///   the same elements.
+    fn write_to(self: Vec2, ref out: Array<Fixed>);
+    /// Returns a vector containing each element of `self` modified by a mapping function
+    /// `f`.
+    ///
+    /// Mirrors `glam::Vec2::map`.
+    /// #### Panics
+    /// * Never.
+    /// #### Deviations
+    /// * The callback is a closure (`core::ops::Fn`) and each element is mapped in order
+    ///   (`x` first).
+    fn map<F, +Fn<F, (Fixed,)>[Output: Fixed], +Drop<F>>(self: Vec2, f: F) -> Vec2;
     /// Creates a 3D vector from `self` and the given `z` value.
     ///
     /// Mirrors `glam::Vec2::extend`.
@@ -1244,6 +1279,22 @@ pub impl Vec2Impl of Vec2Trait {
     }
 
     #[inline(always)]
+    fn from_span(span: Span<Fixed>) -> Vec2 {
+        assert(span.len() >= 2, 'Vec2: span too short');
+        Vec2 { x: *span.at(0), y: *span.at(1) }
+    }
+
+    #[inline(always)]
+    fn write_to(self: Vec2, ref out: Array<Fixed>) {
+        out.append(self.x);
+        out.append(self.y);
+    }
+
+    fn map<F, +Fn<F, (Fixed,)>[Output: Fixed], +Drop<F>>(self: Vec2, f: F) -> Vec2 {
+        Vec2 { x: f(self.x), y: f(self.y) }
+    }
+
+    #[inline(always)]
     fn extend(self: Vec2, z: Fixed) -> Vec3 {
         Vec3 { x: self.x, y: self.y, z }
     }
@@ -1961,6 +2012,56 @@ pub impl Vec2IndexView of IndexView<Vec2, usize> {
             1 => *self.y,
             _ => core::panic_with_felt252('Vec2: index out of bounds'),
         }
+    }
+}
+
+/// The sum of an iterator of `Vec2` (component-wise).
+///
+/// Items are folded in iteration order, left to right, starting from `ZERO`, with the `+` of
+/// `Vec2`: `(((start + a) + b) + c)`. That order is the determinism contract. An empty iterator
+/// yields the start value.
+///
+/// Mirrors `impl Sum for glam::Vec2` and `impl<'a> Sum<&'a Vec2> for glam::Vec2`.
+/// #### Panics
+/// * `'i64_add Overflow'` / `'i64_add Underflow'` if a component sum leaves the scalar range.
+/// #### Deviations
+/// * The Cairo trait is `core::iter::Sum<Vec2>` with one impl: the owned form and the
+///   reference form of glam-rs (`Sum<&Vec2>`) are one, as values are `Copy` and passed by
+///   value.
+/// * Iterator glue, not a math kernel: it loops over the iterator (docs/DESIGN.md section 4,
+///   exception AP).
+pub impl Vec2Sum of Sum<Vec2> {
+    fn sum<I, +Iterator<I>[Item: Vec2], +Destruct<I>, +Destruct<Vec2>>(mut iter: I) -> Vec2 {
+        let mut acc = Vec2Trait::ZERO;
+        while let Some(item) = iter.next() {
+            acc = acc + item;
+        }
+        acc
+    }
+}
+
+/// The product of an iterator of `Vec2` (component-wise).
+///
+/// Items are folded in iteration order, left to right, starting from `ONE`, with the `*` of
+/// `Vec2`: `(((start * a) * b) * c)`. That order is the determinism contract. An empty iterator
+/// yields the start value.
+///
+/// Mirrors `impl Product for glam::Vec2` and `impl<'a> Product<&'a Vec2> for glam::Vec2`.
+/// #### Panics
+/// * `'Fixed: overflow'` if a component product leaves the scalar range.
+/// #### Deviations
+/// * The Cairo trait is `core::iter::Product<Vec2>` with one impl: the owned form and the
+///   reference form of glam-rs (`Product<&Vec2>`) are one, as values are `Copy` and passed by
+///   value.
+/// * Iterator glue, not a math kernel: it loops over the iterator (docs/DESIGN.md section 4,
+///   exception AP).
+pub impl Vec2Product of Product<Vec2> {
+    fn product<I, +Iterator<I>[Item: Vec2], +Destruct<I>, +Destruct<Vec2>>(mut iter: I) -> Vec2 {
+        let mut acc = Vec2Trait::ONE;
+        while let Some(item) = iter.next() {
+            acc = acc * item;
+        }
+        acc
     }
 }
 

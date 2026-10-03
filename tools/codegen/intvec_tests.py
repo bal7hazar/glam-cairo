@@ -898,4 +898,8 @@ fn nz(v: {S}) -> {S} {{
 }}
 
 """
-    return prelude + "\n".join(G.out)
+    sc = lambda k: str(k)
+    ctor = lambda vals: f"{t.mod}(" + ", ".join(sc(v) for v in vals) + ")"
+    tests = g.iterio.tests_vector(T, t.mod, n, t.S, sc, ctor, f"{T}Trait::ZERO",
+                                   f"{T}Trait::ONE", g.MAP, f"{T}Trait::MAX", f'{t.S}_add Overflow', f'{t.S}_mul Overflow', T.capitalize())
+    return prelude + "\n".join(G.out) + tests

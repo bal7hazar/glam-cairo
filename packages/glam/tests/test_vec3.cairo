@@ -1574,3 +1574,104 @@ fn fuzz_rotate(a: i64, b: i64, c: i64, d: i64) {
     assert!(va.rotate_y(ang).length().abs_diff_eq(len, f(17)));
     assert!(va.rotate_z(ang).length().abs_diff_eq(len, f(17)));
 }
+
+// ---- iterators, span and array entry points, `map` (lot AP)
+use glam::vec3::{Vec3Product, Vec3Sum};
+
+#[test]
+fn test_sum_product_iter() {
+    let s = Vec3Sum::sum(
+        array![
+            vec3(FixedTrait::from_int(2), FixedTrait::from_int(3), FixedTrait::from_int(4)),
+            vec3(FixedTrait::from_int(3), FixedTrait::from_int(4), FixedTrait::from_int(5)),
+            vec3(FixedTrait::from_int(4), FixedTrait::from_int(5), FixedTrait::from_int(6)),
+        ]
+            .into_iter(),
+    );
+    assert!(
+        s == vec3(FixedTrait::from_int(9), FixedTrait::from_int(12), FixedTrait::from_int(15)),
+        "sum",
+    );
+    let p = Vec3Product::product(
+        array![
+            vec3(FixedTrait::from_int(2), FixedTrait::from_int(3), FixedTrait::from_int(4)),
+            vec3(FixedTrait::from_int(3), FixedTrait::from_int(4), FixedTrait::from_int(5)),
+            vec3(FixedTrait::from_int(4), FixedTrait::from_int(5), FixedTrait::from_int(6)),
+        ]
+            .into_iter(),
+    );
+    assert!(
+        p == vec3(FixedTrait::from_int(24), FixedTrait::from_int(60), FixedTrait::from_int(120)),
+        "product",
+    );
+    let none: Array<Vec3> = array![];
+    assert!(Vec3Sum::sum(none.into_iter()) == Vec3Trait::ZERO, "empty sum");
+    let none: Array<Vec3> = array![];
+    assert!(Vec3Product::product(none.into_iter()) == Vec3Trait::ONE, "empty product");
+}
+
+#[test]
+fn test_from_span_write_to() {
+    let longer: Array<Fixed> = array![
+        FixedTrait::from_int(1), FixedTrait::from_int(2), FixedTrait::from_int(3),
+        FixedTrait::from_int(4),
+    ];
+    let v = Vec3Trait::from_span(longer.span());
+    assert!(
+        v == vec3(FixedTrait::from_int(1), FixedTrait::from_int(2), FixedTrait::from_int(3)),
+        "N + 1 reads the first N",
+    );
+    let exact: Array<Fixed> = array![
+        FixedTrait::from_int(1), FixedTrait::from_int(2), FixedTrait::from_int(3),
+    ];
+    assert!(Vec3Trait::from_span(exact.span()) == v, "exactly N");
+    let mut out: Array<Fixed> = array![];
+    v.write_to(ref out);
+    assert!(out.len() == 3, "N elements appended");
+    assert!(Vec3Trait::from_span(out.span()) == v, "round trip");
+    v.write_to(ref out);
+    assert!(out.len() == 6, "write_to appends");
+}
+
+#[test]
+#[should_panic(expected: 'Vec3: span too short')]
+fn test_from_span_short() {
+    let short: Array<Fixed> = array![FixedTrait::from_int(1), FixedTrait::from_int(2)];
+    let _ = Vec3Trait::from_span(short.span());
+}
+
+// panics: Vec3::Vec3Sum
+#[test]
+#[should_panic(expected: 'i64_add Overflow')]
+fn test_sum_overflow() {
+    let _ = Vec3Sum::sum(array![Vec3Trait::MAX, Vec3Trait::MAX].into_iter());
+}
+
+// panics: Vec3::Vec3Product
+#[test]
+#[should_panic(expected: 'Fixed: overflow')]
+fn test_product_overflow() {
+    let _ = Vec3Product::product(array![Vec3Trait::MAX, Vec3Trait::MAX].into_iter());
+}
+
+#[test]
+fn test_map() {
+    let v = Vec3Trait::from_span(
+        array![FixedTrait::from_int(1), FixedTrait::from_int(2), FixedTrait::from_int(3)].span(),
+    );
+    assert!(
+        v
+            .map(
+                |x| x + x,
+            ) == vec3(FixedTrait::from_int(2), FixedTrait::from_int(4), FixedTrait::from_int(6)),
+        "map doubles",
+    );
+    let offset = FixedTrait::from_int(5);
+    assert!(
+        v
+            .map(
+                |x| x + offset,
+            ) == vec3(FixedTrait::from_int(6), FixedTrait::from_int(7), FixedTrait::from_int(8)),
+        "map captures",
+    );
+}

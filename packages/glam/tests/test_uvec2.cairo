@@ -891,3 +891,62 @@ fn fuzz_div_rem(a: u32, b: u32, c: u32, d: u32) {
     assert_eq!(va.saturating_div(vb), q);
     assert_eq!(va.checked_div(vb), Some(q));
 }
+
+// ---- iterators, span and array entry points, `map` (lot AP)
+use glam::uvec2::{UVec2Product, UVec2Sum};
+
+#[test]
+fn test_sum_product_iter() {
+    let s = UVec2Sum::sum(array![uvec2(2, 3), uvec2(3, 4), uvec2(4, 5)].into_iter());
+    assert!(s == uvec2(9, 12), "sum");
+    let p = UVec2Product::product(array![uvec2(2, 3), uvec2(3, 4), uvec2(4, 5)].into_iter());
+    assert!(p == uvec2(24, 60), "product");
+    let none: Array<UVec2> = array![];
+    assert!(UVec2Sum::sum(none.into_iter()) == UVec2Trait::ZERO, "empty sum");
+    let none: Array<UVec2> = array![];
+    assert!(UVec2Product::product(none.into_iter()) == UVec2Trait::ONE, "empty product");
+}
+
+#[test]
+fn test_from_span_write_to() {
+    let longer: Array<u32> = array![1, 2, 3];
+    let v = UVec2Trait::from_span(longer.span());
+    assert!(v == uvec2(1, 2), "N + 1 reads the first N");
+    let exact: Array<u32> = array![1, 2];
+    assert!(UVec2Trait::from_span(exact.span()) == v, "exactly N");
+    let mut out: Array<u32> = array![];
+    v.write_to(ref out);
+    assert!(out.len() == 2, "N elements appended");
+    assert!(UVec2Trait::from_span(out.span()) == v, "round trip");
+    v.write_to(ref out);
+    assert!(out.len() == 4, "write_to appends");
+}
+
+#[test]
+#[should_panic(expected: 'UVec2: span too short')]
+fn test_from_span_short() {
+    let short: Array<u32> = array![1];
+    let _ = UVec2Trait::from_span(short.span());
+}
+
+// panics: Uvec2::UVec2Sum
+#[test]
+#[should_panic(expected: 'u32_add Overflow')]
+fn test_sum_overflow() {
+    let _ = UVec2Sum::sum(array![UVec2Trait::MAX, UVec2Trait::MAX].into_iter());
+}
+
+// panics: Uvec2::UVec2Product
+#[test]
+#[should_panic(expected: 'u32_mul Overflow')]
+fn test_product_overflow() {
+    let _ = UVec2Product::product(array![UVec2Trait::MAX, UVec2Trait::MAX].into_iter());
+}
+
+#[test]
+fn test_map() {
+    let v = UVec2Trait::from_span(array![1, 2].span());
+    assert!(v.map(|x| x + x) == uvec2(2, 4), "map doubles");
+    let offset = 5;
+    assert!(v.map(|x| x + offset) == uvec2(6, 7), "map captures");
+}

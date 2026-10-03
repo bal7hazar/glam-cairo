@@ -7,7 +7,7 @@ pub use glam_core::uvec3::{
     BVec3IntoUVec3, IVec3TryIntoUVec3, U32ArrayIntoUVec3, U32TupleIntoUVec3, UVec2U32IntoUVec3,
     UVec3, UVec3Add, UVec3AddAssign, UVec3AddAssignScalar, UVec3BitAnd, UVec3BitNot, UVec3BitOr,
     UVec3BitXor, UVec3Div, UVec3DivAssign, UVec3DivAssignScalar, UVec3IndexView, UVec3IntoU32Array,
-    UVec3IntoU32Tuple, UVec3Mul, UVec3MulAssign, UVec3MulAssignScalar, UVec3Rem, UVec3RemAssign,
-    UVec3RemAssignScalar, UVec3Sub, UVec3SubAssign, UVec3SubAssignScalar,
+    UVec3IntoU32Tuple, UVec3Mul, UVec3MulAssign, UVec3MulAssignScalar, UVec3Product, UVec3Rem,
+    UVec3RemAssign, UVec3RemAssignScalar, UVec3Sub, UVec3SubAssign, UVec3SubAssignScalar, UVec3Sum,
 };
 pub use glam_int::uvec3::{UVec3Impl, UVec3Trait, uvec3};

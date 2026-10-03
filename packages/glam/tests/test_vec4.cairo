@@ -1325,3 +1325,166 @@ fn fuzz_geometry(a: i64, b: i64, c: i64, d: i64) {
         assert!((p + r).abs_diff_eq(va, f(8)));
     }
 }
+
+// ---- iterators, span and array entry points, `map` (lot AP)
+use glam::vec4::{Vec4Product, Vec4Sum};
+
+#[test]
+fn test_sum_product_iter() {
+    let s = Vec4Sum::sum(
+        array![
+            vec4(
+                FixedTrait::from_int(2),
+                FixedTrait::from_int(3),
+                FixedTrait::from_int(4),
+                FixedTrait::from_int(5),
+            ),
+            vec4(
+                FixedTrait::from_int(3),
+                FixedTrait::from_int(4),
+                FixedTrait::from_int(5),
+                FixedTrait::from_int(6),
+            ),
+            vec4(
+                FixedTrait::from_int(4),
+                FixedTrait::from_int(5),
+                FixedTrait::from_int(6),
+                FixedTrait::from_int(7),
+            ),
+        ]
+            .into_iter(),
+    );
+    assert!(
+        s == vec4(
+            FixedTrait::from_int(9),
+            FixedTrait::from_int(12),
+            FixedTrait::from_int(15),
+            FixedTrait::from_int(18),
+        ),
+        "sum",
+    );
+    let p = Vec4Product::product(
+        array![
+            vec4(
+                FixedTrait::from_int(2),
+                FixedTrait::from_int(3),
+                FixedTrait::from_int(4),
+                FixedTrait::from_int(5),
+            ),
+            vec4(
+                FixedTrait::from_int(3),
+                FixedTrait::from_int(4),
+                FixedTrait::from_int(5),
+                FixedTrait::from_int(6),
+            ),
+            vec4(
+                FixedTrait::from_int(4),
+                FixedTrait::from_int(5),
+                FixedTrait::from_int(6),
+                FixedTrait::from_int(7),
+            ),
+        ]
+            .into_iter(),
+    );
+    assert!(
+        p == vec4(
+            FixedTrait::from_int(24),
+            FixedTrait::from_int(60),
+            FixedTrait::from_int(120),
+            FixedTrait::from_int(210),
+        ),
+        "product",
+    );
+    let none: Array<Vec4> = array![];
+    assert!(Vec4Sum::sum(none.into_iter()) == Vec4Trait::ZERO, "empty sum");
+    let none: Array<Vec4> = array![];
+    assert!(Vec4Product::product(none.into_iter()) == Vec4Trait::ONE, "empty product");
+}
+
+#[test]
+fn test_from_span_write_to() {
+    let longer: Array<Fixed> = array![
+        FixedTrait::from_int(1), FixedTrait::from_int(2), FixedTrait::from_int(3),
+        FixedTrait::from_int(4), FixedTrait::from_int(5),
+    ];
+    let v = Vec4Trait::from_span(longer.span());
+    assert!(
+        v == vec4(
+            FixedTrait::from_int(1),
+            FixedTrait::from_int(2),
+            FixedTrait::from_int(3),
+            FixedTrait::from_int(4),
+        ),
+        "N + 1 reads the first N",
+    );
+    let exact: Array<Fixed> = array![
+        FixedTrait::from_int(1), FixedTrait::from_int(2), FixedTrait::from_int(3),
+        FixedTrait::from_int(4),
+    ];
+    assert!(Vec4Trait::from_span(exact.span()) == v, "exactly N");
+    let mut out: Array<Fixed> = array![];
+    v.write_to(ref out);
+    assert!(out.len() == 4, "N elements appended");
+    assert!(Vec4Trait::from_span(out.span()) == v, "round trip");
+    v.write_to(ref out);
+    assert!(out.len() == 8, "write_to appends");
+}
+
+#[test]
+#[should_panic(expected: 'Vec4: span too short')]
+fn test_from_span_short() {
+    let short: Array<Fixed> = array![
+        FixedTrait::from_int(1), FixedTrait::from_int(2), FixedTrait::from_int(3),
+    ];
+    let _ = Vec4Trait::from_span(short.span());
+}
+
+// panics: Vec4::Vec4Sum
+#[test]
+#[should_panic(expected: 'i64_add Overflow')]
+fn test_sum_overflow() {
+    let _ = Vec4Sum::sum(array![Vec4Trait::MAX, Vec4Trait::MAX].into_iter());
+}
+
+// panics: Vec4::Vec4Product
+#[test]
+#[should_panic(expected: 'Fixed: overflow')]
+fn test_product_overflow() {
+    let _ = Vec4Product::product(array![Vec4Trait::MAX, Vec4Trait::MAX].into_iter());
+}
+
+#[test]
+fn test_map() {
+    let v = Vec4Trait::from_span(
+        array![
+            FixedTrait::from_int(1), FixedTrait::from_int(2), FixedTrait::from_int(3),
+            FixedTrait::from_int(4),
+        ]
+            .span(),
+    );
+    assert!(
+        v
+            .map(
+                |x| x + x,
+            ) == vec4(
+                FixedTrait::from_int(2),
+                FixedTrait::from_int(4),
+                FixedTrait::from_int(6),
+                FixedTrait::from_int(8),
+            ),
+        "map doubles",
+    );
+    let offset = FixedTrait::from_int(5);
+    assert!(
+        v
+            .map(
+                |x| x + offset,
+            ) == vec4(
+                FixedTrait::from_int(6),
+                FixedTrait::from_int(7),
+                FixedTrait::from_int(8),
+                FixedTrait::from_int(9),
+            ),
+        "map captures",
+    );
+}

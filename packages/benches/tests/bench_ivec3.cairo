@@ -9,8 +9,74 @@
 use benches::alt::ivec3 as alt;
 use benches::harness::{bb, sink};
 use glam::bvec3::BVec3Trait;
-use glam::ivec3::{IVec3, IVec3Trait};
+use glam::ivec3::{IVec3, IVec3Product, IVec3Sum, IVec3Trait};
 use glam::uvec3::{UVec3, UVec3Trait};
+
+#[test]
+fn sum3__base() {
+    let _a = bb(IVec3Trait::new(3, -7, 11));
+    let _b = bb(IVec3Trait::new(-5, 2, 9));
+    let _c = bb(IVec3Trait::new(3, -7, 11));
+    let r = bb(IVec3Trait::new(1, 2, 3));
+    sink(r);
+}
+
+#[test]
+fn sum3__op() {
+    let a = bb(IVec3Trait::new(3, -7, 11));
+    let b = bb(IVec3Trait::new(-5, 2, 9));
+    let c = bb(IVec3Trait::new(3, -7, 11));
+    let _r = bb(IVec3Trait::new(1, 2, 3));
+    sink(IVec3Sum::sum(array![a, b, c].into_iter()));
+}
+
+#[test]
+fn product3__base() {
+    let _a = bb(IVec3Trait::new(2, 3, 2));
+    let _b = bb(IVec3Trait::new(3, 2, 3));
+    let _c = bb(IVec3Trait::new(2, 2, 2));
+    let r = bb(IVec3Trait::new(1, 2, 3));
+    sink(r);
+}
+
+#[test]
+fn product3__op() {
+    let a = bb(IVec3Trait::new(2, 3, 2));
+    let b = bb(IVec3Trait::new(3, 2, 3));
+    let c = bb(IVec3Trait::new(2, 2, 2));
+    let _r = bb(IVec3Trait::new(1, 2, 3));
+    sink(IVec3Product::product(array![a, b, c].into_iter()));
+}
+
+#[test]
+fn from_span__base() {
+    let _s = bb(array![3, -7, 11].span());
+    let r = bb(IVec3Trait::new(1, 2, 3));
+    sink(r);
+}
+
+#[test]
+fn from_span__op() {
+    let s = bb(array![3, -7, 11].span());
+    let _r = bb(IVec3Trait::new(1, 2, 3));
+    sink(IVec3Trait::from_span(s));
+}
+
+#[test]
+fn write_to__base() {
+    let _a = bb(IVec3Trait::new(3, -7, 11));
+    let r = bb(IVec3Trait::new(1, 2, 3));
+    sink(r);
+}
+
+#[test]
+fn write_to__op() {
+    let a = bb(IVec3Trait::new(3, -7, 11));
+    let _r = bb(IVec3Trait::new(1, 2, 3));
+    let mut out = array![];
+    a.write_to(ref out);
+    sink(out);
+}
 
 #[test]
 fn select_true__base() {

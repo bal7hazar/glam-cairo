@@ -11,6 +11,7 @@
 //! There is no NaN and no infinity: overflow, division by zero and the inversion of a singular
 //! matrix panic (docs/DESIGN.md section 3).
 
+use core::iter::{Product, Sum};
 use core::ops::{AddAssign, DivAssign, MulAssign, SubAssign};
 use fixed::fixed::{Fixed, FixedTrait};
 use fixed::trig::TrigTrait;
@@ -33,9 +34,11 @@ use crate::vec4::Vec4Trait;
 /// * `Debug` is the derived Cairo formatting; `Display` is not implemented.
 /// * No `NAN` const and no `is_nan` / `is_finite`: those values do not exist
 ///   (docs/DESIGN.md section 3).
-/// * Not ported: `col_mut` / `set_row` (no `&mut`), `from_cols_slice` / `from_rows_slice` /
-///   `write_cols_to_slice` (no `Span` in fixed-size math), `Sum` / `Product` (no iterator trait
-///   to implement), the by-reference operator overloads, the scalar-on-the-left operators
+/// * `from_cols_slice` / `from_rows_slice` / `write_cols_to_slice` are `from_cols_span` /
+///   `from_rows_span` / `write_cols_to` (a `Span` in, an `Array` out); `Sum` / `Product` are
+///   impls of `core::iter::Sum` / `core::iter::Product`.
+/// * Not ported: `col_mut` / `set_row` (no `&mut`), the by-reference operator overloads, the
+/// scalar-on-the-left operators
 ///   (`2.0 * m`) and the casts to types that do not exist in glam-cairo (`as_dmat3`, `Mat3A`).
 /// * `from_euler` / `to_euler` are the extension trait `glam::euler::Mat3EulerTrait`.
 #[derive(Copy, Drop, Serde, PartialEq, Debug, Hash)]
@@ -146,6 +149,47 @@ pub trait Mat3Trait {
     /// #### Deviations
     /// * None.
     fn to_cols_array_2d(self: Mat3) -> [[Fixed; 3]; 3];
+    /// Creates a 3x3 matrix from the first 9 elements of `span`, stored in column major
+    /// order.
+    ///
+    /// If the data is in row major order use `from_rows_span` instead.
+    ///
+    /// Mirrors `glam::Mat3::from_cols_slice`.
+    /// #### Panics
+    /// * `'Mat3: span too short'` if `span` has fewer than 9 elements.
+    /// #### Deviations
+    /// * Takes a `Span` (Cairo has no slice reference); a span longer than the type needs
+    ///   is accepted and its first elements are read, as the slice of glam-rs. A shorter
+    ///   span panics with the message above where glam-rs panics with an index out of
+    ///   bounds.
+    fn from_cols_span(span: Span<Fixed>) -> Mat3;
+    /// Creates a 3x3 matrix from the first 9 elements of `span`, stored in row major
+    /// order.
+    ///
+    /// Matrices are stored in column major order, so the span is permuted into the matrix
+    /// layout.
+    ///
+    /// Mirrors `glam::Mat3::from_rows_slice`.
+    /// #### Panics
+    /// * `'Mat3: span too short'` if `span` has fewer than 9 elements.
+    /// #### Deviations
+    /// * Takes a `Span` (Cairo has no slice reference); a span longer than the type needs
+    ///   is accepted and its first elements are read, as the slice of glam-rs. A shorter
+    ///   span panics with the message above where glam-rs panics with an index out of
+    ///   bounds.
+    fn from_rows_span(span: Span<Fixed>) -> Mat3;
+    /// Appends the 9 elements of `self` to `out`, in column major order.
+    ///
+    /// If you require the data in row major order `transpose` the matrix first.
+    ///
+    /// Mirrors `glam::Mat3::write_cols_to_slice`.
+    /// #### Panics
+    /// * Never.
+    /// #### Deviations
+    /// * Appends the elements to `out` (an `Array` cannot be overwritten in place), where
+    ///   glam-rs overwrites the first elements of the slice: pass an empty array to get
+    ///   the same elements.
+    fn write_cols_to(self: Mat3, ref out: Array<Fixed>);
     /// Creates a 3x3 matrix with its diagonal set to `diagonal` and all other entries set
     /// to 0.
     ///
@@ -629,6 +673,57 @@ pub impl Mat3Impl of Mat3Trait {
             [self.y_axis.x, self.y_axis.y, self.y_axis.z],
             [self.z_axis.x, self.z_axis.y, self.z_axis.z],
         ]
+    }
+
+    #[inline(always)]
+    fn from_cols_span(span: Span<Fixed>) -> Mat3 {
+        assert(span.len() >= 9, 'Mat3: span too short');
+        let m00 = *span.at(0);
+        let m01 = *span.at(1);
+        let m02 = *span.at(2);
+        let m10 = *span.at(3);
+        let m11 = *span.at(4);
+        let m12 = *span.at(5);
+        let m20 = *span.at(6);
+        let m21 = *span.at(7);
+        let m22 = *span.at(8);
+        Mat3 {
+            x_axis: Vec3 { x: m00, y: m01, z: m02 },
+            y_axis: Vec3 { x: m10, y: m11, z: m12 },
+            z_axis: Vec3 { x: m20, y: m21, z: m22 },
+        }
+    }
+
+    #[inline(always)]
+    fn from_rows_span(span: Span<Fixed>) -> Mat3 {
+        assert(span.len() >= 9, 'Mat3: span too short');
+        let m00 = *span.at(0);
+        let m01 = *span.at(1);
+        let m02 = *span.at(2);
+        let m10 = *span.at(3);
+        let m11 = *span.at(4);
+        let m12 = *span.at(5);
+        let m20 = *span.at(6);
+        let m21 = *span.at(7);
+        let m22 = *span.at(8);
+        Mat3 {
+            x_axis: Vec3 { x: m00, y: m10, z: m20 },
+            y_axis: Vec3 { x: m01, y: m11, z: m21 },
+            z_axis: Vec3 { x: m02, y: m12, z: m22 },
+        }
+    }
+
+    #[inline(always)]
+    fn write_cols_to(self: Mat3, ref out: Array<Fixed>) {
+        out.append(self.x_axis.x);
+        out.append(self.x_axis.y);
+        out.append(self.x_axis.z);
+        out.append(self.y_axis.x);
+        out.append(self.y_axis.y);
+        out.append(self.y_axis.z);
+        out.append(self.z_axis.x);
+        out.append(self.z_axis.y);
+        out.append(self.z_axis.z);
     }
 
     #[inline(always)]
@@ -1116,6 +1211,57 @@ pub impl Mat3Impl of Mat3Trait {
             x: dot2(self.x_axis.x, rhs.x, self.y_axis.x, rhs.y),
             y: dot2(self.x_axis.y, rhs.x, self.y_axis.y, rhs.y),
         }
+    }
+}
+
+/// The sum of an iterator of `Mat3` (element-wise).
+///
+/// Items are folded in iteration order, left to right, starting from `ZERO`, with the `+` of
+/// `Mat3`: `(((start + a) + b) + c)`. That order is the determinism contract. An empty iterator
+/// yields the start value.
+///
+/// Mirrors `impl Sum for glam::Mat3` and `impl<'a> Sum<&'a Mat3> for glam::Mat3`.
+/// #### Panics
+/// * `'i64_add Overflow'` / `'i64_add Underflow'` if an element sum leaves the scalar range.
+/// #### Deviations
+/// * The Cairo trait is `core::iter::Sum<Mat3>` with one impl: the owned form and the
+///   reference form of glam-rs (`Sum<&Mat3>`) are one, as values are `Copy` and passed by
+///   value.
+/// * Iterator glue, not a math kernel: it loops over the iterator (docs/DESIGN.md section 4,
+///   exception AP).
+pub impl Mat3Sum of Sum<Mat3> {
+    fn sum<I, +Iterator<I>[Item: Mat3], +Destruct<I>, +Destruct<Mat3>>(mut iter: I) -> Mat3 {
+        let mut acc = Mat3Trait::ZERO;
+        while let Some(item) = iter.next() {
+            acc = acc + item;
+        }
+        acc
+    }
+}
+
+/// The product of an iterator of `Mat3` (matrix product).
+///
+/// Items are folded in iteration order, left to right, starting from `IDENTITY`, with the `*`
+/// of `Mat3`: `(((start * a) * b) * c)`. That order is the determinism contract: the product is
+/// not commutative, so the order of the items changes the result. An empty iterator yields the
+/// start value.
+///
+/// Mirrors `impl Product for glam::Mat3` and `impl<'a> Product<&'a Mat3> for glam::Mat3`.
+/// #### Panics
+/// * `'Fixed: overflow'` if an element of a product leaves the scalar range.
+/// #### Deviations
+/// * The Cairo trait is `core::iter::Product<Mat3>` with one impl: the owned form and the
+///   reference form of glam-rs (`Product<&Mat3>`) are one, as values are `Copy` and passed by
+///   value.
+/// * Iterator glue, not a math kernel: it loops over the iterator (docs/DESIGN.md section 4,
+///   exception AP).
+pub impl Mat3Product of Product<Mat3> {
+    fn product<I, +Iterator<I>[Item: Mat3], +Destruct<I>, +Destruct<Mat3>>(mut iter: I) -> Mat3 {
+        let mut acc = Mat3Trait::IDENTITY;
+        while let Some(item) = iter.next() {
+            acc = acc * item;
+        }
+        acc
     }
 }
 

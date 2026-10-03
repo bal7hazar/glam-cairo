@@ -16,6 +16,7 @@ use core::num::traits::{
     CheckedAdd, CheckedSub, SaturatingAdd, SaturatingSub, WideMul, WrappingAdd, WrappingMul,
     WrappingSub,
 };
+use core::ops::Fn;
 use core::traits::DivRem;
 use glam_core::bvec2::BVec2;
 use glam_core::ivec2::IVec2;
@@ -107,6 +108,40 @@ pub trait UVec2Trait {
     /// #### Deviations
     /// * None.
     fn to_array(self: UVec2) -> [u32; 2];
+    /// Creates a vector from the first 2 elements of `span`.
+    ///
+    /// The elements are read in order (`x` first); a longer span is accepted, its extra
+    /// elements are ignored.
+    ///
+    /// Mirrors `glam::UVec2::from_slice`.
+    /// #### Panics
+    /// * `'UVec2: span too short'` if `span` has fewer than 2 elements.
+    /// #### Deviations
+    /// * Takes a `Span` (Cairo has no slice reference); a span longer than the type needs
+    ///   is accepted and its first elements are read, as the slice of glam-rs. A shorter
+    ///   span panics with the message above where glam-rs panics with an index out of
+    ///   bounds.
+    fn from_span(span: Span<u32>) -> UVec2;
+    /// Appends the 2 elements of `self` to `out`, `x` first.
+    ///
+    /// Mirrors `glam::UVec2::write_to_slice`.
+    /// #### Panics
+    /// * Never.
+    /// #### Deviations
+    /// * Appends the elements to `out` (an `Array` cannot be overwritten in place), where
+    ///   glam-rs overwrites the first elements of the slice: pass an empty array to get
+    ///   the same elements.
+    fn write_to(self: UVec2, ref out: Array<u32>);
+    /// Returns a vector containing each element of `self` modified by a mapping function
+    /// `f`.
+    ///
+    /// Mirrors `glam::UVec2::map`.
+    /// #### Panics
+    /// * Never.
+    /// #### Deviations
+    /// * The callback is a closure (`core::ops::Fn`) and each element is mapped in order
+    ///   (`x` first).
+    fn map<F, +Fn<F, (u32,)>[Output: u32], +Drop<F>>(self: UVec2, f: F) -> UVec2;
     /// Creates a 3D vector from `self` and the given `z` value.
     ///
     /// Mirrors `glam::UVec2::extend`.
@@ -644,6 +679,22 @@ pub impl UVec2Impl of UVec2Trait {
     #[inline(always)]
     fn to_array(self: UVec2) -> [u32; 2] {
         [self.x, self.y]
+    }
+
+    #[inline(always)]
+    fn from_span(span: Span<u32>) -> UVec2 {
+        assert(span.len() >= 2, 'UVec2: span too short');
+        UVec2 { x: *span.at(0), y: *span.at(1) }
+    }
+
+    #[inline(always)]
+    fn write_to(self: UVec2, ref out: Array<u32>) {
+        out.append(self.x);
+        out.append(self.y);
+    }
+
+    fn map<F, +Fn<F, (u32,)>[Output: u32], +Drop<F>>(self: UVec2, f: F) -> UVec2 {
+        UVec2 { x: f(self.x), y: f(self.y) }
     }
 
     #[inline(always)]

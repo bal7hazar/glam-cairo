@@ -1297,3 +1297,66 @@ fn fuzz_div_euclid_rem_euclid_abs_signum(a: i32, b: i32, c: i32, d: i32) {
     assert_eq!(va.is_negative_mask(), va.cmplt(IVec4Trait::ZERO));
     assert_eq!(va.is_negative_bitmask(), va.is_negative_mask().bitmask());
 }
+
+// ---- iterators, span and array entry points, `map` (lot AP)
+use glam::ivec4::{IVec4Product, IVec4Sum};
+
+#[test]
+fn test_sum_product_iter() {
+    let s = IVec4Sum::sum(
+        array![ivec4(2, 3, 4, 5), ivec4(3, 4, 5, 6), ivec4(4, 5, 6, 7)].into_iter(),
+    );
+    assert!(s == ivec4(9, 12, 15, 18), "sum");
+    let p = IVec4Product::product(
+        array![ivec4(2, 3, 4, 5), ivec4(3, 4, 5, 6), ivec4(4, 5, 6, 7)].into_iter(),
+    );
+    assert!(p == ivec4(24, 60, 120, 210), "product");
+    let none: Array<IVec4> = array![];
+    assert!(IVec4Sum::sum(none.into_iter()) == IVec4Trait::ZERO, "empty sum");
+    let none: Array<IVec4> = array![];
+    assert!(IVec4Product::product(none.into_iter()) == IVec4Trait::ONE, "empty product");
+}
+
+#[test]
+fn test_from_span_write_to() {
+    let longer: Array<i32> = array![1, 2, 3, 4, 5];
+    let v = IVec4Trait::from_span(longer.span());
+    assert!(v == ivec4(1, 2, 3, 4), "N + 1 reads the first N");
+    let exact: Array<i32> = array![1, 2, 3, 4];
+    assert!(IVec4Trait::from_span(exact.span()) == v, "exactly N");
+    let mut out: Array<i32> = array![];
+    v.write_to(ref out);
+    assert!(out.len() == 4, "N elements appended");
+    assert!(IVec4Trait::from_span(out.span()) == v, "round trip");
+    v.write_to(ref out);
+    assert!(out.len() == 8, "write_to appends");
+}
+
+#[test]
+#[should_panic(expected: 'IVec4: span too short')]
+fn test_from_span_short() {
+    let short: Array<i32> = array![1, 2, 3];
+    let _ = IVec4Trait::from_span(short.span());
+}
+
+// panics: Ivec4::IVec4Sum
+#[test]
+#[should_panic(expected: 'i32_add Overflow')]
+fn test_sum_overflow() {
+    let _ = IVec4Sum::sum(array![IVec4Trait::MAX, IVec4Trait::MAX].into_iter());
+}
+
+// panics: Ivec4::IVec4Product
+#[test]
+#[should_panic(expected: 'i32_mul Overflow')]
+fn test_product_overflow() {
+    let _ = IVec4Product::product(array![IVec4Trait::MAX, IVec4Trait::MAX].into_iter());
+}
+
+#[test]
+fn test_map() {
+    let v = IVec4Trait::from_span(array![1, 2, 3, 4].span());
+    assert!(v.map(|x| x + x) == ivec4(2, 4, 6, 8), "map doubles");
+    let offset = 5;
+    assert!(v.map(|x| x + offset) == ivec4(6, 7, 8, 9), "map captures");
+}

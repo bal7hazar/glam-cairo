@@ -16,6 +16,7 @@ use core::integer::i32_diff;
 use core::num::traits::{
     CheckedAdd, CheckedSub, SaturatingAdd, SaturatingSub, WideMul, WrappingAdd, WrappingSub,
 };
+use core::ops::Fn;
 use core::traits::DivRem;
 use glam_core::bvec3::{BVec3, BVec3Trait};
 use glam_core::ivec2::IVec2;
@@ -128,6 +129,40 @@ pub trait IVec3Trait {
     /// #### Deviations
     /// * None.
     fn to_array(self: IVec3) -> [i32; 3];
+    /// Creates a vector from the first 3 elements of `span`.
+    ///
+    /// The elements are read in order (`x` first); a longer span is accepted, its extra
+    /// elements are ignored.
+    ///
+    /// Mirrors `glam::IVec3::from_slice`.
+    /// #### Panics
+    /// * `'IVec3: span too short'` if `span` has fewer than 3 elements.
+    /// #### Deviations
+    /// * Takes a `Span` (Cairo has no slice reference); a span longer than the type needs
+    ///   is accepted and its first elements are read, as the slice of glam-rs. A shorter
+    ///   span panics with the message above where glam-rs panics with an index out of
+    ///   bounds.
+    fn from_span(span: Span<i32>) -> IVec3;
+    /// Appends the 3 elements of `self` to `out`, `x` first.
+    ///
+    /// Mirrors `glam::IVec3::write_to_slice`.
+    /// #### Panics
+    /// * Never.
+    /// #### Deviations
+    /// * Appends the elements to `out` (an `Array` cannot be overwritten in place), where
+    ///   glam-rs overwrites the first elements of the slice: pass an empty array to get
+    ///   the same elements.
+    fn write_to(self: IVec3, ref out: Array<i32>);
+    /// Returns a vector containing each element of `self` modified by a mapping function
+    /// `f`.
+    ///
+    /// Mirrors `glam::IVec3::map`.
+    /// #### Panics
+    /// * Never.
+    /// #### Deviations
+    /// * The callback is a closure (`core::ops::Fn`) and each element is mapped in order
+    ///   (`x` first).
+    fn map<F, +Fn<F, (i32,)>[Output: i32], +Drop<F>>(self: IVec3, f: F) -> IVec3;
     /// Creates a 4D vector from `self` and the given `w` value.
     ///
     /// Mirrors `glam::IVec3::extend`.
@@ -817,6 +852,23 @@ pub impl IVec3Impl of IVec3Trait {
     #[inline(always)]
     fn to_array(self: IVec3) -> [i32; 3] {
         [self.x, self.y, self.z]
+    }
+
+    #[inline(always)]
+    fn from_span(span: Span<i32>) -> IVec3 {
+        assert(span.len() >= 3, 'IVec3: span too short');
+        IVec3 { x: *span.at(0), y: *span.at(1), z: *span.at(2) }
+    }
+
+    #[inline(always)]
+    fn write_to(self: IVec3, ref out: Array<i32>) {
+        out.append(self.x);
+        out.append(self.y);
+        out.append(self.z);
+    }
+
+    fn map<F, +Fn<F, (i32,)>[Output: i32], +Drop<F>>(self: IVec3, f: F) -> IVec3 {
+        IVec3 { x: f(self.x), y: f(self.y), z: f(self.z) }
     }
 
     #[inline(always)]

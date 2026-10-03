@@ -1117,3 +1117,62 @@ fn fuzz_div_euclid_rem_euclid_abs_signum(a: i32, b: i32, c: i32, d: i32) {
     assert_eq!(va.is_negative_mask(), va.cmplt(IVec2Trait::ZERO));
     assert_eq!(va.is_negative_bitmask(), va.is_negative_mask().bitmask());
 }
+
+// ---- iterators, span and array entry points, `map` (lot AP)
+use glam::ivec2::{IVec2Product, IVec2Sum};
+
+#[test]
+fn test_sum_product_iter() {
+    let s = IVec2Sum::sum(array![ivec2(2, 3), ivec2(3, 4), ivec2(4, 5)].into_iter());
+    assert!(s == ivec2(9, 12), "sum");
+    let p = IVec2Product::product(array![ivec2(2, 3), ivec2(3, 4), ivec2(4, 5)].into_iter());
+    assert!(p == ivec2(24, 60), "product");
+    let none: Array<IVec2> = array![];
+    assert!(IVec2Sum::sum(none.into_iter()) == IVec2Trait::ZERO, "empty sum");
+    let none: Array<IVec2> = array![];
+    assert!(IVec2Product::product(none.into_iter()) == IVec2Trait::ONE, "empty product");
+}
+
+#[test]
+fn test_from_span_write_to() {
+    let longer: Array<i32> = array![1, 2, 3];
+    let v = IVec2Trait::from_span(longer.span());
+    assert!(v == ivec2(1, 2), "N + 1 reads the first N");
+    let exact: Array<i32> = array![1, 2];
+    assert!(IVec2Trait::from_span(exact.span()) == v, "exactly N");
+    let mut out: Array<i32> = array![];
+    v.write_to(ref out);
+    assert!(out.len() == 2, "N elements appended");
+    assert!(IVec2Trait::from_span(out.span()) == v, "round trip");
+    v.write_to(ref out);
+    assert!(out.len() == 4, "write_to appends");
+}
+
+#[test]
+#[should_panic(expected: 'IVec2: span too short')]
+fn test_from_span_short() {
+    let short: Array<i32> = array![1];
+    let _ = IVec2Trait::from_span(short.span());
+}
+
+// panics: Ivec2::IVec2Sum
+#[test]
+#[should_panic(expected: 'i32_add Overflow')]
+fn test_sum_overflow() {
+    let _ = IVec2Sum::sum(array![IVec2Trait::MAX, IVec2Trait::MAX].into_iter());
+}
+
+// panics: Ivec2::IVec2Product
+#[test]
+#[should_panic(expected: 'i32_mul Overflow')]
+fn test_product_overflow() {
+    let _ = IVec2Product::product(array![IVec2Trait::MAX, IVec2Trait::MAX].into_iter());
+}
+
+#[test]
+fn test_map() {
+    let v = IVec2Trait::from_span(array![1, 2].span());
+    assert!(v.map(|x| x + x) == ivec2(2, 4), "map doubles");
+    let offset = 5;
+    assert!(v.map(|x| x + offset) == ivec2(6, 7), "map captures");
+}

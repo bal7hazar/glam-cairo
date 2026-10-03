@@ -5,7 +5,16 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Versioning pol
 
 ## [Unreleased]
 
-Nothing yet.
+### Added
+- `core::iter::Sum` / `core::iter::Product` impls (a left-to-right fold from `ZERO` / `ONE` /
+  `IDENTITY`) for the nine vectors, `Mat2/3/4` and `Quat` (both), and `Affine2` / `Affine3`
+  (`Product` only): 50 glam-rs items.
+- The slice entry points as `from_span` / `write_to` (vectors, `Quat`) and `from_cols_span` /
+  `from_rows_span` / `write_cols_to` (matrices, affines): 33 glam-rs items. `write_to` appends to
+  an `Array` where glam-rs overwrites the slice.
+- `map` of the vector types (see the pull request for the measured cost).
+- `glam_core` and `glam_int` enable the `associated_item_constraints` experimental feature, which
+  the signature of the core iterator traits needs.
 
 ## [0.4.1] - 2026-09-28
 
