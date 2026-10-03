@@ -5,9 +5,14 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Versioning pol
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-10-03
+
 MINOR (numeric results change): `Quat::to_axis_angle` and `Quat::to_scaled_axis` return a
 different axis for a vector part of length in `[2^-16, 2^-8)`; every other input gives the same
 result as 0.4.1.
+
+### Changed
+- All glam packages depend on `fixed` 0.5.0 (was ^0.4.0).
 
 ### Fixed
 - `Quat::to_axis_angle` / `to_scaled_axis`: a vector part shorter than `2^-8` is scaled by `2^16`
