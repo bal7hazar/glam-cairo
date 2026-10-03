@@ -5,7 +5,18 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Versioning pol
 
 ## [Unreleased]
 
-Nothing yet.
+MINOR (numeric results change): `Quat::to_axis_angle` and `Quat::to_scaled_axis` return a
+different axis for a vector part of length in `[2^-16, 2^-8)`; every other input gives the same
+result as 0.4.1.
+
+### Fixed
+- `Quat::to_axis_angle` / `to_scaled_axis`: a vector part shorter than `2^-8` is scaled by `2^16`
+  (exact) before it is normalized. The axis was `xyz / length` with the length floored to 1 ULP,
+  so `|axis|` was off by up to `1 ULP / length` (`1.5e-5` near `AXIS_EPS`). Near an angle of
+  `tau`, `from_scaled_axis(to_scaled_axis(q))` read that error back as an angle up to
+  `tau * 1.5e-5` too long, 87 000 raw away from `q` on the vector part (found by
+  `fuzz_axis_angle`, seed 403). `|axis|` is now within `2^-24` of one for every vector part.
+  Gas: `to_axis_angle` 41 610 -> 46 080, `to_scaled_axis` 48 680 -> 53 150 (`gas/quat.snap`).
 
 ## [0.4.1] - 2026-09-28
 
