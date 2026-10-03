@@ -96,6 +96,7 @@ bench_vec2::from_angle: 31300 243 62 0 0
 bench_vec2::from_bvec_false: 1000 10 0 0 0
 bench_vec2::from_bvec_true: 800 8 0 0 0
 bench_vec2::from_ivec2: 200 2 0 0 0
+bench_vec2::from_span: 1740 16 2 0 0
 bench_vec2::from_uvec2: 940 8 2 0 0
 bench_vec2::index_first: 510 5 0 0 0
 bench_vec2::index_last: 500 5 0 0 0
@@ -140,6 +141,7 @@ bench_vec2::normalize_or_zero: 7220 61 16 0 0
 bench_vec2::perp: 400 4 0 0 0
 bench_vec2::perp_dot: 1880 16 4 0 0
 bench_vec2::powf: 95260 681 162 0 0
+bench_vec2::product3: 17360 154 28 0 0
 bench_vec2::project_onto: 11320 97 22 0 0
 bench_vec2::project_onto_normalized: 6040 52 12 0 0
 bench_vec2::recip: 6570 57 10 0 0
@@ -178,8 +180,10 @@ bench_vec2::sub: 2480 22 4 0 0
 bench_vec2::sub_assign: 2480 22 4 0 0
 bench_vec2::sub_assign_scalar: 2480 22 4 0 0
 bench_vec2::sub_scalar: 2480 22 4 0 0
+bench_vec2::sum3: 10440 96 12 0 0
 bench_vec2::to_angle: 29630 215 46 0 0
 bench_vec2::trunc_neg: 4790 42 8 0 0
 bench_vec2::trunc_pos: 4790 42 8 0 0
 bench_vec2::try_normalize_none: 3250 29 5 0 0
 bench_vec2::try_normalize_some: 7120 60 16 0 0
+bench_vec2::write_to: 500 5 0 0 0

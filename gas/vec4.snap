@@ -89,6 +89,7 @@ bench_vec4::fract_pos: 8560 74 16 0 0
 bench_vec4::from_bvec_false: 2000 20 0 0 0
 bench_vec4::from_bvec_true: 1600 16 0 0 0
 bench_vec4::from_ivec4: 400 4 0 0 0
+bench_vec4::from_span: 4280 40 4 0 0
 bench_vec4::from_uvec4: 2680 24 4 0 0
 bench_vec4::index_first: 530 5 0 0 0
 bench_vec4::index_last: 900 9 0 0 0
@@ -131,6 +132,7 @@ bench_vec4::normalize_or_none: 4150 38 5 0 0
 bench_vec4::normalize_or_some: 10980 93 24 0 0
 bench_vec4::normalize_or_zero: 10980 93 24 0 0
 bench_vec4::powf: 191320 1371 324 0 0
+bench_vec4::product3: 30040 264 52 0 0
 bench_vec4::project: 7520 64 16 0 0
 bench_vec4::project_onto: 15480 133 30 0 0
 bench_vec4::project_onto_normalized: 9800 84 20 0 0
@@ -166,7 +168,9 @@ bench_vec4::sub: 4160 36 8 0 0
 bench_vec4::sub_assign: 4160 36 8 0 0
 bench_vec4::sub_assign_scalar: 4160 36 8 0 0
 bench_vec4::sub_scalar: 4160 36 8 0 0
+bench_vec4::sum3: 15400 140 20 0 0
 bench_vec4::trunc_neg: 8780 76 16 0 0
 bench_vec4::trunc_pos: 8780 76 16 0 0
 bench_vec4::try_normalize_none: 3850 35 5 0 0
 bench_vec4::try_normalize_some: 10680 90 24 0 0
+bench_vec4::write_to: 700 7 0 0 0
