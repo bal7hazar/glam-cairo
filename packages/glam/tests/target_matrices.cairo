@@ -1,3 +1,5 @@
+#[path("facade_method_form.cairo")]
+mod facade_method_form;
 #[path("golden_mat2.cairo")]
 mod golden_mat2;
 #[path("golden_mat3.cairo")]
