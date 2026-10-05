@@ -91,3 +91,17 @@ Stage 3 (glam, the facade) follows after these three are published: it depends o
 | `glam` | 0.5.0 | `b5bd10f69d4f3e7127dd28c6f96d0ff2164b5e5e` | `e7ff692eb6c33d81926abffe72df7fbda83d9daa232fe313ac3ae5b2d345521e` | srv1792539 (VPS), clean clone detached at b5bd10f, 2026-10-05T07:38Z, verification passed (62 files), peak RSS 1 272 900 KiB under the 8 GiB cap |
 
 After stage 3: the tag `v0.5.0` on b5bd10f and the GitHub release of glam-cairo.
+
+## Stage 3: published
+
+- `glam` 0.5.0 was published on 2026-10-05 by the orchestrator, by hand (`scarb publish -p glam`,
+  under `prlimit --as=8589934592`), from a clean clone detached at
+  `b5bd10f69d4f3e7127dd28c6f96d0ff2164b5e5e`, after the archive's SHA-256 matched the go. Go: the
+  project manager (slingfall).
+- Registry read-back: version 0.5.0, cksum
+  `sha256:e7ff692eb6c33d81926abffe72df7fbda83d9daa232fe313ac3ae5b2d345521e` (equal to the request),
+  depending on `glam_core`, `glam_int`, `glam_swizzles`, `glam_int_swizzles` `^0.5.0` and `fixed ^0.5.0`.
+- Tag: `v0.5.0` (annotated, on `b5bd10f`). Release:
+  https://github.com/bal7hazar/glam-cairo/releases/tag/v0.5.0.
+
+The glam 0.5.0 family is complete on the registry: glam_core, glam_int, glam_swizzles, glam_int_swizzles, glam.
