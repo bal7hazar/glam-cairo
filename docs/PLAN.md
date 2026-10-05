@@ -98,6 +98,40 @@ definition of done of `AGENTS.md`; and the report format. Agents read `AGENTS.md
 | bytecode growth from `inline(always)` + polynomial segments | track class size once a consumer contract exists (wave 5 audit) |
 | gas numbers shift with compiler releases | snapshots are per-toolchain; bumps are dedicated PRs |
 
+## Status (2026-10-05): PAUSED by the owner's decision
+
+The whole Slingfall programme is paused, libraries included: no new lot, thread, release or publication until the
+owner lifts it (`hp resume`). Nothing of this track is running.
+
+**Published (scarbs.xyz)**
+- `fixed` 0.5.0 (fixed-cairo `v0.5.0`, release commit `693ca3e`, PR #12): `ExpTrait::{sinh_cosh, asinh, acosh,
+  atanh}` (F8, PR #11); registry checksum `697d3e82…0fb9` read back equal to the go.
+- `glam_core` 0.5.0 (glam-cairo release commit `b5bd10f`, PR #69) on `fixed` 0.5.0: AP's 92 glam-rs items (Sum /
+  Product, `from_span` / `write_to`, `map`; PR #67), Q-AA's MINOR result change of `Quat::to_axis_angle` /
+  `to_scaled_axis` (PR #68); registry checksum `a5e6e486…5975` read back equal to the go. Record:
+  `docs/releases/glam-0.5.0.md`.
+
+**Merged, not released**
+- fixed-cairo `main`: FS (PR #15), `narrow32` is at the Scarb 2.20 libfunc floor (no reformulation wins);
+  `norm{2,3,4}_squared` / `distance{2,3,4}_squared` drop the sign bias (-1 step each, `distance4_squared` -9). Its
+  CHANGELOG entry is still to add with the next fixed lot. D1 (PR #10): `gen_trig.py check` reproducible.
+- All three repositories: the pre-push check and hook, path-gated CI, PR-only cancel-in-progress, retries of the
+  scarb and snforge downloads.
+
+**Stopped by the pause (not published)**
+- glam 0.5 family, stage 2: `glam_int`, `glam_swizzles`, `glam_int_swizzles` 0.5.0. Their archives were built from
+  `b5bd10f` and their SHA-256 are in `docs/releases/glam-0.5.0.md` (PR #72); the request was not sent for a go.
+- Stage 3: the `glam` facade 0.5.0, which depends on stage 2.
+- `glamx` 0.5.0 on `glam_core` 0.5.0: not prepared.
+
+**Next lots, when the pause is lifted**
+1. Stage 2 then stage 3 of the glam 0.5 family (go, publish in dependency order, read-back), then the tag `v0.5.0`
+   and the GitHub release of glam-cairo.
+2. `glamx` 0.5.0 on `glam_core` 0.5.0 (release PR, request, go, publish).
+3. The next `fixed` release when it has a reason (FS's sum-of-squares wins; its CHANGELOG entry).
+4. Backlog on request: P2 (parked on the parry-split decision); small review notes kept in the orchestrator's task
+   list (golden filter widening, wretry on Node 20, a `reconcile` self-test, two stale `fixed 0.3.0` mentions).
+
 ## Status (2026-10-02)
 
 The track runs as the herdr project `slingfall-glam` (coordinator plus threads, see
