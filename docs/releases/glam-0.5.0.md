@@ -71,3 +71,23 @@ SHA-256 `a5e6e4863acfc4be492e06f8f965a16982b8a8975a5179a903d64092a9f05975`.
 | `glam_int_swizzles` | 0.5.0 | `b5bd10f69d4f3e7127dd28c6f96d0ff2164b5e5e` | `f9886ae154bb9e267888353e84dfedc097c48c02bbe863e59bd1fffa9d0d65bf` | same, peak 1 151 936 KiB |
 
 Stage 3 (glam, the facade) follows after these three are published: it depends on them.
+
+## Stage 2: published
+
+- `glam_int`, `glam_swizzles`, `glam_int_swizzles` 0.5.0 were published on 2026-10-05, in that
+  order, by the orchestrator, by hand (`scarb publish -p <name>`, under `prlimit --as=8589934592`),
+  from a clean clone detached at `b5bd10f69d4f3e7127dd28c6f96d0ff2164b5e5e`, after each archive's
+  SHA-256 matched the go. Go: the project manager (slingfall), three rows.
+- Registry read-back (scarbs.xyz index), each equal to the request, each depending on
+  `glam_core ^0.5.0` and `fixed ^0.5.0`:
+  `glam_int` `sha256:b8067667ba5985bbf53d43b7bbf80a09c5b205c1abae5722af5d97082495a0bc`;
+  `glam_swizzles` `sha256:54389e759f14c0fd59ececd829387f703488cdf72c383592f3671b63d0eabd79`;
+  `glam_int_swizzles` `sha256:f9886ae154bb9e267888353e84dfedc097c48c02bbe863e59bd1fffa9d0d65bf`.
+
+## Stage 3: request
+
+| Package | Version | Commit | SHA-256 | Built on |
+|---|---|---|---|---|
+| `glam` | 0.5.0 | `b5bd10f69d4f3e7127dd28c6f96d0ff2164b5e5e` | `e7ff692eb6c33d81926abffe72df7fbda83d9daa232fe313ac3ae5b2d345521e` | srv1792539 (VPS), clean clone detached at b5bd10f, 2026-10-05T07:38Z, verification passed (62 files), peak RSS 1 272 900 KiB under the 8 GiB cap |
+
+After stage 3: the tag `v0.5.0` on b5bd10f and the GitHub release of glam-cairo.
