@@ -98,6 +98,38 @@ definition of done of `AGENTS.md`; and the report format. Agents read `AGENTS.md
 | bytecode growth from `inline(always)` + polynomial segments | track class size once a consumer contract exists (wave 5 audit) |
 | gas numbers shift with compiler releases | snapshots are per-toolchain; bumps are dedicated PRs |
 
+## Status (2026-10-05, final): planned versions published; the track is idle
+
+The owner reopened the track on 2026-10-05 only to finish the planned versions. They are all on scarbs.xyz, each
+published by hand on the project manager's go, from a clean checkout detached at its release commit, with the
+archive SHA-256 equal to the go and the registry checksum read back equal:
+
+| Package | Version | Release commit | Registry checksum (sha256) | Record |
+|---|---|---|---|---|
+| `fixed` | 0.5.0 | fixed-cairo `693ca3e` | `697d3e82…0fb9` | fixed-cairo `docs/releases/fixed-0.5.0.md` |
+| `glam_core` | 0.5.0 | glam-cairo `b5bd10f` | `a5e6e486…5975` | glam-cairo `docs/releases/glam-0.5.0.md` |
+| `glam_int` | 0.5.0 | glam-cairo `b5bd10f` | `b8067667…a0bc` | same |
+| `glam_swizzles` | 0.5.0 | glam-cairo `b5bd10f` | `54389e75…bd79` | same |
+| `glam_int_swizzles` | 0.5.0 | glam-cairo `b5bd10f` | `f9886ae1…65bf` | same |
+| `glam` | 0.5.0 | glam-cairo `b5bd10f` | `e7ff692e…521e` | same |
+| `glamx` | 0.5.0 | glamx-cairo `43aecc5` | `32eada7e…4585` | glamx-cairo `docs/releases/glamx-0.5.0.md` |
+
+Tags and releases: fixed-cairo, glam-cairo and glamx-cairo `v0.5.0`.
+
+What the 0.5.0 line carries: `fixed` adds `ExpTrait::{sinh_cosh, asinh, acosh, atanh}` (pure addition). The glam
+family moves to `fixed` 0.5.0, adds AP's 92 glam-rs items (`Sum` / `Product`, `from_span` / `write_to`, `map`),
+and has one MINOR result change (`Quat::to_axis_angle` / `to_scaled_axis` for a vector part of length in
+`[2^-16, 2^-8)`, fixed by Q-AA); `glamx` 0.5.0 moves to `glam_core` 0.5.0 and inherits that change through `Rot3`.
+
+**Merged, not released**: fixed-cairo `main` holds FS (PR #15: `norm{2,3,4}_squared` / `distance{2,3,4}_squared`
+-1 step each, `distance4_squared` -9; `narrow32` is at the Scarb 2.20 libfunc floor). Its CHANGELOG entry and a
+release wait for the next `fixed` lot that has a reason.
+
+**Idle**: no lot is open. The programme is paused apart from this finish. When it resumes, the candidates are: the
+next `fixed` release (FS's wins), P2 (parked on the parry-split decision), and the small review notes kept in the
+orchestrator's task list (golden filter widening, wretry on Node 20, a `reconcile` self-test, two stale
+`fixed 0.3.0` mentions in AGENTS.md and DESIGN.md).
+
 ## Status (2026-10-05): PAUSED by the owner's decision
 
 The whole Slingfall programme is paused, libraries included: no new lot, thread, release or publication until the
