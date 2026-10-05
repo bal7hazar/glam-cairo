@@ -1,8 +1,9 @@
-# Request to publish the glam family 0.5.0
+# glam 0.5.0 family: release record
 
-Written by the orchestrator thread t-0081 of the glam track. Nothing is published, tagged or
-released by this document: it asks the project manager for a go naming package, version, commit
-and archive SHA-256.
+Written by the orchestrator thread t-0081 of the glam track. The five packages were requested,
+published in three stages (`glam_core`; `glam_int`, `glam_swizzles`, `glam_int_swizzles`; `glam`),
+tagged `v0.5.0` and released. The requests, each naming package, version, commit and archive
+SHA-256, are kept below as they were.
 
 Release commit: `b5bd10f69d4f3e7127dd28c6f96d0ff2164b5e5e` (main, PR #69, "glam 0.5.0 on fixed
 0.5.0"). Every archive was built with `scarb package -p <name>` from a clean checkout whose HEAD
