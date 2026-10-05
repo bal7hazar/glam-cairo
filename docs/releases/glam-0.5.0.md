@@ -51,3 +51,23 @@ commit in a follow-up to this request.
 
 Package `glam_core`, version 0.5.0, commit `b5bd10f69d4f3e7127dd28c6f96d0ff2164b5e5e`, archive
 SHA-256 `a5e6e4863acfc4be492e06f8f965a16982b8a8975a5179a903d64092a9f05975`.
+
+## Stage 1: published
+
+- `glam_core` 0.5.0 was published on 2026-10-05 by the orchestrator, by hand (`scarb publish -p
+  glam_core`, under `prlimit --as=8589934592`), from a clean clone detached at
+  `b5bd10f69d4f3e7127dd28c6f96d0ff2164b5e5e`, after the archive SHA-256 matched the go. Go: the
+  project manager (slingfall).
+- Registry read-back: scarbs.xyz index, version 0.5.0, cksum
+  `sha256:a5e6e4863acfc4be492e06f8f965a16982b8a8975a5179a903d64092a9f05975` (equal to the request),
+  dependency `fixed ^0.5.0`.
+
+## Stage 2: request
+
+| Package | Version | Commit | SHA-256 | Built on |
+|---|---|---|---|---|
+| `glam_int` | 0.5.0 | `b5bd10f69d4f3e7127dd28c6f96d0ff2164b5e5e` | `b8067667ba5985bbf53d43b7bbf80a09c5b205c1abae5722af5d97082495a0bc` | srv1792539 (VPS), clean clone detached at b5bd10f, 2026-10-05T07:17Z, verification passed, peak RSS 1 162 172 KiB under the 8 GiB cap |
+| `glam_swizzles` | 0.5.0 | `b5bd10f69d4f3e7127dd28c6f96d0ff2164b5e5e` | `54389e759f14c0fd59ececd829387f703488cdf72c383592f3671b63d0eabd79` | same, peak 1 094 636 KiB |
+| `glam_int_swizzles` | 0.5.0 | `b5bd10f69d4f3e7127dd28c6f96d0ff2164b5e5e` | `f9886ae154bb9e267888353e84dfedc097c48c02bbe863e59bd1fffa9d0d65bf` | same, peak 1 151 936 KiB |
+
+Stage 3 (glam, the facade) follows after these three are published: it depends on them.
