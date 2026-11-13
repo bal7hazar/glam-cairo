@@ -45,7 +45,7 @@ Type mapping from glam-rs (one scalar, so the f32/f64/SIMD/aligned variants coll
 
 The scalar is owned by [`fixed-cairo`](https://github.com/bal7hazar/fixed-cairo), whose
 `docs/DESIGN.md` is the reference for its format, rounding, overflow, kernels and
-transcendentals; `glam` depends on the published `fixed = "0.3.0"`. What `glam` relies on:
+transcendentals; `glam` depends on the published `fixed = "0.5.0"`. What `glam` relies on:
 
 - `Fixed { raw: i64 }`, signed Q32.32 (`value = raw / 2^32`), one felt per value, `Copy`,
   `Serde`, `Hash`, `Default`. There is no generic scalar: every type is written against `Fixed`.
